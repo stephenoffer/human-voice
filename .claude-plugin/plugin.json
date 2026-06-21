@@ -1,0 +1,10 @@
+{
+  "name": "human-voice",
+  "description": "Rewrite or generate prose so it does not read as AI-written, without altering facts, numbers, code, or citations.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Stephen Offer"
+  },
+  "homepage": "https://github.com/stephenoffer/human-voice",
+  "license": "MIT"
+}

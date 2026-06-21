@@ -1,0 +1,22 @@
+{
+  "name": "human-voice",
+  "owner": {
+    "name": "Stephen Offer"
+  },
+  "metadata": {
+    "description": "De-AI-ify reports and docs so prose reads as written by a skilled human."
+  },
+  "plugins": [
+    {
+      "name": "human-voice",
+      "source": "./",
+      "description": "Rewrite or generate prose so it does not read as AI-written: removes hedging, em-dash overuse, filler, rule-of-three padding, bold-bullet listicles, meta-commentary, and vacuity without altering facts, numbers, code, or citations.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Stephen Offer"
+      },
+      "homepage": "https://github.com/stephenoffer/human-voice",
+      "license": "MIT"
+    }
+  ]
+}
