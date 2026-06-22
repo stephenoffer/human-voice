@@ -1,0 +1,276 @@
+{
+  "baseline_auc": 1.0,
+  "baseline_best_f1_acc": 1.0,
+  "rows": [
+    {
+      "category": "filler",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.2455
+    },
+    {
+      "category": "bold_bullets",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.2446
+    },
+    {
+      "category": "meta_commentary",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.1618
+    },
+    {
+      "category": "rule_of_three",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.1046
+    },
+    {
+      "category": "jargon",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0588
+    },
+    {
+      "category": "burstiness",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0524
+    },
+    {
+      "category": "puffery",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0317
+    },
+    {
+      "category": "em_dash",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0312
+    },
+    {
+      "category": "vague_attribution",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0229
+    },
+    {
+      "category": "paragraph_uniformity",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0158
+    },
+    {
+      "category": "antithesis",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0075
+    },
+    {
+      "category": "redundancy",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0055
+    },
+    {
+      "category": "ngram_repetition",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0052
+    },
+    {
+      "category": "list_uniformity",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.005
+    },
+    {
+      "category": "transitions",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.005
+    },
+    {
+      "category": "nominalization",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0025
+    },
+    {
+      "category": "adverbs",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "chatbot_scaffold",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "circular_conclusion",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "colon_summary",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "dialect",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "formatting",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "heading_case",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "hedging",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "lexical_diversity",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "parallel_structure",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "passive_voice",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "rhetorical",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "self_identifying",
+      "weight": 4.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "uniform_openers",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    }
+  ]
+}

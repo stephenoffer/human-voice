@@ -2,6 +2,17 @@
   "name": "human-voice",
   "description": "Rewrite or generate prose so it does not read as AI-written, without altering facts, numbers, code, or citations.",
   "version": "0.1.0",
+  "keywords": [
+    "writing",
+    "editing",
+    "prose",
+    "linting",
+    "ai-detection",
+    "humanize",
+    "style",
+    "documentation"
+  ],
+  "categories": ["writing", "productivity"],
   "author": {
     "name": "Stephen Offer"
   },

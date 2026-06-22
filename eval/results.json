@@ -1,0 +1,503 @@
+{
+  "corpus_size": 24,
+  "n_human": 12,
+  "n_ai": 12,
+  "roc_auc": 1.0,
+  "default_threshold": 5.0,
+  "default": {
+    "precision": 0.75,
+    "recall": 1.0,
+    "f1": 0.8571,
+    "accuracy": 0.8333,
+    "human_subset_false_positive_rate": 0.3333,
+    "confusion": {
+      "tp": 12,
+      "fp": 4,
+      "tn": 8,
+      "fn": 0
+    }
+  },
+  "best_threshold": 40.65,
+  "best": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "accuracy": 1.0,
+    "human_subset_false_positive_rate": 0.0,
+    "confusion": {
+      "tp": 12,
+      "fp": 0,
+      "tn": 12,
+      "fn": 0
+    }
+  },
+  "sweep": [
+    {
+      "threshold": 0.0,
+      "f1": 0.6667,
+      "precision": 0.5,
+      "recall": 1.0,
+      "accuracy": 0.5,
+      "human_fpr": 1.0
+    },
+    {
+      "threshold": 3.4,
+      "f1": 0.8571,
+      "precision": 0.75,
+      "recall": 1.0,
+      "accuracy": 0.8333,
+      "human_fpr": 0.3333
+    },
+    {
+      "threshold": 6.8,
+      "f1": 0.8571,
+      "precision": 0.75,
+      "recall": 1.0,
+      "accuracy": 0.8333,
+      "human_fpr": 0.3333
+    },
+    {
+      "threshold": 6.9,
+      "f1": 0.8889,
+      "precision": 0.8,
+      "recall": 1.0,
+      "accuracy": 0.875,
+      "human_fpr": 0.25
+    },
+    {
+      "threshold": 7.0,
+      "f1": 0.8889,
+      "precision": 0.8,
+      "recall": 1.0,
+      "accuracy": 0.875,
+      "human_fpr": 0.25
+    },
+    {
+      "threshold": 7.3,
+      "f1": 0.9231,
+      "precision": 0.8571,
+      "recall": 1.0,
+      "accuracy": 0.9167,
+      "human_fpr": 0.1667
+    },
+    {
+      "threshold": 7.6,
+      "f1": 0.9231,
+      "precision": 0.8571,
+      "recall": 1.0,
+      "accuracy": 0.9167,
+      "human_fpr": 0.1667
+    },
+    {
+      "threshold": 16.5,
+      "f1": 0.96,
+      "precision": 0.9231,
+      "recall": 1.0,
+      "accuracy": 0.9583,
+      "human_fpr": 0.0833
+    },
+    {
+      "threshold": 25.4,
+      "f1": 0.96,
+      "precision": 0.9231,
+      "recall": 1.0,
+      "accuracy": 0.9583,
+      "human_fpr": 0.0833
+    },
+    {
+      "threshold": 40.65,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "accuracy": 1.0,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 55.9,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "accuracy": 1.0,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 60.85,
+      "f1": 0.9565,
+      "precision": 1.0,
+      "recall": 0.9167,
+      "accuracy": 0.9583,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 65.8,
+      "f1": 0.9565,
+      "precision": 1.0,
+      "recall": 0.9167,
+      "accuracy": 0.9583,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 74.3,
+      "f1": 0.9091,
+      "precision": 1.0,
+      "recall": 0.8333,
+      "accuracy": 0.9167,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 82.8,
+      "f1": 0.9091,
+      "precision": 1.0,
+      "recall": 0.8333,
+      "accuracy": 0.9167,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 87.45,
+      "f1": 0.8571,
+      "precision": 1.0,
+      "recall": 0.75,
+      "accuracy": 0.875,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 92.1,
+      "f1": 0.8571,
+      "precision": 1.0,
+      "recall": 0.75,
+      "accuracy": 0.875,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 92.6,
+      "f1": 0.8,
+      "precision": 1.0,
+      "recall": 0.6667,
+      "accuracy": 0.8333,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 93.1,
+      "f1": 0.8,
+      "precision": 1.0,
+      "recall": 0.6667,
+      "accuracy": 0.8333,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 96.9,
+      "f1": 0.7368,
+      "precision": 1.0,
+      "recall": 0.5833,
+      "accuracy": 0.7917,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 100.7,
+      "f1": 0.7368,
+      "precision": 1.0,
+      "recall": 0.5833,
+      "accuracy": 0.7917,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 103.55,
+      "f1": 0.6667,
+      "precision": 1.0,
+      "recall": 0.5,
+      "accuracy": 0.75,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 106.4,
+      "f1": 0.6667,
+      "precision": 1.0,
+      "recall": 0.5,
+      "accuracy": 0.75,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 107.0,
+      "f1": 0.5882,
+      "precision": 1.0,
+      "recall": 0.4167,
+      "accuracy": 0.7083,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 107.6,
+      "f1": 0.5882,
+      "precision": 1.0,
+      "recall": 0.4167,
+      "accuracy": 0.7083,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 109.55,
+      "f1": 0.5,
+      "precision": 1.0,
+      "recall": 0.3333,
+      "accuracy": 0.6667,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 111.5,
+      "f1": 0.5,
+      "precision": 1.0,
+      "recall": 0.3333,
+      "accuracy": 0.6667,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 127.9,
+      "f1": 0.4,
+      "precision": 1.0,
+      "recall": 0.25,
+      "accuracy": 0.625,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 144.3,
+      "f1": 0.4,
+      "precision": 1.0,
+      "recall": 0.25,
+      "accuracy": 0.625,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 146.8,
+      "f1": 0.2857,
+      "precision": 1.0,
+      "recall": 0.1667,
+      "accuracy": 0.5833,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 149.3,
+      "f1": 0.2857,
+      "precision": 1.0,
+      "recall": 0.1667,
+      "accuracy": 0.5833,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 187.8,
+      "f1": 0.1538,
+      "precision": 1.0,
+      "recall": 0.0833,
+      "accuracy": 0.5417,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 226.3,
+      "f1": 0.1538,
+      "precision": 1.0,
+      "recall": 0.0833,
+      "accuracy": 0.5417,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 226.4,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "accuracy": 0.5,
+      "human_fpr": 0.0
+    }
+  ],
+  "records": [
+    {
+      "file": "ai/a01_marketing_landing.md",
+      "label": "ai",
+      "register": "marketing",
+      "score": 226.3,
+      "verdict": "strong-tell",
+      "words": 137
+    },
+    {
+      "file": "ai/a02_technical_overview.md",
+      "label": "ai",
+      "register": "technical",
+      "score": 144.3,
+      "verdict": "strong-tell",
+      "words": 149
+    },
+    {
+      "file": "ai/a03_blog_productivity.md",
+      "label": "ai",
+      "register": "casual",
+      "score": 65.8,
+      "verdict": "strong-tell",
+      "words": 152
+    },
+    {
+      "file": "ai/a04_email_outreach.md",
+      "label": "ai",
+      "register": "email",
+      "score": 111.5,
+      "verdict": "strong-tell",
+      "words": 148
+    },
+    {
+      "file": "ai/a05_academic_essay.md",
+      "label": "ai",
+      "register": "academic",
+      "score": 106.4,
+      "verdict": "strong-tell",
+      "words": 141
+    },
+    {
+      "file": "ai/a06_casual_listicle.md",
+      "label": "ai",
+      "register": "casual",
+      "score": 82.8,
+      "verdict": "strong-tell",
+      "words": 151
+    },
+    {
+      "file": "ai/a07_business_report.md",
+      "label": "ai",
+      "register": "business",
+      "score": 149.3,
+      "verdict": "strong-tell",
+      "words": 134
+    },
+    {
+      "file": "ai/a08_technical_tutorial.md",
+      "label": "ai",
+      "register": "technical",
+      "score": 100.7,
+      "verdict": "strong-tell",
+      "words": 149
+    },
+    {
+      "file": "ai/a09_marketing_email.md",
+      "label": "ai",
+      "register": "marketing",
+      "score": 93.1,
+      "verdict": "strong-tell",
+      "words": 145
+    },
+    {
+      "file": "ai/a10_academic_intro.md",
+      "label": "ai",
+      "register": "academic",
+      "score": 107.6,
+      "verdict": "strong-tell",
+      "words": 144
+    },
+    {
+      "file": "ai/a11_business_proposal.md",
+      "label": "ai",
+      "register": "business",
+      "score": 92.1,
+      "verdict": "strong-tell",
+      "words": 152
+    },
+    {
+      "file": "ai/a12_blog_finance.md",
+      "label": "ai",
+      "register": "casual",
+      "score": 55.9,
+      "verdict": "strong-tell",
+      "words": 152
+    },
+    {
+      "file": "human/h01_technical_postmortem.md",
+      "label": "human",
+      "register": "technical",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 133
+    },
+    {
+      "file": "human/h02_marketing_landing.md",
+      "label": "human",
+      "register": "marketing",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 124
+    },
+    {
+      "file": "human/h03_casual_blog.md",
+      "label": "human",
+      "register": "casual",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 127
+    },
+    {
+      "file": "human/h04_academic_abstract.md",
+      "label": "human",
+      "register": "academic",
+      "score": 25.4,
+      "verdict": "strong-tell",
+      "words": 118
+    },
+    {
+      "file": "human/h05_email_update.md",
+      "label": "human",
+      "register": "email",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 121
+    },
+    {
+      "file": "human/h06_technical_readme.md",
+      "label": "human",
+      "register": "technical",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 137
+    },
+    {
+      "file": "human/h07_casual_review.md",
+      "label": "human",
+      "register": "casual",
+      "score": 7.6,
+      "verdict": "watch",
+      "words": 132
+    },
+    {
+      "file": "human/h08_academic_argument.md",
+      "label": "human",
+      "register": "academic",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 141
+    },
+    {
+      "file": "human/h09_email_pitch.md",
+      "label": "human",
+      "register": "email",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 144
+    },
+    {
+      "file": "human/h10_technical_decision.md",
+      "label": "human",
+      "register": "technical",
+      "score": 7.0,
+      "verdict": "watch",
+      "words": 143
+    },
+    {
+      "file": "human/h11_marketing_announcement.md",
+      "label": "human",
+      "register": "marketing",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 139
+    },
+    {
+      "file": "human/h12_casual_story.md",
+      "label": "human",
+      "register": "casual",
+      "score": 6.8,
+      "verdict": "watch",
+      "words": 148
+    }
+  ],
+  "_note": "Authored synthetic calibration corpus; measures internal separation/calibration, not real-world accuracy. Linter is a floor."
+}

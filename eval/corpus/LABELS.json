@@ -1,0 +1,46 @@
+{
+  "_README": [
+    "AUTHORED SYNTHETIC CALIBRATION CORPUS -- not external canon.",
+    "Every sample in human/ and ai/ was written by hand for this eval to be",
+    "representative of its class. No copyrighted text was copied. The 'human'",
+    "samples are deliberately written in a genuine human voice (varied rhythm,",
+    "real stance, concrete detail). The 'ai' samples are deliberately loaded",
+    "with the classic AI-slop signature (filler, rule-of-three, bold-bullet",
+    "listicles, hedging, puffery, meta-commentary, uniform rhythm).",
+    "",
+    "Because the samples were authored to exhibit (or avoid) exactly the tells",
+    "the linter looks for, this corpus measures internal consistency and",
+    "calibration -- NOT real-world detection accuracy on text in the wild.",
+    "Treat the numbers as a floor sanity check, not a benchmark. See eval/EVAL.md.",
+    "",
+    "register values match the linter's --register choices where applicable",
+    "(technical, business, marketing, academic, casual, email)."
+  ],
+  "labels": {
+    "human/h01_technical_postmortem.md":   {"label": "human", "register": "technical"},
+    "human/h02_marketing_landing.md":      {"label": "human", "register": "marketing"},
+    "human/h03_casual_blog.md":            {"label": "human", "register": "casual"},
+    "human/h04_academic_abstract.md":      {"label": "human", "register": "academic"},
+    "human/h05_email_update.md":           {"label": "human", "register": "email"},
+    "human/h06_technical_readme.md":       {"label": "human", "register": "technical"},
+    "human/h07_casual_review.md":          {"label": "human", "register": "casual"},
+    "human/h08_academic_argument.md":      {"label": "human", "register": "academic"},
+    "human/h09_email_pitch.md":            {"label": "human", "register": "email"},
+    "human/h10_technical_decision.md":     {"label": "human", "register": "technical"},
+    "human/h11_marketing_announcement.md": {"label": "human", "register": "marketing"},
+    "human/h12_casual_story.md":           {"label": "human", "register": "casual"},
+
+    "ai/a01_marketing_landing.md":         {"label": "ai", "register": "marketing"},
+    "ai/a02_technical_overview.md":        {"label": "ai", "register": "technical"},
+    "ai/a03_blog_productivity.md":         {"label": "ai", "register": "casual"},
+    "ai/a04_email_outreach.md":            {"label": "ai", "register": "email"},
+    "ai/a05_academic_essay.md":            {"label": "ai", "register": "academic"},
+    "ai/a06_casual_listicle.md":           {"label": "ai", "register": "casual"},
+    "ai/a07_business_report.md":           {"label": "ai", "register": "business"},
+    "ai/a08_technical_tutorial.md":        {"label": "ai", "register": "technical"},
+    "ai/a09_marketing_email.md":           {"label": "ai", "register": "marketing"},
+    "ai/a10_academic_intro.md":            {"label": "ai", "register": "academic"},
+    "ai/a11_business_proposal.md":         {"label": "ai", "register": "business"},
+    "ai/a12_blog_finance.md":              {"label": "ai", "register": "casual"}
+  }
+}

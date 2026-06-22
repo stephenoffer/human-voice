@@ -211,6 +211,151 @@ h_clean, rep_clean, _, sc_clean = run_analyze("lex_clean", clean)
 check("clean_low_score", sc_clean < 15.0, "clean text scored %.1f" % sc_clean)
 
 # ---------------------------------------------------------------------------
+# 4b. False-positive regressions + new tells (HV-015/016/017/018, HV-065/066)
+# Each known false-positive class has a negative case (must stay quiet) paired
+# with a positive case (the real tell must still fire).
+# ---------------------------------------------------------------------------
+# proper-noun triad must NOT fire rule_of_three; adjective triad must
+h_pn, _, _, _ = run_analyze("fp_proper_noun_triad", "We shipped with Python, Django, and Flask in production this year here.")
+check("fp_proper_noun_no_rule3", "rule_of_three" not in cats(h_pn))
+h_adj, _, _, _ = run_analyze("tp_adjective_triad", "The system is fast, reliable, and scalable across every workload here.")
+check("tp_adjective_rule3", "rule_of_three" in cats(h_adj))
+
+# numeric en-dash range must NOT count as em-dash; real em-dash overuse must
+h_rng, _, _, _ = run_analyze("fp_numeric_range", "Revenue rose across 2024–2025, 2025–2026, and 2026–2027 in our books.")
+check("fp_range_no_emdash", "em_dash" not in cats(h_rng))
+h_emd, _, _, _ = run_analyze("tp_emdash", "We won—again—and then—surprisingly—we won—once more—decisively—too here.")
+check("tp_emdash_fires", "em_dash" in cats(h_emd))
+
+# dialect must skip code identifiers but catch prose drift
+h_id, _, _, _ = run_analyze("fp_dialect_identifier", "Call analyse() and read Color.RED from OPTIMISE_FLAGS in the module here.", dialect="american")
+check("fp_dialect_identifier_quiet", "dialect" not in cats(h_id))
+h_drift, _, _, _ = run_analyze("tp_dialect_prose", "We optimised the colour and analysed the behaviour whilst organising it.", dialect="american")
+check("tp_dialect_prose_fires", "dialect" in cats(h_drift))
+
+# context exception protects a legitimate fixed phrase; bare uses still flag
+h_ex, _, _, _ = run_analyze("fp_context_exception", "We built a test harness and watched the vital signs in landscape mode here.")
+check("fp_context_exception_quiet",
+      not any(h.category == "filler" and h.text.lower() in ("harness", "vital", "landscape") for h in h_ex))
+h_filler, _, _, _ = run_analyze("tp_filler_bare", "We must harness the landscape and use the vital realm of the tapestry here.")
+check("tp_filler_bare_fires", "filler" in cats(h_filler))
+
+# chatbot scaffolding fires as its own category
+h_cb, _, _, _ = run_analyze("tp_chatbot", "Sure! Here's the thing. Great question — let me explain. Hope this helps!")
+check("tp_chatbot_fires", "chatbot_scaffold" in cats(h_cb))
+
+# ---------------------------------------------------------------------------
+# 4c. Scoring model: weights, bands, threshold sensitivity (HV-037/038/129/131)
+# ---------------------------------------------------------------------------
+check("band_clean", dap.verdict_band(2.0, dap.DEFAULT_BANDS) == "clean")
+check("band_watch", dap.verdict_band(9.0, dap.DEFAULT_BANDS) == "watch")
+check("band_strong", dap.verdict_band(99.0, dap.DEFAULT_BANDS) == "strong-tell")
+# bands resolved from the shipped patterns file behave the same
+check("band_from_patterns", dap.verdict_band(99.0, dap.resolve_bands(PAT)) == "strong-tell")
+
+w = dap.resolve_weights(PAT)
+check("weights_self_id_high", w.get("self_identifying", 0) > w.get("filler", 0))
+check("weights_fallback_default", dap.resolve_weights({}).get("burstiness") == dap.CATEGORY_WEIGHTS["burstiness"])
+# weight ordering: one self_identifying hit outscores one filler hit
+sc_self = dap.score([dap.Hit("self_identifying", 1, "x")], 100, w)
+sc_fill = dap.score([dap.Hit("filler", 1, "x")], 100, w)
+check("weight_ordering", sc_self > sc_fill)
+# adding a tell raises the score (monotonic)
+check("score_monotonic", dap.score([dap.Hit("filler", 1, "x")] * 3, 100, w) > sc_fill)
+
+# threshold sensitivity: an absurdly high burstiness floor makes even varied prose fire
+pat_hi = json.loads(json.dumps(PAT))
+pat_hi.setdefault("thresholds", {})["burstiness_cov_floor"] = 5.0
+varied = ("Short. This sentence is considerably longer and carries far more clauses "
+          "than the first one does here today. Tiny. Another long stretch of words "
+          "that deliberately runs on for a while to vary the cadence quite a lot. "
+          "Brief again. And one final long clause to push the sentence count well "
+          "past the five-sentence minimum the burstiness check needs to run here.")
+h_thr, _, _ = dap.analyze(varied, "technical", None, pat_hi)
+check("threshold_sensitivity", "burstiness" in {h.category for h in h_thr})
+
+# ---------------------------------------------------------------------------
+# 4d. New structural / density checks (HV-002/003/005/006/009/010/011)
+# ---------------------------------------------------------------------------
+# parallel structure: 3+ sentences sharing their opening two words
+h_par, _, _, _ = run_analyze("tp_parallel",
+    "The system handles ingestion. The system handles indexing. The system handles queries.")
+check("tp_parallel_fires", "parallel_structure" in cats(h_par))
+
+# colon-summary reflex
+h_col, _, _, _ = run_analyze("tp_colon",
+    "The key takeaway is: speed. The bottom line is: cost. The answer is: scale here.")
+check("tp_colon_fires", "colon_summary" in cats(h_col))
+
+# paragraph + list uniformity on perfectly even blocks
+h_pu, _, _, _ = run_analyze("tp_para_uniform", "\n\n".join(["This paragraph holds exactly six words."] * 5))
+check("tp_para_uniform_fires", "paragraph_uniformity" in cats(h_pu))
+h_lu, _, _, _ = run_analyze("tp_list_uniform", "\n".join(["- item with five words here"] * 6))
+check("tp_list_uniform_fires", "list_uniformity" in cats(h_lu))
+
+# paired em-dash asides fire even below the density floor
+h_pd, _, _, _ = run_analyze("tp_paired_dash",
+    "We shipped it—finally—after review. The result—surprisingly—held up well in practice.")
+check("tp_paired_dash_fires", "em_dash" in cats(h_pd))
+
+# passive/adverb density fire on a heavy sample (>150 words) but not on clean prose
+heavy = ("The report was written by the team and was reviewed carefully. The data was collected "
+         "slowly and was analyzed thoroughly. The results were shown clearly and were presented "
+         "formally. ") * 6
+h_pv, _, _, _ = run_analyze("tp_passive", heavy)
+check("tp_passive_fires", "passive_voice" in cats(h_pv))
+check("tp_adverb_fires", "adverbs" in cats(h_pv))
+# academic register mutes passive voice; technical keeps it
+h_pv_ac, _, _, _ = run_analyze("tp_passive_academic", heavy, register="academic")
+check("academic_mutes_passive", "passive_voice" not in cats(h_pv_ac))
+
+# rhetorical-question density: muted for marketing, kept for technical
+rhet = ("Why does this matter to your team? What happens when traffic spikes hard? "
+        "How do you know it scales well? Where does the bottleneck actually live here? "
+        "When should you reach for a queue? Which store fits a write-heavy load best? ") * 5
+h_rh_tech, _, _, _ = run_analyze("tp_rhetorical_tech", rhet)
+h_rh_mkt, _, _, _ = run_analyze("tp_rhetorical_mkt", rhet, register="marketing")
+check("technical_keeps_rhetorical", "rhetorical" in cats(h_rh_tech))
+check("marketing_mutes_rhetorical", "rhetorical" not in cats(h_rh_mkt))
+
+# tiny-doc guard: density checks stay silent under the minimum word floor
+h_tiny, _, _, _ = run_analyze("fp_tiny_doc", "It was written slowly. It was read slowly here.")
+check("tiny_doc_no_density", not ({"passive_voice", "adverbs", "rhetorical"} & cats(h_tiny)))
+
+# ---------------------------------------------------------------------------
+# 4e. B2 refinements: cited attribution, Oxford-less triad, wordiness, metrics
+# ---------------------------------------------------------------------------
+# vague attribution that is immediately sourced must NOT flag; bare must
+h_cite, _, _, _ = run_analyze("fp_cited_attribution",
+    "Studies show [1] that latency dominates. Research suggests (Smith 2024) the same here.")
+check("fp_cited_attribution_quiet", "vague_attribution" not in cats(h_cite))
+h_bare, _, _, _ = run_analyze("tp_bare_attribution",
+    "Studies show that latency dominates. Research suggests the very same thing here today.")
+check("tp_bare_attribution_fires", "vague_attribution" in cats(h_bare))
+
+# Oxford-comma-less triad still fires (HV-024)
+h_ox, _, _, _ = run_analyze("tp_oxfordless_triad",
+    "The platform is fast, reliable and scalable across all of the workloads here today.")
+check("tp_oxfordless_triad_fires", "rule_of_three" in cats(h_ox))
+
+# wordiness padding flags as redundancy (HV-025)
+h_word, _, _, _ = run_analyze("tp_wordiness",
+    "In order to win, due to the fact that the majority of users wait, we act now.")
+check("tp_wordiness_fires", "redundancy" in cats(h_word))
+
+# spaced double-hyphen counts toward em-dash (HV-028)
+h_sdh, _, _, _ = run_analyze("tp_spaced_double_hyphen",
+    "We shipped it -- finally -- after review and it held -- surprisingly -- up well here.")
+check("tp_spaced_double_hyphen", "em_dash" in cats(h_sdh))
+
+# new report metrics are populated
+_, rep_m, _, _ = run_analyze("metrics_present", clean)
+check("metric_yules_k", rep_m.get("yules_k") is not None)
+check("metric_opener_entropy", rep_m.get("opener_entropy") is not None)
+check("metric_punctuation", "semicolon_per_1k" in rep_m and "colon_per_1k" in rep_m)
+check("metric_paragraph_cov", "paragraph_len_cov" in rep_m)
+
+# ---------------------------------------------------------------------------
 # 5. Registers and dialects across all combinations (must not crash)
 # ---------------------------------------------------------------------------
 sample = ("We leverage robust, seamless, world-class solutions. You should delve in. "
@@ -292,7 +437,7 @@ run_cli(["-"], stdin=b"We leverage robust seamless delve.", expect_code=0)
 run_cli(["-"], stdin=b"", expect_code=0)                       # empty stdin
 run_cli(["-"], stdin=b"\xff\xfe\x00\x01binary garbage", expect_code=0)  # binary stdin
 run_cli(["/nonexistent/path/file.md"], expect_code=2)
-run_cli([ROOT], expect_code=2)                                  # directory input
+run_cli([EXAMPLES], expect_code=0)            # directory input now walks markdown
 run_cli(["--patterns", "/no/such/patterns.json", before], expect_code=2)
 
 # --json must emit valid JSON with the expected keys
@@ -316,6 +461,110 @@ ja = json.loads(run_cli(["--json", after]).stdout.decode())
 check("cli_before_worse_than_after", jb["score"] > ja["score"],
       "before %.1f after %.1f" % (jb["score"], ja["score"]))
 check("cli_after_clean", ja["score"] == 0.0, "after scored %.1f" % ja["score"])
+
+# golden bands + margin: the AI-sounding example must land in the top band by a
+# wide margin; the rewrite must read clean. Guards both example files and the
+# scoring against silent regression.
+check("golden_before_strong_band", jb.get("verdict") == "strong-tell",
+      "before verdict %s" % jb.get("verdict"))
+check("golden_after_clean_band", ja.get("verdict") == "clean",
+      "after verdict %s" % ja.get("verdict"))
+check("golden_before_margin", jb["score"] >= 50.0, "before %.1f" % jb["score"])
+
+# strict JSON schema: exact key set + value types (HV-130)
+expected_keys = {"schema_version", "input", "register", "dialect", "words",
+                 "score", "verdict", "metrics", "hits"}
+check("json_strict_keys", set(jb) == expected_keys, "got %s" % sorted(set(jb)))
+check("json_schema_version", jb.get("schema_version") == 1)
+check("json_value_types",
+      isinstance(jb["score"], (int, float)) and isinstance(jb["verdict"], str)
+      and isinstance(jb["words"], int) and isinstance(jb["hits"], list)
+      and isinstance(jb["metrics"], dict))
+
+# score-gated exit code (HV-039): over the bar exits 1, under exits 0
+run_cli(["--fail-over", "10", before], expect_code=1)
+run_cli(["--fail-over", "10", after], expect_code=0)
+
+# ---------------------------------------------------------------------------
+# 7b. B3 API/UX features: compare, autofix, sarif, filters, library, multi-file
+# ---------------------------------------------------------------------------
+# library API mirrors the JSON payload
+libr = dap.lint("We leverage robust seamless solutions to delve into it here today.")
+check("lib_lint_keys", {"score", "verdict", "hits", "metrics", "words"} <= set(libr))
+check("lib_lint_severity", all("severity" in h for h in libr["hits"]))
+
+# per-hit severity in CLI JSON
+check("json_hit_severity", all("severity" in h for h in jb["hits"]))
+
+# compare mode prints a delta and exits 0
+pc = run_cli(["--baseline", after, before], expect_code=0)
+check("compare_runs", b"delta" in pc.stdout.lower())
+pcj = json.loads(run_cli(["--baseline", after, "--json", before]).stdout.decode())
+check("compare_json", "score_delta" in pcj and pcj["current"]["score"] > pcj["baseline"]["score"])
+
+# --enable keeps only listed categories; --disable drops them
+je = json.loads(run_cli(["--enable", "filler", "--json", before]).stdout.decode())
+check("enable_filter", je["hits"] and all(h["category"] == "filler" for h in je["hits"]))
+jd = json.loads(run_cli(["--disable", "filler", "--json", before]).stdout.decode())
+check("disable_filter", all(h["category"] != "filler" for h in jd["hits"]))
+
+# --threshold override changes behavior (impossible-high em-dash floor => no em_dash hits)
+jt = json.loads(run_cli(["--threshold", "em_dash_per_1k_words=100000", "--json", before]).stdout.decode())
+check("threshold_override", all(h["category"] != "em_dash" for h in jt["hits"]))
+
+# SARIF output is well-formed
+js = json.loads(run_cli(["--sarif", before]).stdout.decode())
+check("sarif_shape", js.get("version") == "2.1.0" and "runs" in js and js["runs"][0]["results"])
+
+# multi-file JSON returns a list; --quiet prints one line per file
+jm = json.loads(run_cli(["--json", before, after]).stdout.decode())
+check("multifile_list", isinstance(jm, list) and len(jm) == 2)
+pq = run_cli(["--quiet", before, after], expect_code=0)
+check("quiet_lines", len(pq.stdout.decode().strip().splitlines()) == 2)
+
+# autofix dry-run swaps known filler and never empties the doc
+pf = run_cli(["--fix-dry-run", before]).stdout.decode()
+check("autofix_swaps", "utilize" not in pf.lower() and len(pf) > 50)
+
+# autofix on a temp copy actually rewrites and lowers the score
+_fixsrc = os.path.join(tempfile.gettempdir(), "hv_fix_test.md")
+with open(_fixsrc, "w", encoding="utf-8") as fh:
+    fh.write("We utilize and leverage robust solutions to delve into the synergy here today.")
+run_cli(["--fix", _fixsrc], expect_code=0)
+with open(_fixsrc, encoding="utf-8") as fh:
+    fixed_text = fh.read()
+check("autofix_applied", "utilize" not in fixed_text and "use" in fixed_text)
+os.remove(_fixsrc)
+
+# ---------------------------------------------------------------------------
+# 7c. B4 project config + protected terms (HV-166/167)
+# ---------------------------------------------------------------------------
+# protected_terms suppress lexical hits on those exact terms (analyze-level)
+pat_prot = json.loads(json.dumps(PAT))
+pat_prot["protected_terms"] = ["Robust Analytics"]
+h_prot, _, _ = dap.analyze("Our Robust Analytics suite is robust and seamless here today.", "technical", None, pat_prot)
+prot_filler = [h.text.lower() for h in h_prot if h.category == "filler"]
+check("protected_term_suppressed", "robust analytics" not in " ".join(prot_filler))
+check("protected_unprotected_still_flags", any("robust" == t for t in prot_filler) or any("seamless" == t for t in prot_filler))
+
+# .humanvoicerc is discovered, sets register, and extends protected terms
+cfgdir = tempfile.mkdtemp(prefix="hv_cfg_")
+with open(os.path.join(cfgdir, ".humanvoicerc"), "w", encoding="utf-8") as fh:
+    fh.write(json.dumps({"register": "marketing", "protected_terms": ["Synergy Platform"]}))
+with open(os.path.join(cfgdir, "doc.md"), "w", encoding="utf-8") as fh:
+    fh.write("We leverage the Synergy Platform to delve into analytics here today now.")
+jc = json.loads(run_cli(["--json", os.path.join(cfgdir, "doc.md")]).stdout.decode())
+check("config_register_applied", jc["register"] == "marketing")
+check("config_protected_term", not any("synergy platform" in h["text"].lower() for h in jc["hits"]))
+jnc = json.loads(run_cli(["--no-config", "--json", os.path.join(cfgdir, "doc.md")]).stdout.decode())
+check("no_config_reverts_register", jnc["register"] == "technical")
+for f in os.listdir(cfgdir):
+    os.remove(os.path.join(cfgdir, f))
+os.rmdir(cfgdir)
+
+# rich object-form suggestion is accepted by as_phrase_list
+check("rich_suggestion_form",
+      ("foo", "bar") in dap.as_phrase_list({"foo": {"suggestion": "bar"}}))
 
 # ---------------------------------------------------------------------------
 # 8. Malformed pattern files (must exit 2 or degrade, never traceback)
@@ -387,6 +636,51 @@ for plug in mkt.get("plugins", []):
     if isinstance(src, str):
         check("plugin_source_exists", os.path.isdir(os.path.join(ROOT, src)),
               "missing %s" % src)
+
+# version-drift guard (HV-146): plugin.json and the marketplace plugin entry
+# duplicate the version string; they must never disagree.
+with open(os.path.join(ROOT, ".claude-plugin/plugin.json"), encoding="utf-8") as fh:
+    plug_manifest = json.load(fh)
+mkt_versions = {p.get("name"): p.get("version") for p in mkt.get("plugins", [])}
+check("version_drift_guard",
+      mkt_versions.get(plug_manifest.get("name")) == plug_manifest.get("version"),
+      "plugin.json=%s marketplace=%s" % (plug_manifest.get("version"),
+                                         mkt_versions.get(plug_manifest.get("name"))))
+
+# ---------------------------------------------------------------------------
+# 10. Metric golden values, determinism, examples-in-sync (HV-128/134/135)
+# ---------------------------------------------------------------------------
+# Golden metric values on hand-built inputs lock the math against silent drift.
+uniform12 = " ".join("The system runs the daily job." for _ in range(12))
+_, rep_u, _, _ = run_analyze("golden_uniform_cov", uniform12)
+check("golden_cov_zero", rep_u.get("burstiness_cov") == 0.0,
+      "uniform sentences should have CoV 0.0, got %s" % rep_u.get("burstiness_cov"))
+
+allunique = " ".join(chr(97 + i // 26) + chr(97 + i % 26) for i in range(60))  # aa..ch, distinct
+_, rep_t, _, _ = run_analyze("golden_ttr", allunique)
+check("golden_ttr_one", rep_t.get("ttr") == 1.0,
+      "all-unique tokens should give TTR 1.0, got %s" % rep_t.get("ttr"))
+
+# Determinism: same input yields byte-identical JSON across runs.
+d1 = run_cli(["--json", before]).stdout
+d2 = run_cli(["--json", before]).stdout
+check("determinism_json_identical", d1 == d2, "JSON output not reproducible")
+
+# Examples in sync: every shipped before/after pair still separates, and each
+# "after" stays in the clean band under its register.
+REGISTER_BY_PREFIX = {"marketing": "marketing", "casual": "casual",
+                      "academic": "academic", "email": "email"}
+for prefix, reg in REGISTER_BY_PREFIX.items():
+    bpath = os.path.join(EXAMPLES, "%s-before.md" % prefix)
+    apath = os.path.join(EXAMPLES, "%s-after.md" % prefix)
+    if not (os.path.isfile(bpath) and os.path.isfile(apath)):
+        continue
+    jb_ex = json.loads(run_cli(["--register", reg, "--json", bpath]).stdout.decode())
+    ja_ex = json.loads(run_cli(["--register", reg, "--json", apath]).stdout.decode())
+    check("example_pair_separates_%s" % prefix, jb_ex["score"] > ja_ex["score"],
+          "%s before %.1f after %.1f" % (prefix, jb_ex["score"], ja_ex["score"]))
+    check("example_after_clean_%s" % prefix, ja_ex["verdict"] == "clean",
+          "%s-after verdict %s (%.1f)" % (prefix, ja_ex["verdict"], ja_ex["score"]))
 
 # ---------------------------------------------------------------------------
 # Summary

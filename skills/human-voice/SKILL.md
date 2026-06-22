@@ -36,7 +36,8 @@ for the full landscape and sources.
 
 - **Perplexity** — AI picks high-probability next tokens, so the text reads as
   "too predictable." Fix by genuine specificity and the accurate, less-expected
-  word. The filler list *is* roughly the set of highest-probability AI tokens.
+  word. The filler list is a hand-curated *proxy* for some of these
+  high-probability tokens — a correlate, not a computed perplexity measurement.
 - **Burstiness** — variance of sentence length/complexity. AI is smooth and
   monotone. Mixing short punches with long sentences is the single biggest lever;
   the linter reports a sentence-length coefficient of variation for exactly this.
@@ -52,6 +53,10 @@ which also happens to not trip detectors — not *disguise machine text*. Never
 use the adversarial tricks the evasion literature describes: Unicode homoglyphs,
 zero-width characters, deliberate typos, meaning-degrading synonym swaps, or
 fabricated facts/quotes/stats. Those wreck the text and violate principle 3.
+Detectors are also demonstrably unreliable in ways that matter ethically: Liang
+et al. (2023) found they disproportionately misclassify non-native-English
+writing as AI. That is the strongest reason no detector is ground truth, and
+another reason the goal is genuinely better writing, not a passing score.
 
 ## Non-negotiable operating principles
 
@@ -98,7 +103,10 @@ fabricated facts/quotes/stats. Those wreck the text and violate principle 3.
 
 ## Modes
 
-Parse `$ARGUMENTS` for a mode token and an optional `register:` token.
+Parse `$ARGUMENTS` for a mode token and an optional `register:` token. Parsing is
+order-independent and case-insensitive: accept `fix`/`generate` in any position,
+`register: marketing`, `register=marketing`, or a bare register name; treat
+anything that resolves to an existing path as the input file, not a mode.
 
 - **`fix`** (default when the input is an existing file path or pasted prose):
   rewrite the supplied text to remove tells while preserving every invariant.
@@ -106,9 +114,27 @@ Parse `$ARGUMENTS` for a mode token and an optional `register:` token.
   "draft"): produce new copy that reads human from the first draft, then run it
   through the same self-critique loop before returning it.
 
-If a file path is given, edit the file in place after the rewrite passes the
-loop, and print the Humanization Audit. If only pasted text is given (no file),
-print the rewrite plus the audit — do not write any file.
+**Resolution decision tree:**
+
+```
+input is a brief/spec, or user said "write"/"draft"?  → generate
+otherwise                                              → fix
+contains code, metrics, or config?                     → register: technical
+has a call-to-action / sells to "you"?                 → register: marketing
+has citations / measured "we"?                         → register: academic
+first-person anecdote, casual contractions?            → register: casual
+greeting + sign-off?                                   → register: email
+versioned, past-tense, bulleted change list?           → register: release_notes
+numbered "how-to" steps?                               → register: tutorial
+cues conflict and change the voice?                    → ask one short question
+```
+
+If a file path is given, do not overwrite it blindly. First confirm the file is
+tracked by git (so the change is recoverable); if it is not, write a `<file>.bak`
+copy before editing. Show the rewrite (or a before/after diff) and the
+Humanization Audit, then edit in place once the rewrite passes the loop. If only
+pasted text is given (no file), print the rewrite plus the audit — do not write
+any file.
 
 Default `register` is inferred from the content (see Register profiles); if
 genuinely ambiguous and it changes the voice materially, ask one short question.
@@ -130,6 +156,32 @@ every profile.
 | `academic` | Formal, measured | measured hedging, "we"/passive, citations | unsourced "studies show", clichés |
 | `casual` | Personal, conversational | contractions, "I"/"you", rhetorical questions, fragments | listicle padding, meta-commentary |
 | `creative` | Narrative voice | em-dashes, fragments, wide cadence, any vocabulary in service of voice | clichés, pleonasm, puffery as lazy writing |
+| `email` | Brief, courteous, direct | a one-line greeting/sign-off, "you"/"I" | jargon, padding, burying the ask; chatbot sign-offs |
+| `release_notes` | Terse, user-facing, past tense | imperative/past bullets, fragments | marketing hype, vague "various improvements" |
+| `ux_microcopy` | Minimal, plain, "you" | fragments, dropped articles, terseness | full-sentence padding, cleverness over clarity |
+| `tutorial` | Instructional, second person, present | "you", imperatives, numbered steps | over-explaining the obvious, rhetorical filler |
+
+Each register has a worked before/after pair in [`examples/`](examples/) — read the
+one matching your genre before you start.
+
+**Register-specific constraints** (beyond voice). Honor the format the genre
+demands: a commit message uses imperative mood and a ~50-character subject; a
+release note is past-tense and user-facing ("Fixed a crash when…", not "We
+refactored…"); UX microcopy is terse and may drop articles; an email leads with
+the ask. These are hard conventions, not stylistic preferences.
+
+**Register detection cues** (when inferring). Code blocks, metrics, or config →
+`technical`. A call to action, "you", or product benefit → `marketing`.
+Citations, "we", measured hedging → `academic`. First-person anecdote, casual
+contractions → `casual`. A greeting + sign-off → `email`. Versioned, bulleted,
+past-tense change list → `release_notes`. Numbered "how to" steps → `tutorial`.
+When the cues genuinely conflict and it changes the voice, ask one short question.
+
+**When registers blend** (a technical blog post is `technical` + `casual`): the
+universal core still holds; resolve voice toward the dominant audience and hold
+one voice rather than switching mid-document. The calibration test: write as the
+most respected human author in that genre would, and ask whether this voice would
+survive in the publication it's bound for.
 
 Two rules that survive every register: **never fabricate** (no invented facts,
 stats, anecdotes, or quotes to sound human — principle 3) and **match, don't
@@ -148,6 +200,10 @@ GOOD pairs for every category is in
 - **Bold-lead-in bullets** (`- **Term:** ...` on every item) → convert some to
   prose; drop ornamental bold.
 - **Meta-commentary** ("This report aims to / will explore") → state the finding.
+- **Chatbot scaffolding** ("Sure! Here's…", "Great question", "Hope this helps!",
+  "Let's break it down") → delete; open on the content.
+- **Over-signposting** ("Furthermore / Moreover / Additionally" as glue) → keep a
+  transition only where removing it would change the logic.
 - **Filler** (delve, leverage, robust, seamless, crucial, comprehensive,
   landscape, realm) → the plain word, or cut.
 - **Hedging stacks** ("may potentially help to somewhat") → commit, or name the
@@ -176,6 +232,47 @@ GOOD pairs for every category is in
 - **Terminology drift** (one concept, three names) → one term per concept.
 - **Dialect / heading-case / voice drift** → one dialect, one heading
   convention, one author voice throughout.
+
+### Four highest-signal fixes (BAD → GOOD)
+
+Concrete anchors for the most common tells. The full catalog with a pair for every
+category is in [`references/ai-tells.md`](references/ai-tells.md).
+
+- **Vacuity** — BAD: "Data infrastructure is a critical component of modern
+  systems and plays an important role." → GOOD: "Pick the store before you know
+  your access patterns and you'll rewrite it within a year."
+- **Rule of three + puffery** — BAD: "Our robust, scalable, and seamless platform
+  stands as a testament to innovation." → GOOD: "It handles ingestion, indexing,
+  and query in one process."
+- **Buried verdict / fence-sitting** — BAD: "There are several approaches, each
+  with tradeoffs; ultimately it depends on your needs." → GOOD: "Use FSDP.
+  Pipeline parallelism only wins above 70B parameters, and you aren't there."
+- **Chatbot scaffolding** — BAD: "Great question! Let's dive in. Here's the thing
+  about caching…" → GOOD: open on the content: "Caching helps here only when
+  reads dominate writes."
+
+## Quick reference (one pass)
+
+The whole skill on one screen. The detailed procedure, loop, and protocol below
+expand each step.
+
+1. **Pre-flight.** Infer mode (`fix`/`generate`) and register. List the
+   invariants and build the claim inventory (numbers, dates, named entities,
+   citations, causal/comparative claims). Baseline-lint for a floor score.
+2. **Five edit moves, in order** (structure beats vocabulary):
+   ① cut vacuity → ② vary rhythm (mix short and long sentences) → ③ dismantle
+   templates (rule-of-three, bold-bullet listicles, "not X, it's Y") → ④ cut
+   stance tells (meta-commentary, chatbot scaffolding, fence-sitting, empty
+   conclusions) → ⑤ fix diction and jargon last.
+3. **Unify.** One term per concept, one dialect, one heading case, one tense, one
+   voice end to end.
+4. **Critique.** Hostile re-read for what still smells AI; diff the claim
+   inventory (nothing added/strengthened/weakened/dropped); re-lint. Repeat up to
+   3 passes, then stop.
+5. **Audit.** Print the Humanization Audit; confirm invariants with a diff.
+
+Never fabricate to sound human. Match the register; don't bolt on a voice the
+genre rejects.
 
 ## Rewrite procedure
 
@@ -219,23 +316,47 @@ Work in this order (principle 1). Do not jump to diction first.
 
 ## Self-critique loop (the critical pass)
 
-After the rewrite, do not return it yet. Run an adversarial pass:
+After the rewrite, do not return it yet. Run an adversarial pass.
 
-1. **Re-read as a hostile reviewer** whose only job is to answer "what *still*
-   smells AI here?" Look hardest at the things the linter can't catch: substance
-   (vacuity, restatement, fabrication), weak stance (fence-sitting, false
-   balance, buried verdict), and drift (a concept renamed, tense or voice
-   switching mid-document).
-2. **Run the hallucination pass.** Diff the rewrite's claim inventory against the
+**Review from three angles, not one.** A single hostile reviewer misses whole
+classes of tells. Read the rewrite as each of:
+- the **detector researcher** — rhythm, burstiness, predictable phrasing, uniform
+  openers (the mechanical signature);
+- the **domain expert** — vacuity, weak stance, wrong or unsupported claims (the
+  substance);
+- the **genre editor** — register fit, length, format conventions (does it read
+  like real writing in this genre?).
+
+**Score each dimension 0–2**, where 0 = clearly AI, 1 = passable, 2 = genuinely
+human: Substance, Rhythm, Stance, Consistency, Sourcing, Diction, Register. The
+bar to return: no dimension below 1, and the mechanical ones (Rhythm, Diction)
+not the only thing carrying it. This makes "good enough" measurable instead of a
+vibe.
+
+**Hit concrete targets**, not "improve it":
+- burstiness CoV ≥ ~0.5 (sentence-length variation);
+- em-dash density ≤ ~1 per ~150 words (outside `creative`);
+- in `fix` mode, expect to cut 15–25% of the words;
+- no run of 3+ same-length sentences — read the length sequence aloud in your head.
+
+Then:
+
+1. **Run the hallucination pass.** Diff the rewrite's claim inventory against the
    source's (Anti-hallucination protocol, step 7). Any new, strengthened,
-   weakened, or re-numbered claim is a regression — revert that span.
+   weakened, or re-numbered claim is a regression — revert that span. Check for
+   *dropped* claims too: a cut caveat is silent information loss.
+2. **A/B against the original.** Did I lose any real content? Is the rewrite
+   genuinely *better*, or merely *different*? Trading the AI signature for a new
+   uniform signature (everything de-listed, every em-dash gone) is a failure
+   (principle 2).
 3. **Re-run the linter** on the rewrite (add `--dialect american` or
    `--dialect british` to catch spelling drift against your chosen dialect).
-4. **If** the score is at/above threshold **or** the hostile read finds a
-   structural/substance/fabrication tell, fix those specific spots and repeat.
-5. **Cap at 3 passes.** If tells remain after 3, stop and report them honestly
-   in the audit rather than over-correcting into a new uniform signature
-   (principle 2).
+4. **If** the score is at/above threshold **or** any dimension scores below 1,
+   fix those specific spots and repeat.
+5. **Stop at a fixed point, capped at 3 passes.** Stop when a pass produces no
+   net improvement (diminishing returns) or no dimension is below the bar —
+   whichever comes first. The cap of 3 bounds cost; it is not a target. If tells
+   remain after 3, report them honestly in the audit rather than over-correcting.
 
 ## Invariant guard
 
@@ -260,9 +381,10 @@ vague gesture grows a fake statistic. The rewrite must add *voice*, never
 *facts*. Follow these steps every time.
 
 1. **Build a claim inventory first.** Before editing, list every checkable claim
-   in the source — numbers, dates, named entities, citations, causal/comparative
-   assertions ("X is faster than Y"). These are the invariants. Nothing on this
-   list may change in value, and nothing new may join it.
+   in the source as a `{claim, value, source-span}` triple — numbers, dates,
+   named entities, citations, causal/comparative assertions ("X is faster than
+   Y"). These are the invariants. Nothing on this list may change in value, and
+   nothing new may join it. This list is the artifact you diff against in step 7.
 2. **Add no specificity the source doesn't contain.** Vague → concrete is only
    allowed when the concrete detail is already present or directly entailed. If
    the source says "improved performance," you may not write "cut latency 40%"
@@ -277,13 +399,25 @@ vague gesture grows a fake statistic. The rewrite must add *voice*, never
 5. **Mark gaps, don't fill them.** If the prose needs a fact you don't have, emit
    an explicit placeholder — `[SOURCE NEEDED]`, `[FIGURE?]`, `[VERIFY]` — and
    call it out. A visible gap is honest; an invented filler is a hallucination.
-6. **`generate` mode is held to the same bar.** Drafting from a brief does not
-   license invented statistics, quotes, case studies, or citations. Write only
-   what the brief supports; flag everything else as a placeholder for the author.
-7. **Run a dedicated hallucination pass** in the self-critique loop: diff the
-   rewrite's claim inventory against the source's. Any claim that is new,
-   strengthened, weakened, or re-numbered is a regression — revert that span.
-   Report the diff result in the audit ("Invariants preserved: …").
+   Every placeholder must be **enumerated in the audit**, and any output that
+   still contains one is flagged as draft-pending, never presented as finished.
+   Placeholders are removed only by the author, never silently by you.
+6. **Preserve quotes and citations verbatim.** Never alter wording inside
+   quotation marks, never turn a paraphrase into a quote, and never attach a
+   citation to a claim it doesn't support to make a sharpened sentence look
+   sourced.
+7. **`generate` mode is held to the same bar — the brief is the invariant set.**
+   Drafting from a brief does not license invented statistics, quotes, case
+   studies, or citations. Write only what the brief supports; anything asserted
+   beyond it is a placeholder, and the audit must **list every fact stated that
+   the brief did not provide** so the author can verify or cut it.
+8. **Run a dedicated hallucination pass** in the self-critique loop: diff the
+   rewrite's claim inventory against the source's and sort every difference into
+   four buckets — **added / strengthened / weakened / dropped** (re-numbered
+   counts as changed). Added/strengthened/weakened are regressions: revert that
+   span. A *dropped* real claim or caveat is silent information loss: restore it
+   unless the deletion was deliberate and logged. Report the bucketed diff in the
+   audit ("Invariants preserved: …").
 
 A regex cannot catch a fabricated fact, so this protocol is judgment, not a
 linter check — the linter only flags the *vague-attribution* and
@@ -338,17 +472,29 @@ category for it ("synergy", "leverage", "circle back", "move the needle",
    python3 scripts/detect_ai_prose.py --dialect american <file>
    # pasted text:
    printf '%s' "$TEXT" | python3 scripts/detect_ai_prose.py --register casual -
+   # score-only / machine-readable, and an after-vs-before comparison:
+   python3 scripts/detect_ai_prose.py --quiet <file>
+   python3 scripts/detect_ai_prose.py --json <file>
+   python3 scripts/detect_ai_prose.py --baseline <original> <rewrite>   # prints the delta
    ```
+   Run the same command on the rewrite to confirm the score and verdict band drop,
+   and quote both numbers in the audit (`--baseline` prints the delta directly).
    The script covers tells (filler, hedging, meta, em-dash, bold-bullet,
    burstiness, n-gram repetition, lexical diversity) and consistency drift
    (spelling, heading case). Phrase and spelling lists live in
    `scripts/ai_prose_patterns.json`. It is the deterministic floor only — it
    cannot see vacuity, weak stance, or terminology drift. If the script is
    unavailable, degrade gracefully to pure judgment using
-   `references/ai-tells.md`.
+   `references/ai-tells.md` and this **no-tool checklist**: (a) read the
+   sentence-length sequence and flag any run of 3+ similar lengths; (b) scan the
+   first word of each sentence for repeated openers; (c) grep your draft for the
+   top filler words (delve, leverage, robust, seamless, crucial, comprehensive,
+   landscape); (d) count em-dashes — more than one per ~150 words is a tell; (e)
+   check every list for the bold-lead-in `- **Term:**` pattern.
 3. **Rewrite** per the procedure above, loading `references/ai-tells.md`.
 4. **Self-critique loop** until clean or 3 passes.
-5. **Apply / present.** For a file, edit in place; for pasted text, print the
+5. **Apply / present.** For a file, ensure it is recoverable (git-tracked or
+   `.bak`d), show the rewrite/diff, then edit in place; for pasted text, print the
    rewrite. Always print the Humanization Audit.
 6. **Confirm invariants** with a diff (`git diff` or a before/after of numbers,
    code, links).
@@ -358,8 +504,8 @@ category for it ("synergy", "leverage", "circle back", "move the needle",
 ### Humanization Audit
 ```text
 ## Humanization Audit — <file or "pasted text">
-Register: <technical|business|marketing|academic|casual|creative>
-Score: <before> → <after>  (linter floor; not ground truth)
+Register: <technical|business|marketing|academic|casual|creative|email|release_notes|ux_microcopy|tutorial>
+Score: <before> → <after> [<band>]  (linter floor; not ground truth)
 Words: <before> → <after>  (−NN%)
 Passes run: <n>/3
 
@@ -372,8 +518,10 @@ Tells removed (by category):
 - Diction:     <n>  e.g. leverage→use, robust→(cut), landscape→(cut)
 - Formatting:  <n>  e.g. removed 2 emoji headings, 3 section rules
 
-Invariants preserved: numbers ✓  code ✓  links ✓  claims ✓  PII-safe ✓
-Residual tells (if any): <honest list, or "none">
+Dimension scores (0–2): Substance _ · Rhythm _ · Stance _ · Consistency _ · Sourcing _ · Diction _ · Register _
+Invariants preserved: numbers ✓  code ✓  links ✓  claims ✓  PII-safe ✓  (claim diff: +0 added / 0 strengthened / 0 weakened / 0 dropped)
+Placeholders left for author: <list of [SOURCE NEEDED]/[VERIFY], or "none">
+Residual risk: <why a skeptical human might still flag this, or "none">
 ```
 
 ### Rewrite (pasted-text mode)

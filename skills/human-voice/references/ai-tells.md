@@ -37,6 +37,32 @@ writing it.
 - BAD → "This report aims to explore the multifaceted landscape of..."
 - GOOD → state the finding: "Three things decide the outcome."
 
+**Conversational scaffolding / chatbot framing** — the assistant register
+leaking into the page: openers, fake engagement, and sign-offs that belong in a
+chat reply, not a document. The single most recognizable tell in pasted-from-chat
+text. The linter flags these as `chatbot_scaffold`.
+
+- BAD → "Sure! Here's the thing about caching. Great question — let me break it
+  down. I hope this helps!"
+- GOOD → delete the scaffolding and open on the content: "Caching helps here only
+  when reads dominate writes."
+
+**Over-signposting / fake transitional glue** — "Furthermore", "Moreover",
+"Additionally", "With that in mind", "As such" used as connective filler. The
+test: a transition is earned only if removing it changes the logic.
+
+- BAD → "Furthermore, the system is fast. Moreover, it scales. Additionally, it
+  is secure."
+- GOOD → drop the glue; let the sentences stand, and keep a transition only where
+  it marks a real turn in the argument.
+
+**The "it depends" / "no one-size-fits-all" non-conclusion** — the canonical AI
+ending that commits to nothing (see also category 8, buried verdict).
+
+- BAD → "Ultimately, the best choice depends on your specific needs and
+  requirements."
+- GOOD → commit: "Use Postgres unless you're past 50k writes/sec; then revisit."
+
 **Fabricated specificity** — invented numbers, sources, or detail to sound
 precise.
 
@@ -91,6 +117,26 @@ strongest mechanical tell.
 - BAD → "in order to" four times; "it is important to" twice.
 - GOOD → rephrase; most can simply be cut.
 
+**Enumerated-promise opener** — pre-announcing a count instead of just making the
+points.
+
+- BAD → "There are five key things to consider when choosing a database."
+- GOOD → make the points; if a count helps the reader, it earns its place, but
+  the list usually reads better without the throat-clear.
+
+**Balanced-antithesis cadence** — relentless two-part symmetry, beyond the literal
+"not X, it's Y". The metronome rhythm is itself the tell.
+
+- BAD → "It's not about speed; it's about reliability. Less talk, more action.
+  Not a feature, but a philosophy."
+- GOOD → break the symmetry; let one idea run long and the next land short.
+
+**Colon overuse** — the "Label: explanation" reflex outside bullets ("The answer
+is simple: ...", "Here's the catch: ...").
+
+- BAD → "The result is clear: latency wins. The reason is simple: users feel it."
+- GOOD → fold the clause into the sentence: "Latency wins because users feel it."
+
 ---
 
 ## 3. Diction
@@ -131,6 +177,28 @@ mission-critical, frictionless, empower, supercharge, disruptive.
 
 **The "not X, it's Y" template** (also structural — see category 2).
 
+**Weak intensifiers** — "really", "very", "quite", "extremely", "incredibly"
+propping up a flabby adjective.
+
+- BAD → "This is a really important and very powerful feature."
+- GOOD → delete the intensifier; if the sentence weakens, the adjective was doing
+  the work and needs a stronger word, not an amplifier: "This feature ships the
+  whole release."
+
+**Gratuitous reformulation** — "In other words", "Simply put", "To put it another
+way" followed by a restatement. Often the second version is the only one worth
+keeping.
+
+- BAD → "Latency is the time to first byte. In other words, how long users wait."
+- GOOD → "Latency is how long users wait for the first byte."
+
+**Hype-verb class** — "revolutionize", "transform", "unlock", "empower",
+"supercharge", "elevate". The verb cousins of puffery; cut or replace with the
+concrete action.
+
+- BAD → "This unlocks new potential and empowers teams to supercharge delivery."
+- GOOD → "This lets two teams share one pipeline, which cut release time in half."
+
 ---
 
 ## 4. Sourcing
@@ -168,6 +236,13 @@ the headings, not in horizontal rules.
 - BAD → emoji headings, a `---` after each paragraph, bold scattered mid-sentence.
 - GOOD → plain headings; rules only where a real topic break needs one.
 
+**Emoji-as-bullet / status-glyph decoration** — ✅ / ❌ / ⚠️ / 🔑 / 🚀 opening
+bullets or scattered through a listicle, outside genuinely casual/social copy.
+
+- BAD → "✅ Fast  ✅ Reliable  🚀 Scalable".
+- GOOD → plain bullets, or prose. Reserve callout glyphs for documents that
+  already use a consistent severity convention.
+
 ---
 
 ## 6. Register calibration
@@ -189,6 +264,26 @@ holds everywhere.
   solid, which is awesome 🔥"
 - GOOD (technical) → "The cluster sustained 50k writes/sec for six hours with no
   failovers."
+
+**Over-explaining / audience miscalibration** — explaining what the reader
+already knows. Common when the register is technical but the prose condescends.
+
+- BAD → "As you may know, a database is a system that stores data."
+- GOOD → cut it; write to the reader's actual level.
+
+**Parenthetical over-qualification** — hedging stuffed into parentheses
+("(though results may vary)", "(in most cases)", "(generally speaking)").
+
+- BAD → "This halves latency (in most cases, though it depends on the workload)."
+- GOOD → state the real condition once: "This halves latency on read-heavy
+  workloads; write-heavy ones see less."
+
+**Chatbot politeness / deference** — assistant sign-offs and apologies bleeding
+into a document: "I hope this helps!", "Feel free to reach out", "Of course!",
+over-apologizing. A register tell in anything that isn't a chat reply.
+
+- BAD → "I hope this helps! Feel free to reach out with any questions."
+- GOOD → cut it; a document doesn't address its reader as a support ticket.
 
 ---
 
@@ -266,22 +361,43 @@ is ground truth; all have real false-positive rates.
   targets this directly — the highest-leverage mechanical signal.
 - **Curvature** (DetectGPT, Fast-DetectGPT): AI text sits in negative-curvature
   regions of a model's log-probability surface. Zero-shot, no training — but
-  fragile: paraphrasing drops its accuracy from ~70% to near chance, and it
-  fails on code.
-- **Watermarking**: a provider-side bias in the token distribution. Nothing a
-  rewrite can or should change; it exists and is provider-dependent.
+  fragile: in the original paper, paraphrasing degraded detection substantially
+  (roughly from the ~0.7–0.95 AUROC range toward chance, varying by model and
+  domain), and it does not work on code. Treat the exact figure as
+  dataset-specific, not a constant.
+- **Newer zero-shot / feature detectors**: **Binoculars** (ratio of two models'
+  perplexities — cross-perplexity — strong zero-shot), **Ghostbuster**
+  (structured search over model-feature combinations; more robust to
+  paraphrase), **DNA-GPT** (divergent n-gram analysis), **GLTR** (token-rank
+  visualization, the ancestor of perplexity tools), and **RADAR**
+  (adversarially-trained detector). The same causes drive them: low perplexity,
+  low burstiness, predictable n-grams — which genuine specificity and varied
+  rhythm address honestly.
+- **Watermarking**: a provider-side bias in the token distribution. It is
+  provider-dependent and we do not try to strip it. Note that rewriting and
+  paraphrasing *do* weaken many statistical watermarks as a side effect — but
+  that is not our goal, and it is not something a humanization pass should
+  optimize for.
 - **Trained classifiers** (Originality.ai, Copyleaks, Turnitin): fine-tuned
   transformers plus stylometric and n-gram features. Addressed by the phrase,
-  n-gram, and TTR checks.
+  n-gram, and TTR checks. These carry the documented ESL false-positive bias
+  most strongly.
 - **Stylometry**: sentence/word length, type-token ratio, punctuation profile,
-  function-word distribution. Addressed by burstiness, TTR, em-dash density, and
-  uniform-opener checks.
+  function-word distribution. Addressed by burstiness, TTR, em-dash/punctuation
+  profile, opener-entropy, and uniform-opener checks.
 
 Our local regex linter does **not** compute perplexity or curvature. It catches
 the surface features that *correlate* with what these systems measure. The real
 test is a skeptical human read — and we never use the adversarial tricks
 (homoglyphs, zero-width characters, meaning-degrading synonym swaps, fabrication)
 that the evasion literature describes. Those degrade the writing.
+
+**Detectors have real, biased error rates.** Liang et al. (2023) showed leading
+detectors flag non-native-English (ESL) writing as AI far more often than
+native-English writing — a documented false-positive bias, not noise. Accuracy
+figures also expire: every number here is a snapshot that drifts as models and
+detectors change, exactly as banned-word lists age. Report a score; never treat
+one as proof.
 
 ## Sources
 
@@ -290,6 +406,15 @@ that the evasion literature describes. Those degrade the writing.
   Probability Curvature* (arXiv:2301.11305); Fast-DetectGPT.
 - Krishna et al., *Paraphrasing evades detectors of AI-generated text, but
   retrieval is an effective defense* (arXiv:2303.13408).
+- Liang et al., *GPT detectors are biased against non-native English writers*
+  (arXiv:2304.02819) — the ESL false-positive finding.
+- Hans et al., *Spotting LLMs With Binoculars: Zero-Shot Detection of
+  Machine-Generated Text* (arXiv:2401.12070).
+- Verma et al., *Ghostbuster: Detecting Text Ghostwritten by Large Language
+  Models* (arXiv:2305.15047).
+- Yang et al., *DNA-GPT: Divergent N-Gram Analysis* (arXiv:2305.17359);
+  Gehrmann et al., *GLTR* (arXiv:1906.04043); Hu et al., *RADAR*
+  (arXiv:2307.03838).
 - Kobak et al., *Delving into ChatGPT usage in academic writing through excess
   vocabulary* (arXiv:2406.07016) — PubMed abstracts, δ/ratio method, ~280 excess
   style words, ~66% verbs / ~18% adjectives.

@@ -21,6 +21,8 @@ Usage:
 """
 
 import argparse
+import bisect
+import functools
 import json
 import math
 import os
@@ -31,7 +33,8 @@ from collections import Counter
 PATTERNS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              "ai_prose_patterns.json")
 
-REGISTERS = ["technical", "business", "marketing", "academic", "casual", "creative"]
+REGISTERS = ["technical", "business", "marketing", "academic", "casual", "creative",
+             "email", "release_notes", "ux_microcopy", "tutorial"]
 
 # Hard cap so a pathological input can't hang the process. ~5M chars is far
 # larger than any real document and still completes in well under a second.
@@ -44,6 +47,7 @@ CATEGORY_WEIGHTS = {
     "jargon": 1.0,
     "transitions": 1.0,
     "meta_commentary": 1.5,
+    "chatbot_scaffold": 2.0,
     "hedging": 1.0,
     "puffery": 1.5,
     "vague_attribution": 1.5,
@@ -60,6 +64,15 @@ CATEGORY_WEIGHTS = {
     "lexical_diversity": 1.5,
     "dialect": 0.5,
     "heading_case": 0.5,
+    "colon_summary": 1.0,
+    "passive_voice": 0.5,
+    "adverbs": 0.5,
+    "rhetorical": 0.5,
+    "nominalization": 0.5,
+    "paragraph_uniformity": 1.5,
+    "list_uniformity": 1.0,
+    "circular_conclusion": 1.5,
+    "parallel_structure": 1.0,
 }
 
 # Every category the linter can emit. Used to validate register-mute config.
@@ -191,6 +204,9 @@ def as_phrase_list(value):
         phrase = phrase.strip()
         if not phrase:
             continue
+        # Forward-compatible rich form: value may be {"suggestion": "..."}.
+        if isinstance(suggestion, dict):
+            suggestion = suggestion.get("suggestion")
         sug = suggestion if isinstance(suggestion, str) and suggestion.strip() else None
         pairs.append((phrase, sug))
     return pairs
@@ -233,6 +249,12 @@ ABBREVIATIONS = {
     "u.s", "u.k", "ph.d", "no", "vol", "ch", "pp", "ca", "cf",
 }
 
+# One alternation for all abbreviations (longest first), built once. Replaces a
+# per-abbreviation re.sub loop with a single pass over the text.
+ABBREV_RE = re.compile(
+    r"\b(?:" + "|".join(re.escape(a) for a in sorted(ABBREVIATIONS, key=len, reverse=True))
+    + r")\.", re.IGNORECASE)
+
 LINK_RE = re.compile(r"!?\[([^\]]*)\]\([^)]*\)")
 BARE_URL_RE = re.compile(r"(?:https?|ftp)://\S+|www\.\S+")
 FOOTNOTE_REF_RE = re.compile(r"\[\^[^\]]+\]")
@@ -245,6 +267,7 @@ BLOCKQUOTE_RE = re.compile(r"^[ \t]*>+[ \t]?")
 TABLE_ROW_RE = re.compile(r"^[ \t]*\|.*\|?[ \t]*$")
 TABLE_SEP_RE = re.compile(r"^[ \t]*\|?[\s:|-]*[-:][\s:|-]*\|?[ \t]*$")
 SECTION_RULE_RE = re.compile(r"^[ \t]*([-*_])(?:[ \t]*\1){2,}[ \t]*$")
+SECTION_RULE_MULTILINE_RE = re.compile(r"^[ \t]*([-*_])(?:[ \t]*\1){2,}[ \t]*$", re.MULTILINE)
 
 
 def strip_code(text):
@@ -262,6 +285,30 @@ def strip_code(text):
 
 def line_of(text, index):
     return text.count("\n", 0, index) + 1
+
+
+class LineMap:
+    """Precomputed newline offsets for O(log n) line lookups.
+
+    `line_of` is called once per hit; on a large document with many hits the
+    naive str.count from offset 0 is quadratic. Build one of these per text and
+    bisect each index instead.
+    """
+
+    __slots__ = ("offsets",)
+
+    def __init__(self, text):
+        push = self.offsets = []
+        start = 0
+        while True:
+            nl = text.find("\n", start)
+            if nl < 0:
+                break
+            push.append(nl)
+            start = nl + 1
+
+    def line_of(self, index):
+        return bisect.bisect_left(self.offsets, index) + 1
 
 
 def strip_inline_markup(line):
@@ -318,9 +365,8 @@ def sentences(prose):
     protected = re.sub(r"\.\.\.+", lambda m: "\x00" * len(m.group(0)), protected)
     protected = re.sub(r"\b(?:[A-Za-z]\.){2,}",
                        lambda m: m.group(0).replace(".", "\x00"), protected)
-    for ab in ABBREVIATIONS:
-        protected = re.sub(r"\b" + re.escape(ab) + r"\.",
-                           ab + "\x00", protected, flags=re.IGNORECASE)
+    # Protect abbreviation-final periods in one pass (e.g. -> e.g\x00).
+    protected = ABBREV_RE.sub(lambda m: m.group(0)[:-1] + "\x00", protected)
     parts = SENTENCE_SPLIT_RE.split(protected)
     return [p.replace("\x00", ".").strip() for p in parts if p.strip()]
 
@@ -329,6 +375,7 @@ def sentences(prose):
 # Checks
 # ---------------------------------------------------------------------------
 
+@functools.lru_cache(maxsize=None)
 def _phrase_regex(phrase):
     body = re.escape(phrase).replace(r"\ ", r"\s+")
     # Use boundaries only where the edge is a word char, so phrases starting or
@@ -341,7 +388,56 @@ def _phrase_regex(phrase):
         return None
 
 
-def check_lexical_list(text, value, category, hits, seen_spans):
+@functools.lru_cache(maxsize=None)
+def _word_regex(word):
+    """Cached \\bword\\b matcher (case-insensitive) for dialect checks."""
+    try:
+        return re.compile(r"\b" + re.escape(word) + r"\b", re.IGNORECASE)
+    except re.error:
+        return None
+
+
+def _overlaps(start, end, spans):
+    """True if [start, end) overlaps any (s, e) in spans (small list, linear)."""
+    for s, e in spans:
+        if start < e and s < end:
+            return True
+    return False
+
+
+def build_protected_spans(text, exceptions):
+    """Character ranges where a lexical word is a known legitimate use.
+
+    Driven by the `context_exceptions` patterns key — e.g. "test harness" or
+    "vital signs" protect "harness"/"vital" from being flagged as filler. These
+    are whole-phrase matches; any lexical hit landing inside one is suppressed.
+    """
+    spans = []
+    for phrase in exceptions or ():
+        if not isinstance(phrase, str) or not phrase.strip():
+            continue
+        rx = _phrase_regex(phrase.strip())
+        if rx is None:
+            continue
+        for m in rx.finditer(text):
+            spans.append((m.start(), m.end()))
+    return spans
+
+
+# A citation/source token appearing just after a phrase ("studies suggest [1]",
+# "studies show (Smith 2024)") means the attribution is NOT vague.
+CITATION_NEAR_RE = re.compile(
+    r"\[\^?\d|\[\d+\]|\(\s*[A-Z][\w.&-]+,?\s*(?:et al\.?,?\s*)?\d{4}|\(\d{4}\)|https?://|doi:")
+
+
+def _line_bounds(text, idx):
+    start = text.rfind("\n", 0, idx) + 1
+    end = text.find("\n", idx)
+    return start, (end if end != -1 else len(text))
+
+
+def check_lexical_list(text, value, category, hits, seen_spans, lm, protected=(),
+                       cite_guard=False, skip_quoted=False):
     for phrase, suggestion in as_phrase_list(value):
         rx = _phrase_regex(phrase)
         if rx is None:
@@ -351,12 +447,27 @@ def check_lexical_list(text, value, category, hits, seen_spans):
             # Don't double-flag the same span across overlapping lists.
             if span in seen_spans.get(category, set()):
                 continue
+            # Suppress a hit that is part of a known-legitimate phrase.
+            if protected and _overlaps(m.start(), m.end(), protected):
+                continue
+            # Vague attribution that is immediately sourced is not vague.
+            if cite_guard and CITATION_NEAR_RE.search(text[m.end():m.end() + 45]):
+                continue
+            # Optionally skip matches on heading/blockquote lines or inside a
+            # quotation (where the wording belongs to someone else).
+            if skip_quoted:
+                ls, le = _line_bounds(text, m.start())
+                line = text[ls:le]
+                if HEADING_LINE_RE.match(line) or BLOCKQUOTE_RE.match(line):
+                    continue
+                if text.count('"', ls, m.start()) % 2 == 1:
+                    continue
             seen_spans.setdefault(category, set()).add(span)
-            hits.append(Hit(category, line_of(text, m.start()), m.group(0),
+            hits.append(Hit(category, lm.line_of(m.start()), m.group(0),
                             suggestion if suggestion else "cut"))
 
 
-def check_antithesis(text, patterns, hits):
+def check_antithesis(text, patterns, hits, lm):
     if not isinstance(patterns, list):
         return
     for pat in patterns:
@@ -371,24 +482,56 @@ def check_antithesis(text, patterns, hits):
             snippet = m.group(0)
             if len(snippet) > 70:
                 snippet = snippet[:67] + "..."
-            hits.append(Hit("antithesis", line_of(text, m.start()),
+            hits.append(Hit("antithesis", lm.line_of(m.start()),
                             snippet.replace("\n", " "),
                             "drop the not-X/it's-Y framing; state it plainly"))
 
 
-EM_DASH_RE = re.compile(r"\s?[—–]\s?|(?<=\w)--(?=\w)")
+EM_DASH_RE = re.compile(r"\s?[—–]\s?|(?<=\w)--(?=\w)|\s--\s")
 
 
-def check_em_dash(text, words, threshold, hits, report):
-    matches = list(EM_DASH_RE.finditer(text))
+def _is_numeric_en_dash(text, m):
+    """True when the match is an en-dash used as a number range (10–20, 2024 – 25).
+
+    En-dashes between digits are correct typography for ranges, not the em-dash
+    overuse the check targets, so they should not count.
+    """
+    if "–" not in m.group(0):
+        return False
+    i = m.start()
+    while i > 0 and text[i - 1].isspace():
+        i -= 1
+    j = m.end()
+    while j < len(text) and text[j].isspace():
+        j += 1
+    before = text[i - 1] if i > 0 else ""
+    after = text[j] if j < len(text) else ""
+    return before.isdigit() and after.isdigit()
+
+
+PAIRED_DASH_RE = re.compile(r"[—–]\s?[^—–\n]{1,50}?\s?[—–]")
+
+
+def check_em_dash(text, words, threshold, hits, report, lm):
+    matches = [m for m in EM_DASH_RE.finditer(text) if not _is_numeric_en_dash(text, m)]
     count = len(matches)
     per_1k = (count / words * 1000) if words else 0.0
     report["em_dash_per_1k"] = round(per_1k, 1)
+    report["em_dash_count"] = sum(1 for m in matches if "—" in m.group(0) or "--" in m.group(0))
+    report["en_dash_count"] = sum(1 for m in matches if "–" in m.group(0))
+    paired = list(PAIRED_DASH_RE.finditer(text))
+    report["paired_dash_asides"] = len(paired)
     if per_1k > threshold and count >= 2:
         for m in matches[:8]:
             ctx = text[max(0, m.start() - 15):m.start() + 15].replace("\n", " ").strip()
-            hits.append(Hit("em_dash", line_of(text, m.start()), ctx,
+            hits.append(Hit("em_dash", lm.line_of(m.start()), ctx,
                             "use a comma, period, or parens"))
+    # Paired dash asides are a distinctive tic even below the density floor.
+    elif len(paired) >= 2:
+        for m in paired[:6]:
+            hits.append(Hit("em_dash", lm.line_of(m.start()),
+                            m.group(0).replace("\n", " ").strip(),
+                            "rework the dashed aside as its own sentence or parens"))
 
 
 BOLD_BULLET_RE = re.compile(r"^[ \t]*[-*+][ \t]+(?:\*\*[^*\n]+\*\*|__[^_\n]+__)[ \t]*:?",
@@ -396,30 +539,38 @@ BOLD_BULLET_RE = re.compile(r"^[ \t]*[-*+][ \t]+(?:\*\*[^*\n]+\*\*|__[^_\n]+__)[
 BULLET_RE = re.compile(r"^[ \t]*[-*+][ \t]+\S", re.MULTILINE)
 
 
-def check_bold_bullets(text, threshold, hits, report):
+def check_bold_bullets(text, threshold, hits, report, lm):
     bullets = BULLET_RE.findall(text)
     bold = list(BOLD_BULLET_RE.finditer(text))
     report["bullets"] = len(bullets)
     report["bold_lead_bullets"] = len(bold)
     if bullets and (len(bold) / len(bullets)) >= threshold and len(bold) >= 3:
         for m in bold[:8]:
-            hits.append(Hit("bold_bullets", line_of(text, m.start()),
+            hits.append(Hit("bold_bullets", lm.line_of(m.start()),
                             m.group(0).strip(),
                             "convert some to prose; drop ornamental bold"))
 
 
+# Triads with an optional Oxford comma, joined by "and" or "or":
+# "fast, reliable, and scalable" and "fast, reliable and scalable" both match.
 RULE_OF_THREE_RE = re.compile(
-    r"\b([A-Za-z]+(?:ly)?)\s*,\s+([A-Za-z]+(?:ly)?)\s*,\s+and\s+([A-Za-z]+(?:ly)?)\b")
+    r"\b([A-Za-z]+(?:ly)?)\s*,\s+([A-Za-z]+(?:ly)?)\s*,?\s+(?:and|or)\s+([A-Za-z]+(?:ly)?)\b")
 
 
-def check_rule_of_three(prose_text, hits):
+def check_rule_of_three(prose_text, hits, lm):
     for m in RULE_OF_THREE_RE.finditer(prose_text):
         a, b, c = m.group(1), m.group(2), m.group(3)
         # Adjective/adverb-looking triads only; require length and -ly/-ed-ish
         # endings or short words to avoid flagging proper-noun lists.
-        if all(len(w) > 3 for w in (a, b, c)):
-            hits.append(Hit("rule_of_three", line_of(prose_text, m.start()),
-                            m.group(0), "vary to two or four, or a clause"))
+        if not all(len(w) > 3 for w in (a, b, c)):
+            continue
+        # Skip proper-noun lists ("Python, Django, and Flask"): a capitalized
+        # member that is NOT the sentence's first word marks a name, not an
+        # adjective. The first member can be capitalized merely by position.
+        if b[0].isupper() or c[0].isupper():
+            continue
+        hits.append(Hit("rule_of_three", lm.line_of(m.start()),
+                        m.group(0), "vary to two or four, or a clause"))
 
 
 def check_uniform_openers(sents, ratio_threshold, hits, report):
@@ -428,32 +579,37 @@ def check_uniform_openers(sents, ratio_threshold, hits, report):
         m = WORD_RE.search(s)
         if m:
             openers.append(m.group(0).lower())
-    if len(openers) < 6:
+    if len(openers) < 4:
         report["opener_repeat_ratio"] = 0.0
+        report["opener_entropy"] = None
         return
-    word, count = Counter(openers).most_common(1)[0]
-    ratio = count / len(openers)
+    counts = Counter(openers)
+    # Shannon entropy of the opener distribution (low = templated openings).
+    total = len(openers)
+    entropy = -sum((c / total) * math.log2(c / total) for c in counts.values())
+    report["opener_entropy"] = round(entropy, 2)
+    word, count = counts.most_common(1)[0]
+    ratio = count / total
     report["opener_repeat_ratio"] = round(ratio, 2)
     if ratio >= ratio_threshold:
         hits.append(Hit("uniform_openers", 0,
-                        '%d of %d sentences open with "%s"' % (count, len(openers), word),
+                        '%d of %d sentences open with "%s"' % (count, total, word),
                         "vary how sentences begin"))
 
 
-def check_formatting(text, max_rules, hits, report):
+def check_formatting(text, max_rules, hits, report, lm):
     max_rules = int(max_rules)
     emojis = EMOJI_RE.findall(text)
     report["emoji"] = len(emojis)
     if emojis:
         m = EMOJI_RE.search(text)
-        hits.append(Hit("formatting", line_of(text, m.start()),
+        hits.append(Hit("formatting", lm.line_of(m.start()),
                         "emoji (%d)" % len(emojis), "remove decorative emoji"))
-    rules = [m for m in re.finditer(r"^[ \t]*([-*_])(?:[ \t]*\1){2,}[ \t]*$", text,
-                                    re.MULTILINE)]
+    rules = list(SECTION_RULE_MULTILINE_RE.finditer(text))
     report["section_rules"] = len(rules)
     if len(rules) > max_rules:
         for m in rules[max_rules:max_rules + 6]:
-            hits.append(Hit("formatting", line_of(text, m.start()),
+            hits.append(Hit("formatting", lm.line_of(m.start()),
                             "horizontal rule", "drop rules between every section"))
 
 
@@ -478,18 +634,33 @@ def check_burstiness(sents, floor, hits, report):
                         "mix short punches with long sentences"))
 
 
+def _yules_k(words):
+    """Yule's K — vocabulary richness, robust to text length (lower = richer)."""
+    n = len(words)
+    if n < 2:
+        return None
+    freqs = Counter(words)
+    spectrum = Counter(freqs.values())  # how many words occur m times
+    inner = sum(vm * (m * m) for m, vm in spectrum.items())
+    return round(1e4 * (inner - n) / (n * n), 1)
+
+
 def check_lexical_diversity(prose_text, floor, hits, report):
     words = [w.lower() for w in WORD_RE.findall(prose_text)]
     if len(words) < 50:
         report["ttr"] = None
+        report["yules_k"] = None
         return
     window = 50
+    # Moving-average TTR (MATTR): overlapping windows for a smoother estimate.
+    # Fall back to non-overlapping stride on very large inputs to bound cost.
+    stride = 1 if len(words) <= 50000 else window
     ratios = []
-    for i in range(0, len(words) - window + 1, window):
-        chunk = words[i:i + window]
-        ratios.append(len(set(chunk)) / window)
+    for i in range(0, len(words) - window + 1, stride):
+        ratios.append(len(set(words[i:i + window])) / window)
     ttr = (sum(ratios) / len(ratios)) if ratios else (len(set(words)) / len(words))
     report["ttr"] = round(ttr, 2)
+    report["yules_k"] = _yules_k(words)
     if ttr < floor:
         hits.append(Hit("lexical_diversity", 0,
                         "type-token ratio %.2f (floor %.2f)" % (ttr, floor),
@@ -523,26 +694,41 @@ def check_ngram_repetition(prose_text, sizes, min_count, hits):
                 break  # most_common is descending; nothing further qualifies
 
 
-def check_dialect(text, dialect_map, hits):
+def _is_identifier_context(text, start, end):
+    """True when a match sits in a code identifier rather than prose.
+
+    Skips dialect hits on tokens like `optimizer`, `Color.RED`, `analyse()`, or
+    SCREAMING_CASE constants, where the spelling is a fixed API name, not drift.
+    """
+    word = text[start:end]
+    if word.isupper() and len(word) > 1:
+        return True
+    before = text[start - 1] if start > 0 else ""
+    after = text[end] if end < len(text) else ""
+    return before in "_.$" or after in "_.("
+
+
+def check_dialect(text, dialect_map, hits, lm):
     if not isinstance(dialect_map, dict):
         return
     for wrong, right in dialect_map.items():
         if not isinstance(wrong, str) or not wrong:
             continue
-        try:
-            rx = re.compile(r"\b" + re.escape(wrong) + r"\b", re.IGNORECASE)
-        except re.error:
+        rx = _word_regex(wrong)
+        if rx is None:
             continue
         for m in rx.finditer(text):
+            if _is_identifier_context(text, m.start(), m.end()):
+                continue
             sug = ("use '%s' for consistent dialect" % right
                    if isinstance(right, str) else "spelling drift")
-            hits.append(Hit("dialect", line_of(text, m.start()), m.group(0), sug))
+            hits.append(Hit("dialect", lm.line_of(m.start()), m.group(0), sug))
 
 
 HEADING_RE = re.compile(r"^[ \t]*(#{1,6})[ \t]+(.+?)[ \t]*#*$", re.MULTILINE)
 
 
-def check_heading_case(text, hits):
+def check_heading_case(text, hits, lm):
     styles = []
     spans = []
     for m in HEADING_RE.finditer(text):
@@ -558,8 +744,183 @@ def check_heading_case(text, hits):
         majority = Counter(styles).most_common(1)[0][0]
         for (start, title), style in zip(spans, styles):
             if style != majority:
-                hits.append(Hit("heading_case", line_of(text, start), title,
+                hits.append(Hit("heading_case", lm.line_of(start), title,
                                 "match the dominant heading case (%s)" % majority))
+
+
+# ---------------------------------------------------------------------------
+# Density / structural checks (Phase 2)
+# ---------------------------------------------------------------------------
+
+# Passive voice: a "to be" form (optionally with an adverb) + a past participle.
+# Deliberately conservative — flagged only when density is high, since some
+# passive is normal and necessary.
+PASSIVE_RE = re.compile(
+    r"\b(?:is|are|was|were|be|been|being|got|gets)\s+(?:\w+ly\s+)?"
+    r"(?:\w+ed|written|made|done|given|taken|seen|known|built|held|kept|sent|"
+    r"shown|told|found|put|set|read|lost|won|paid|met|drawn|grown|chosen)\b",
+    re.IGNORECASE)
+ADVERB_RE = re.compile(r"\b\w{3,}ly\b")
+NOMINALIZATION_RE = re.compile(r"\b\w{4,}(?:tion|ment|ance|ence|ity|ization|isation)s?\b",
+                               re.IGNORECASE)
+COLON_SUMMARY_RE = re.compile(
+    r"\b(?:the\s+)?(?:key|answer|takeaway|bottom line|point|truth|reality|catch|"
+    r"problem|reason|result|upshot|short of it)\s+(?:here\s+)?is:\s*\S",
+    re.IGNORECASE)
+
+
+def _density_hit(category, count, words, threshold, hits, report, metric_key,
+                 example, suggestion, min_words=150):
+    per_1k = (count / words * 1000) if words else 0.0
+    report[metric_key] = round(per_1k, 1)
+    if words >= min_words and per_1k > threshold and count >= 3:
+        hits.append(Hit(category, 0,
+                        "%s: %.0f / 1k words (floor %.0f)" % (example, per_1k, threshold),
+                        suggestion))
+
+
+def check_passive_voice(prose_text, words, threshold, hits, report):
+    count = len(PASSIVE_RE.findall(prose_text))
+    _density_hit("passive_voice", count, words, threshold, hits, report,
+                 "passive_per_1k", "passive constructions",
+                 "prefer the active voice where the actor matters")
+
+
+def check_adverbs(tokens, words, threshold, hits, report):
+    count = sum(1 for t in tokens if len(t) > 3 and t.endswith("ly"))
+    _density_hit("adverbs", count, words, threshold, hits, report,
+                 "adverb_per_1k", "-ly adverbs",
+                 "cut weak adverbs; pick a stronger verb or adjective")
+
+
+def check_nominalizations(prose_text, words, threshold, hits, report):
+    count = len(NOMINALIZATION_RE.findall(prose_text))
+    _density_hit("nominalization", count, words, threshold, hits, report,
+                 "nominalization_per_1k", "nominalizations",
+                 "turn -tion/-ment nouns back into verbs")
+
+
+def check_rhetorical(sents, words, threshold, hits, report):
+    count = sum(1 for s in sents if s.rstrip().endswith("?"))
+    _density_hit("rhetorical", count, words, threshold, hits, report,
+                 "rhetorical_per_1k", "rhetorical questions",
+                 "answer the question or cut it")
+
+
+def check_colon_summary(prose_text, hits, report, lm):
+    matches = list(COLON_SUMMARY_RE.finditer(prose_text))
+    report["colon_summary"] = len(matches)
+    if len(matches) >= 3:
+        for m in matches[:6]:
+            hits.append(Hit("colon_summary", lm.line_of(m.start()),
+                            m.group(0).strip().replace("\n", " "),
+                            "vary the lead-in; not every point needs 'X is: ...'"))
+
+
+def report_punctuation_profile(prose_text, words, report):
+    """Per-1k-word punctuation counts (report-only; a stylometric signal)."""
+    if not words:
+        return
+    for key, ch in (("semicolon", ";"), ("colon", ":"), ("question", "?"),
+                    ("exclaim", "!")):
+        report["%s_per_1k" % key] = round(prose_text.count(ch) / words * 1000, 1)
+    report["paren_per_1k"] = round(prose_text.count("(") / words * 1000, 1)
+
+
+def paragraphs_of(code_stripped):
+    """Word counts of prose paragraphs (blank-line separated, non-structural)."""
+    counts = []
+    for block in re.split(r"\n[ \t]*\n", code_stripped):
+        lines = []
+        for ln in block.split("\n"):
+            if (HEADING_LINE_RE.match(ln) or SETEXT_RE.match(ln) or SECTION_RULE_RE.match(ln)
+                    or TABLE_ROW_RE.match(ln) or LIST_MARKER_RE.match(ln)):
+                continue
+            lines.append(ln)
+        text = strip_inline_markup(" ".join(lines))
+        n = len(WORD_RE.findall(text))
+        if n > 0:
+            counts.append(n)
+    return counts
+
+
+def _cov(values):
+    if len(values) < 2:
+        return None
+    mean = sum(values) / len(values)
+    if mean <= 0:
+        return None
+    var = sum((v - mean) ** 2 for v in values) / len(values)
+    return math.sqrt(var) / mean
+
+
+def check_paragraph_uniformity(code_stripped, floor, hits, report, min_paras=4):
+    counts = paragraphs_of(code_stripped)
+    cov = _cov(counts)
+    report["paragraph_len_cov"] = round(cov, 2) if cov is not None else None
+    if len(counts) >= min_paras and cov is not None and cov < floor:
+        hits.append(Hit("paragraph_uniformity", 0,
+                        "paragraph-length CoV %.2f (floor %.2f)" % (cov, floor),
+                        "vary paragraph length; AI drafts are suspiciously even"))
+
+
+def check_list_uniformity(code_stripped, floor, hits, report, min_items=4):
+    counts = []
+    for ln in code_stripped.split("\n"):
+        if LIST_MARKER_RE.match(ln):
+            item = strip_inline_markup(LIST_MARKER_RE.sub("", ln))
+            n = len(WORD_RE.findall(item))
+            if n > 0:
+                counts.append(n)
+    cov = _cov(counts)
+    report["list_item_cov"] = round(cov, 2) if cov is not None else None
+    if len(counts) >= min_items and cov is not None and cov < floor:
+        hits.append(Hit("list_uniformity", 0,
+                        "list-item-length CoV %.2f (floor %.2f)" % (cov, floor),
+                        "uniform list items read as generated; vary or convert to prose"))
+
+
+def check_circular_conclusion(code_stripped, hits, report, min_paras=3, overlap=0.5):
+    counts = []
+    paras = [p for p in re.split(r"\n[ \t]*\n", code_stripped) if p.strip()]
+    prose = []
+    for block in paras:
+        lines = [ln for ln in block.split("\n")
+                 if not (HEADING_LINE_RE.match(ln) or SECTION_RULE_RE.match(ln)
+                         or TABLE_ROW_RE.match(ln))]
+        text = strip_inline_markup(" ".join(lines))
+        if WORD_RE.findall(text):
+            prose.append([w.lower() for w in WORD_RE.findall(text) if w.lower() not in STOPWORDS])
+    if len(prose) < min_paras:
+        return
+    first, last = set(prose[0]), set(prose[-1])
+    if not first or not last:
+        return
+    jacc = len(first & last) / len(first | last)
+    if jacc >= overlap:
+        hits.append(Hit("circular_conclusion", 0,
+                        "closing paragraph repeats the opening (overlap %.2f)" % jacc,
+                        "end on the last real point; cut the recap"))
+
+
+def check_parallel_structure(sents, hits, report, run=3):
+    """Flag >= `run` consecutive sentences sharing their first two words."""
+    def head(s):
+        ws = WORD_RE.findall(s.lower())
+        return tuple(ws[:2]) if len(ws) >= 2 else None
+    streak = 1
+    flagged = 0
+    for i in range(1, len(sents)):
+        if head(sents[i]) is not None and head(sents[i]) == head(sents[i - 1]):
+            streak += 1
+            if streak == run:
+                h = head(sents[i])
+                hits.append(Hit("parallel_structure", 0,
+                                '%d+ sentences in a row open "%s ..."' % (run, " ".join(h)),
+                                "vary sentence openings and structure"))
+                flagged += 1
+        else:
+            streak = 1
 
 
 # ---------------------------------------------------------------------------
@@ -584,7 +945,8 @@ def analyze(text, register, dialect, patterns):
     code_stripped = strip_code(text)
     metric_prose = prose_for_metrics(code_stripped)
     sents = sentences(metric_prose)
-    word_count = len(WORD_RE.findall(metric_prose))
+    tokens = [w.lower() for w in WORD_RE.findall(metric_prose)]  # tokenize once
+    word_count = len(tokens)
     muted = muted_categories(register, patterns)
     th = patterns.get("thresholds", {})
     if not isinstance(th, dict):
@@ -593,32 +955,57 @@ def analyze(text, register, dialect, patterns):
     seen = {}
     report = {}
 
-    check_lexical_list(code_stripped, patterns.get("filler"), "filler", hits, seen)
-    check_lexical_list(code_stripped, patterns.get("jargon"), "jargon", hits, seen)
-    check_lexical_list(code_stripped, patterns.get("overused_transitions"), "transitions", hits, seen)
-    check_lexical_list(code_stripped, patterns.get("meta_commentary"), "meta_commentary", hits, seen)
-    check_lexical_list(code_stripped, patterns.get("hedging"), "hedging", hits, seen)
-    check_lexical_list(code_stripped, patterns.get("puffery"), "puffery", hits, seen)
-    check_lexical_list(code_stripped, patterns.get("vague_attribution"), "vague_attribution", hits, seen)
-    check_lexical_list(code_stripped, patterns.get("redundancy"), "redundancy", hits, seen)
-    check_lexical_list(code_stripped, patterns.get("self_identifying"), "self_identifying", hits, seen)
-    check_antithesis(code_stripped, patterns.get("antithesis_patterns"), hits)
+    # One LineMap per distinct text so each hit's line lookup is O(log n).
+    lm_code = LineMap(code_stripped)
+    lm_metric = LineMap(metric_prose)
+    lm_raw = LineMap(text)
 
-    check_em_dash(metric_prose, word_count, safe_float(th, "em_dash_per_1k_words", 6.0), hits, report)
-    check_bold_bullets(text, safe_float(th, "bold_bullet_ratio", 0.5), hits, report)
-    check_rule_of_three(metric_prose, hits)
+    # Phrases/terms where an otherwise-flagged word is legitimate: fixed phrases
+    # (context_exceptions) plus project-specific protected terms.
+    protected = build_protected_spans(
+        code_stripped,
+        list(patterns.get("context_exceptions") or []) + list(patterns.get("protected_terms") or []))
+
+    check_lexical_list(code_stripped, patterns.get("filler"), "filler", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("jargon"), "jargon", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("overused_transitions"), "transitions", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("meta_commentary"), "meta_commentary", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("chatbot_scaffold"), "chatbot_scaffold", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("hedging"), "hedging", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("puffery"), "puffery", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("vague_attribution"), "vague_attribution", hits, seen, lm_code, protected, cite_guard=True)
+    check_lexical_list(code_stripped, patterns.get("redundancy"), "redundancy", hits, seen, lm_code, protected, skip_quoted=True)
+    check_lexical_list(code_stripped, patterns.get("self_identifying"), "self_identifying", hits, seen, lm_code, protected)
+    check_antithesis(code_stripped, patterns.get("antithesis_patterns"), hits, lm_code)
+
+    check_em_dash(metric_prose, word_count, safe_float(th, "em_dash_per_1k_words", 6.0), hits, report, lm_metric)
+    check_bold_bullets(text, safe_float(th, "bold_bullet_ratio", 0.5), hits, report, lm_raw)
+    check_rule_of_three(metric_prose, hits, lm_metric)
     check_uniform_openers(sents, safe_float(th, "uniform_opener_ratio", 0.3), hits, report)
-    check_formatting(text, safe_float(th, "section_rule_max", 2), hits, report)
+    check_formatting(text, safe_float(th, "section_rule_max", 2), hits, report, lm_raw)
     check_burstiness(sents, safe_float(th, "burstiness_cov_floor", 0.45), hits, report)
     check_lexical_diversity(metric_prose, safe_float(th, "ttr_floor", 0.40), hits, report)
     check_ngram_repetition(metric_prose, safe_int_list(th, "ngram_sizes", [2, 3]),
                            int(safe_float(th, "ngram_min_count", 3)), hits)
-    check_heading_case(text, hits)
+    check_heading_case(text, hits, lm_raw)
+
+    # Density / structural checks (Phase 2). Conservative thresholds keep clean
+    # human prose clean; several are muted by register (see register_mutes).
+    check_colon_summary(metric_prose, hits, report, lm_metric)
+    check_passive_voice(metric_prose, word_count, safe_float(th, "passive_per_1k", 45.0), hits, report)
+    check_adverbs(tokens, word_count, safe_float(th, "adverb_per_1k", 55.0), hits, report)
+    check_nominalizations(metric_prose, word_count, safe_float(th, "nominalization_per_1k", 60.0), hits, report)
+    check_rhetorical(sents, word_count, safe_float(th, "rhetorical_per_1k", 18.0), hits, report)
+    check_paragraph_uniformity(code_stripped, safe_float(th, "paragraph_cov_floor", 0.30), hits, report)
+    check_list_uniformity(code_stripped, safe_float(th, "list_item_cov_floor", 0.22), hits, report)
+    check_circular_conclusion(code_stripped, hits, report)
+    check_parallel_structure(sents, hits, report)
+    report_punctuation_profile(metric_prose, word_count, report)
 
     if dialect:
         dmap = patterns.get("dialect", {})
         dmap = dmap.get(dialect, {}) if isinstance(dmap, dict) else {}
-        check_dialect(code_stripped, dmap, hits)
+        check_dialect(code_stripped, dmap, hits, lm_code)
 
     hits = [h for h in hits if h.category not in muted]
     report["word_count"] = word_count
@@ -626,13 +1013,59 @@ def analyze(text, register, dialect, patterns):
     return hits, report, word_count
 
 
-def score(hits, word_count):
-    weighted = sum(CATEGORY_WEIGHTS.get(h.category, 1.0) for h in hits)
+# Default verdict bands (upper-exclusive): score < 5 reads clean, < 15 worth a
+# look, otherwise a strong floor signal. The top band is open-ended (large
+# threshold). Overridable via patterns["score_bands"].
+DEFAULT_BANDS = (("clean", 5.0), ("watch", 15.0), ("strong-tell", 1e6))
+
+
+def resolve_weights(patterns):
+    """Category weights from the patterns file merged over the built-in defaults."""
+    weights = dict(CATEGORY_WEIGHTS)
+    cfg = patterns.get("category_weights") if isinstance(patterns, dict) else None
+    if isinstance(cfg, dict):
+        for cat, w in cfg.items():
+            if cat in CATEGORY_WEIGHTS:
+                try:
+                    weights[cat] = float(w)
+                except (TypeError, ValueError):
+                    continue
+    return weights
+
+
+def score(hits, word_count, weights=None):
+    if weights is None:
+        weights = CATEGORY_WEIGHTS
+    weighted = sum(weights.get(h.category, 1.0) for h in hits)
     per_1k = (weighted / word_count * 1000) if word_count else 0.0
     return round(per_1k, 1)
 
 
-def render_text(target, register, dialect, hits, report, word_count, floor_score):
+def resolve_bands(patterns):
+    """(label, upper) bands sorted ascending; falls back to DEFAULT_BANDS."""
+    cfg = patterns.get("score_bands") if isinstance(patterns, dict) else None
+    if isinstance(cfg, dict) and cfg:
+        bands = []
+        for label, upper in cfg.items():
+            try:
+                bands.append((str(label), float(upper)))
+            except (TypeError, ValueError):
+                continue
+        if bands:
+            return tuple(sorted(bands, key=lambda b: b[1]))
+    return DEFAULT_BANDS
+
+
+def verdict_band(floor_score, bands):
+    """Map a floor score to its band label (the highest band is open-ended)."""
+    for label, upper in bands:
+        if floor_score < upper:
+            return label
+    return bands[-1][0] if bands else "n/a"
+
+
+def render_text(target, register, dialect, hits, report, word_count, floor_score,
+                band="n/a", max_examples=6):
     by_cat = {}
     for h in hits:
         by_cat.setdefault(h.category, []).append(h)
@@ -641,7 +1074,8 @@ def render_text(target, register, dialect, hits, report, word_count, floor_score
     out.append("AI-prose floor report — %s" % target)
     out.append("register: %s%s   words: %d" % (
         register, ("   dialect: " + dialect) if dialect else "", word_count))
-    out.append("score: %.1f weighted tells / 1k words  (lower is better; a FLOOR, not proof)" % floor_score)
+    out.append("score: %.1f weighted tells / 1k words  [%s]  (lower is better; a FLOOR, not proof)"
+               % (floor_score, band))
     bcov = report.get("burstiness_cov")
     out.append("burstiness CoV: %s   TTR: %s   em-dash/1k: %s   mean sentence: %s words" % (
         bcov if bcov is not None else "n/a",
@@ -660,31 +1094,307 @@ def render_text(target, register, dialect, hits, report, word_count, floor_score
     out.append("Tells by category (%d total):" % len(hits))
     for cat in sorted(by_cat, key=lambda c: (-len(by_cat[c]), c)):
         items = by_cat[cat]
-        out.append("  %-18s %d" % (cat, len(items)))
-        for h in items[:6]:
+        out.append("  %-20s %d" % (cat, len(items)))
+        for h in items[:max_examples]:
             loc = ("L%d: " % h.line) if h.line else ""
             sug = ("  -> %s" % h.suggestion) if h.suggestion else ""
             out.append("      %s%s%s" % (loc, h.text, sug))
-        if len(items) > 6:
-            out.append("      ... and %d more" % (len(items) - 6))
+        if len(items) > max_examples:
+            out.append("      ... and %d more" % (len(items) - max_examples))
+    hotspots = line_hotspots(hits)
+    if len(hotspots) > 1 and hotspots[0][1] > 1:
+        spots = ", ".join("L%d (%d)" % (ln, n) for ln, n in hotspots if n > 1)
+        if spots:
+            out.append("")
+            out.append("Hotspot lines: %s" % spots)
     out.append("")
     out.append("Floor only. The linter cannot see vacuity, weak stance, terminology")
     out.append("drift, or fabrication. A skeptical human read is the real test.")
     return "\n".join(out)
 
 
+def severity_of(category, weights):
+    w = weights.get(category, 1.0)
+    if w >= 2.0:
+        return "high"
+    if w >= 1.5:
+        return "medium"
+    return "low"
+
+
+def line_hotspots(hits, top=5):
+    counts = Counter(h.line for h in hits if h.line)
+    return counts.most_common(top)
+
+
+def lint(text, register="technical", dialect=None, patterns=None):
+    """Library entry point: analyze text and return the result dict.
+
+    Mirrors the --json payload so callers can import this module instead of
+    shelling out to the CLI.
+    """
+    if patterns is None:
+        patterns = load_patterns()
+    hits, report, words = analyze(text, register, dialect, patterns)
+    weights = resolve_weights(patterns)
+    floor = score(hits, words, weights)
+    return {
+        "schema_version": 1,
+        "register": register,
+        "dialect": dialect,
+        "words": words,
+        "score": floor,
+        "verdict": verdict_band(floor, resolve_bands(patterns)),
+        "metrics": report,
+        "hits": [dict(h.as_dict(), severity=severity_of(h.category, weights)) for h in hits],
+    }
+
+
+def _match_case(original, replacement):
+    if original.isupper() and len(original) > 1:
+        return replacement.upper()
+    if original[:1].isupper():
+        return replacement[:1].upper() + replacement[1:]
+    return replacement
+
+
+# Only 1:1 lexical swaps with a concrete replacement are auto-fixable. "cut"
+# suggestions and structural tells need human judgment and are never auto-applied.
+SAFE_FIX_KEYS = ("filler", "jargon", "redundancy")
+
+
+def autofix(text, patterns):
+    """Apply unambiguous 1:1 word/phrase swaps. Returns (new_text, count).
+
+    Runs on strip_code(text) so offsets line up with the original and code is
+    never touched. Overlapping edits keep the leftmost; everything else is left
+    for human judgment.
+    """
+    cs = strip_code(text)
+    edits = []
+    for key in SAFE_FIX_KEYS:
+        for phrase, suggestion in as_phrase_list(patterns.get(key)):
+            if not suggestion or suggestion == "cut":
+                continue
+            rx = _phrase_regex(phrase)
+            if rx is None:
+                continue
+            for m in rx.finditer(cs):
+                edits.append((m.start(), m.end(), _match_case(m.group(0), suggestion)))
+    edits.sort(key=lambda e: e[0])
+    out, pos, last, applied = [], 0, -1, 0
+    for s, e, rep in edits:
+        if s < last:
+            continue
+        out.append(text[pos:s])
+        out.append(rep)
+        pos, last, applied = e, e, applied + 1
+    out.append(text[pos:])
+    return "".join(out), applied
+
+
+def apply_threshold_overrides(patterns, overrides):
+    if not overrides:
+        return patterns
+    th = dict(patterns.get("thresholds", {})) if isinstance(patterns.get("thresholds"), dict) else {}
+    for ov in overrides:
+        if "=" not in ov:
+            warn("ignoring malformed --threshold %r (want key=value)" % ov)
+            continue
+        k, v = ov.split("=", 1)
+        try:
+            th[k.strip()] = float(v)
+        except ValueError:
+            warn("ignoring non-numeric --threshold %r" % ov)
+    patterns = dict(patterns)
+    patterns["thresholds"] = th
+    return patterns
+
+
+def filter_hits(hits, enable, disable):
+    if enable:
+        hits = [h for h in hits if h.category in enable]
+    if disable:
+        hits = [h for h in hits if h.category not in disable]
+    return hits
+
+
+def render_sarif(results):
+    """Minimal SARIF 2.1.0 doc so hits surface inline in code-scanning UIs."""
+    sarif_results = []
+    rules = {}
+    for res in results:
+        for h in res["hits"]:
+            cat = h["category"]
+            rules.setdefault(cat, {"id": cat, "name": cat,
+                                   "shortDescription": {"text": "AI-prose tell: %s" % cat}})
+            sarif_results.append({
+                "ruleId": cat,
+                "level": {"high": "error", "medium": "warning", "low": "note"}.get(
+                    h.get("severity", "low"), "note"),
+                "message": {"text": "%s%s" % (
+                    h["text"], "  -> " + h["suggestion"] if h.get("suggestion") else "")},
+                "locations": [{"physicalLocation": {
+                    "artifactLocation": {"uri": res["input"]},
+                    "region": {"startLine": max(1, h.get("line") or 1)}}}],
+            })
+    return {
+        "version": "2.1.0",
+        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+        "runs": [{
+            "tool": {"driver": {"name": "detect_ai_prose", "rules": list(rules.values())}},
+            "results": sarif_results,
+        }],
+    }
+
+
+CONFIG_NAME = ".humanvoicerc"
+
+
+def find_project_config(start):
+    """Walk up from `start` looking for a .humanvoicerc JSON file."""
+    try:
+        d = os.path.dirname(os.path.abspath(start)) if start and start != "-" else os.getcwd()
+    except OSError:
+        return None
+    seen = set()
+    while d and d not in seen:
+        seen.add(d)
+        candidate = os.path.join(d, CONFIG_NAME)
+        if os.path.isfile(candidate):
+            try:
+                with open(candidate, encoding="utf-8", errors="replace") as fh:
+                    cfg = json.load(fh)
+                if isinstance(cfg, dict):
+                    return cfg
+            except (json.JSONDecodeError, OSError, ValueError) as exc:
+                warn("ignoring unreadable %s: %s" % (candidate, exc))
+                return None
+        parent = os.path.dirname(d)
+        if parent == d:
+            break
+        d = parent
+    return None
+
+
+def merge_config(patterns, cfg):
+    """Merge a .humanvoicerc dict into the loaded patterns (project overrides)."""
+    if not isinstance(cfg, dict):
+        return patterns
+    patterns = dict(patterns)
+    if isinstance(cfg.get("thresholds"), dict):
+        th = dict(patterns.get("thresholds", {}) if isinstance(patterns.get("thresholds"), dict) else {})
+        th.update(cfg["thresholds"])
+        patterns["thresholds"] = th
+    if isinstance(cfg.get("category_weights"), dict):
+        cw = dict(patterns.get("category_weights", {}) if isinstance(patterns.get("category_weights"), dict) else {})
+        cw.update(cfg["category_weights"])
+        patterns["category_weights"] = cw
+    if isinstance(cfg.get("score_bands"), dict):
+        patterns["score_bands"] = cfg["score_bands"]
+    for listkey in ("protected_terms", "context_exceptions"):
+        if isinstance(cfg.get(listkey), list):
+            patterns[listkey] = list(patterns.get(listkey) or []) + list(cfg[listkey])
+    return patterns
+
+
+def collect_targets(inputs, recursive):
+    """Expand inputs into a flat list of file paths (or '-'), walking dirs."""
+    targets = []
+    for inp in inputs:
+        if inp == "-":
+            targets.append(inp)
+        elif os.path.isdir(inp):
+            for root, _dirs, files in os.walk(inp):
+                for fn in sorted(files):
+                    if fn.endswith((".md", ".markdown", ".txt")):
+                        targets.append(os.path.join(root, fn))
+                if not recursive:
+                    break
+        else:
+            targets.append(inp)
+    return targets
+
+
+def analyze_target(target, args, patterns, weights, bands):
+    text = read_input(target)
+    hits, report, words = analyze(text, args.register, args.dialect, patterns)
+    hits = filter_hits(hits, set(args.enable or []), set(args.disable or []))
+    floor = score(hits, words, weights)
+    return {
+        "schema_version": 1,
+        "input": target,
+        "register": args.register,
+        "dialect": args.dialect,
+        "words": words,
+        "score": floor,
+        "verdict": verdict_band(floor, bands),
+        "metrics": report,
+        "hits": [dict(h.as_dict(), severity=severity_of(h.category, weights)) for h in hits],
+    }, hits, report, words, floor
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Detect surface tells of AI-written prose.")
-    ap.add_argument("input", help="file path, or - for stdin")
-    ap.add_argument("--register", choices=REGISTERS, default="technical",
-                    help="genre profile (default: technical)")
+    ap.add_argument("input", nargs="+", help="file path(s) or directory, or - for stdin")
+    ap.add_argument("--register", choices=REGISTERS, default=None,
+                    help="genre profile (default: technical, or .humanvoicerc)")
     ap.add_argument("--dialect", choices=["american", "british"], default=None,
                     help="enable spelling-consistency check for this dialect")
+    ap.add_argument("--no-config", action="store_true", dest="no_config",
+                    help="ignore any .humanvoicerc project config")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
+    ap.add_argument("--sarif", action="store_true", help="SARIF 2.1.0 output for code scanning")
     ap.add_argument("--patterns", default=PATTERNS_FILE, help="patterns JSON path")
+    ap.add_argument("--fail-over", type=float, default=None, metavar="SCORE",
+                    dest="fail_over",
+                    help="exit 1 when any floor score exceeds SCORE (for CI gating)")
+    ap.add_argument("--baseline", metavar="FILE",
+                    help="compare the input against FILE and print the score delta")
+    ap.add_argument("--enable", help="comma-separated categories to keep (drop the rest)")
+    ap.add_argument("--disable", help="comma-separated categories to suppress")
+    ap.add_argument("--threshold", action="append", metavar="KEY=VALUE",
+                    help="override a threshold (repeatable), e.g. --threshold burstiness_cov_floor=0.5")
+    ap.add_argument("--max-examples", type=int, default=6, dest="max_examples",
+                    help="examples shown per category in text output (default 6)")
+    ap.add_argument("--quiet", action="store_true", help="print only the score line per file")
+    ap.add_argument("--explain", action="store_true",
+                    help="list every hit with line and fix (no per-category cap)")
+    ap.add_argument("--recursive", action="store_true",
+                    help="recurse into subdirectories when a directory is given")
+    ap.add_argument("--lang", default="en",
+                    help="language of the input (only 'en' is supported today)")
+    ap.add_argument("--fix", action="store_true",
+                    help="apply unambiguous 1:1 word swaps in place (files only)")
+    ap.add_argument("--fix-dry-run", action="store_true", dest="fix_dry_run",
+                    help="print the autofixed text to stdout without writing")
     args = ap.parse_args(argv)
 
+    if args.lang and args.lang.lower() not in ("en", "english"):
+        warn("only English ('en') is supported today; patterns are English-only. "
+             "Proceeding, but results for %r are not meaningful." % args.lang)
+
+    # normalize category filters
+    args.enable = [c.strip() for c in args.enable.split(",")] if args.enable else None
+    args.disable = [c.strip() for c in args.disable.split(",")] if args.disable else None
+
     patterns = load_patterns(args.patterns)
+    # Project config (.humanvoicerc) discovered relative to the first real path.
+    cfg = None
+    if not args.no_config:
+        first_path = next((i for i in args.input if i != "-"), None)
+        cfg = find_project_config(first_path)
+        if cfg:
+            patterns = merge_config(patterns, cfg)
+    # Resolve register/dialect: explicit flag > project config > built-in default.
+    args.register = args.register or (cfg or {}).get("register") or "technical"
+    if args.register not in REGISTERS:
+        warn("unknown register %r from config; using technical" % args.register)
+        args.register = "technical"
+    args.dialect = args.dialect or (cfg or {}).get("dialect")
+    if args.dialect not in (None, "american", "british"):
+        args.dialect = None
+    patterns = apply_threshold_overrides(patterns, args.threshold)
     # One-time sanity warning if the mute config references unknown categories.
     muted_map = patterns.get("muted_checks", {})
     if isinstance(muted_map, dict):
@@ -694,24 +1404,65 @@ def main(argv=None):
                     if c not in KNOWN_CATEGORIES:
                         warn("muted_checks[%r] references unknown category %r" % (token, c))
 
-    text = read_input(args.input)
-    hits, report, word_count = analyze(text, args.register, args.dialect, patterns)
-    floor = score(hits, word_count)
+    weights = resolve_weights(patterns)
+    bands = resolve_bands(patterns)
 
-    if args.json:
-        payload = {
-            "input": args.input,
-            "register": args.register,
-            "dialect": args.dialect,
-            "words": word_count,
-            "score": floor,
-            "metrics": report,
-            "hits": [h.as_dict() for h in hits],
-        }
-        print(json.dumps(payload, indent=2))
-    else:
-        print(render_text(args.input, args.register, args.dialect, hits, report,
-                          word_count, floor))
+    # --- autofix mode (single file) ---
+    if args.fix or args.fix_dry_run:
+        if len(args.input) != 1 or args.input[0] == "-":
+            sys.stderr.write("error: --fix needs exactly one file path\n")
+            return 2
+        target = args.input[0]
+        original = read_input(target)
+        fixed, n = autofix(original, patterns)
+        if args.fix_dry_run:
+            sys.stdout.write(fixed)
+            return 0
+        if n and not os.path.isdir(target):
+            with open(target, "w", encoding="utf-8") as fh:
+                fh.write(fixed)
+        sys.stderr.write("autofix: applied %d swap(s) to %s\n" % (n, target))
+        return 0
+
+    # --- compare mode (input vs baseline) ---
+    if args.baseline:
+        base = analyze_target(args.baseline, args, patterns, weights, bands)[0]
+        cur = analyze_target(args.input[0], args, patterns, weights, bands)[0]
+        delta = round(cur["score"] - base["score"], 1)
+        if args.json:
+            print(json.dumps({"baseline": base, "current": cur,
+                              "score_delta": delta}, indent=2))
+        else:
+            print("compare: %s [%s %.1f]  ->  %s [%s %.1f]   delta %+.1f" % (
+                base["input"], base["verdict"], base["score"],
+                cur["input"], cur["verdict"], cur["score"], delta))
+        return 0
+
+    targets = collect_targets(args.input, args.recursive)
+    results = []
+    worst = 0.0
+    for target in targets:
+        payload, hits, report, words, floor = analyze_target(
+            target, args, patterns, weights, bands)
+        results.append(payload)
+        worst = max(worst, floor)
+        if not (args.json or args.sarif):
+            if args.quiet:
+                print("%-40s %6.1f  [%s]" % (target, floor, payload["verdict"]))
+            else:
+                print(render_text(target, args.register, args.dialect, hits, report,
+                                  words, floor, payload["verdict"],
+                                  max_examples=(10**6 if args.explain else args.max_examples)))
+                if len(targets) > 1:
+                    print("")
+
+    if args.sarif:
+        print(json.dumps(render_sarif(results), indent=2))
+    elif args.json:
+        print(json.dumps(results[0] if len(results) == 1 else results, indent=2))
+
+    if args.fail_over is not None and worst > args.fail_over:
+        return 1
     return 0
 
 
