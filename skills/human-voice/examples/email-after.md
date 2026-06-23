@@ -5,7 +5,7 @@ Subject: 30 min next week to lock Q3 priorities?
 
 Hi team,
 
-We still don't agree on the top three Q3 deliverables, and engineering needs that list to plan sprints. Can we meet for 30 minutes next week to settle it?
+We still haven't agreed on the top three Q3 deliverables. Engineering needs that list before they can plan sprints. Can we meet for 30 minutes next week to settle it?
 
 I'm free Tuesday or Wednesday afternoon. If neither works, send me a couple of slots and I'll make one fit.
 

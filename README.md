@@ -17,7 +17,7 @@ shallowest pass.
 
 ## See the difference
 
-Same claim, two voices. The scores come from the bundled linter — run it on both
+Same claim, two voices. The scores come from the bundled linter; run it on both
 yourself.
 
 ```text
@@ -33,39 +33,39 @@ a game-changer that stands as a testament to innovation.
 ```text
 AFTER    score 0 · clean
 ─────────────────────────────────────────────────────────────────
-Your team's notes live in six different tools, and the context dies
-with each one. We put the conversation, the files, and the decision
-in one place. The first thing you'll notice is small: you stop asking
-"where did we land on this?"
+Your team keeps its notes in six different tools. By Friday nobody
+remembers which thread held the real decision. Put the chat right
+next to the files, in one place, so "wait, where did we land on this?"
+stops being a question anyone has to ask.
 ```
 
 The "before" isn't a vocabulary problem. It's the whole machine signature at
 once: filler (`leverage`, `delve`, `seamless`), business jargon
-(`move the needle`, `actionable`), a rule-of-three, the `it's not X, it's Y`
-reflex, and puffery (`stands as a testament`). Swapping synonyms leaves all of
-that standing. The skill strips it and commits to one concrete claim.
+(`move the needle`, `actionable`), a reflexive rule-of-three, the `it's not X,
+it's Y` reflex, puffery (`stands as a testament`). Swap the synonyms and all of
+that still stands. The skill strips it out and commits to one concrete claim.
 
 ## Why use it
 
 - It fixes the tells that actually give AI away. The signature is structural and
   substantive, not just word choice. human-voice cuts vacuity, breaks uniform
-  sentence rhythm (what detectors call *burstiness*), dismantles rule-of-three
-  and bold-bullet templates, and makes the text take a position. Diction comes
-  last.
-- It never fabricates to sound human. Numbers, quotes, citations, defined terms,
-  and code are invariants. When a draft needs a fact it doesn't have, the skill
-  marks `[SOURCE NEEDED]` rather than inventing one. That anti-hallucination
+  sentence rhythm (what detectors call *burstiness*), dismantles the
+  rule-of-three and bold-bullet templates, and makes the text take a position.
+  Diction comes last.
+- Nothing gets fabricated to sound human. Numbers, quotes, citations, defined
+  terms, code: all invariant. When a draft needs a fact it doesn't have, the
+  skill writes `[SOURCE NEEDED]` instead of inventing one. The anti-hallucination
   protocol is built in.
-- It matches the genre instead of forcing one voice. A technical report stays
-  professional, marketing copy addresses "you", a blog post has personality. Six
-  register profiles share one universal core of tells fixed everywhere.
-- It ships a linter you can gate CI on. A dependency-free Python script scores
-  the regex-able tells and prints a verdict. Wire it into a build with
-  `--fail-over`. It stays honest about what it can't see.
-- It's honest about detectors. No homoglyph or zero-width tricks, no deliberate
-  typos. The goal is genuinely better writing, not a passing score. AI detectors
-  also misclassify non-native-English writing as machine-made (Liang et al.
-  2023), so no detector is ground truth anyway.
+- The genre comes first, never one default voice. A technical report stays
+  professional. Marketing copy addresses "you". A blog post gets a personality.
+  Ten register profiles share one universal core of tells fixed everywhere.
+- A bundled linter gates your CI. The dependency-free Python script scores the
+  regex-able tells and prints a verdict; past a threshold you set with
+  `--fail-over`, it exits non-zero. It says plainly what it can't see.
+- No detector games. No homoglyph or zero-width tricks, no deliberate typos. The
+  goal is writing a skeptical human reads as human, not a passing score. AI
+  detectors also misclassify non-native-English writing as machine-made (Liang et
+  al. 2023), so no detector is ground truth anyway.
 
 ## Install
 
@@ -115,10 +115,11 @@ printf '%s' "$TEXT" | python3 skills/human-voice/scripts/detect_ai_prose.py -
 ```
 
 `--fix` applies only the unambiguous, deterministic edits: dash-to-comma
-normalization, decorative-emoji removal, and 1:1 filler/jargon swaps. It skips
-dash and emoji changes in the `creative` register (and keeps emoji in `casual`),
-never touches code, numbers, or links, and leaves the judgment work — varying
-the replacement mark, cutting vacuity, sharpening stance — to the rewrite pass.
+normalization, decorative-emoji removal, 1:1 filler/jargon swaps. It skips dash
+and emoji changes in the `creative` register (and keeps emoji in `casual`), and
+it never touches code, numbers, or links. The judgment work stays with the
+rewrite pass: varying the replacement mark so the rhythm doesn't flatten, cutting
+the empty sentences, sharpening a stance that won't commit.
 
 On Windows, use the `py` launcher (or `python`) instead of `python3`, and pipe
 text with PowerShell: `$TEXT | py skills/human-voice/scripts/detect_ai_prose.py -`.
@@ -154,8 +155,8 @@ false-positive rate on human-written text.
 | **human-voice** | structure + substance + stance + register, and **rewrites** | it's a floor, not a detector — no perplexity model |
 
 The difference: other tools score or nitpick. human-voice fixes the structural and
-substantive tells first, matches the genre, and treats word choice as the last and
-shallowest pass.
+substantive tells first. It matches the genre, then treats word choice as the last
+and shallowest pass.
 
 ## FAQ
 
@@ -165,8 +166,8 @@ detector is ground truth; they carry real false-positive rates.
 
 **Why did it flag my human-written text?** The linter is a regex floor; it over-
 flags sometimes. Lower a threshold, add a `protected_terms`/`context_exceptions`
-entry, or open a [false-positive issue](.github/ISSUE_TEMPLATE/false-positive.md) —
-those feed the corpus and the FPR measurement.
+entry, or open a [false-positive issue](.github/ISSUE_TEMPLATE/false-positive.md).
+Those feed the corpus and the FPR measurement.
 
 **Does it work on non-English text?** No. The word lists and dialect map are
 English-only today. `--lang` accepts only `en`.
@@ -189,8 +190,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md). Tests:
 
 ## Credits
 
-The v0.4 recalibration — ranking tells by what readers *cite* rather than what a
-scanner *matches* — draws on two MIT-licensed projects and the ~90k-post Reddit
+The v0.4 recalibration ranks tells by what readers *cite* as AI, not by what a
+scanner *matches*. It draws on two MIT-licensed projects and the ~90k-post Reddit
 study behind them: [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells)
 and [ryanthedev/oberskills](https://github.com/ryanthedev/oberskills). See
 [`references/cited-vs-matched.md`](skills/human-voice/references/cited-vs-matched.md).
