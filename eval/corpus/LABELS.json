@@ -14,7 +14,11 @@
     "Treat the numbers as a floor sanity check, not a benchmark. See eval/EVAL.md.",
     "",
     "register values match the linter's --register choices where applicable",
-    "(technical, business, marketing, academic, casual, email)."
+    "(technical, business, marketing, academic, casual, creative, email).",
+    "",
+    "36 samples (18 human, 18 ai), balanced so every register has both classes.",
+    "The two creative 'ai' samples lean on non-dash tells (filler, rule-of-three,",
+    "antithesis, vacuity) because the creative register mutes the dash checks."
   ],
   "labels": {
     "human/h01_technical_postmortem.md":   {"label": "human", "register": "technical"},
@@ -29,6 +33,12 @@
     "human/h10_technical_decision.md":     {"label": "human", "register": "technical"},
     "human/h11_marketing_announcement.md": {"label": "human", "register": "marketing"},
     "human/h12_casual_story.md":           {"label": "human", "register": "casual"},
+    "human/h13_business_report.md":        {"label": "human", "register": "business"},
+    "human/h14_business_proposal.md":      {"label": "human", "register": "business"},
+    "human/h15_business_retro.md":         {"label": "human", "register": "business"},
+    "human/h16_casual_blog.md":            {"label": "human", "register": "casual"},
+    "human/h17_creative_fiction.md":       {"label": "human", "register": "creative"},
+    "human/h18_creative_essay.md":         {"label": "human", "register": "creative"},
 
     "ai/a01_marketing_landing.md":         {"label": "ai", "register": "marketing"},
     "ai/a02_technical_overview.md":        {"label": "ai", "register": "technical"},
@@ -43,6 +53,10 @@
     "ai/a11_business_proposal.md":         {"label": "ai", "register": "business"},
     "ai/a12_blog_finance.md":              {"label": "ai", "register": "casual"},
     "ai/a13_blog_systems.md":              {"label": "ai", "register": "casual"},
-    "ai/a14_business_strategy.md":         {"label": "ai", "register": "business"}
+    "ai/a14_business_strategy.md":         {"label": "ai", "register": "business"},
+    "ai/a15_creative_fiction.md":          {"label": "ai", "register": "creative"},
+    "ai/a16_creative_essay.md":            {"label": "ai", "register": "creative"},
+    "ai/a17_email_outreach.md":            {"label": "ai", "register": "email"},
+    "ai/a18_technical_overview.md":        {"label": "ai", "register": "technical"}
   }
 }
