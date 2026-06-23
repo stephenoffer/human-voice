@@ -3,6 +3,35 @@
   "n_human": 12,
   "n_ai": 14,
   "roc_auc": 1.0,
+  "confidence_intervals": {
+    "roc_auc": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "iters": 2000,
+      "seed": 1729,
+      "method": "stratified percentile bootstrap",
+      "caveat": "n is small and the corpus is authored; this interval reflects resampling variance within the fixed set, not sampling from real-world text."
+    },
+    "default_f1": {
+      "point": 0.875,
+      "lo": 0.8,
+      "hi": 0.9655,
+      "iters": 2000,
+      "seed": 1729,
+      "method": "stratified percentile bootstrap",
+      "caveat": "n is small and the corpus is authored; this interval reflects resampling variance within the fixed set, not sampling from real-world text."
+    },
+    "default_human_fpr": {
+      "point": 0.3333,
+      "lo": 0.0833,
+      "hi": 0.5833,
+      "iters": 2000,
+      "seed": 1729,
+      "method": "stratified percentile bootstrap",
+      "caveat": "n is small and the corpus is authored; this interval reflects resampling variance within the fixed set, not sampling from real-world text."
+    }
+  },
   "default_threshold": 5.0,
   "default": {
     "precision": 0.7778,
@@ -30,6 +59,152 @@
       "tn": 12,
       "fn": 0
     }
+  },
+  "by_register": {
+    "academic": {
+      "n": 4,
+      "n_human": 2,
+      "n_ai": 2,
+      "auc": 1.0,
+      "metrics": {
+        "precision": 0.6667,
+        "recall": 1.0,
+        "f1": 0.8,
+        "accuracy": 0.75,
+        "human_subset_false_positive_rate": 0.5,
+        "confusion": {
+          "tp": 2,
+          "fp": 1,
+          "tn": 1,
+          "fn": 0
+        }
+      },
+      "single_class": false
+    },
+    "business": {
+      "n": 3,
+      "n_human": 0,
+      "n_ai": 3,
+      "auc": null,
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
+        "confusion": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0
+        }
+      },
+      "single_class": true
+    },
+    "casual": {
+      "n": 7,
+      "n_human": 3,
+      "n_ai": 4,
+      "auc": 1.0,
+      "metrics": {
+        "precision": 0.6667,
+        "recall": 1.0,
+        "f1": 0.8,
+        "accuracy": 0.7143,
+        "human_subset_false_positive_rate": 0.6667,
+        "confusion": {
+          "tp": 4,
+          "fp": 2,
+          "tn": 1,
+          "fn": 0
+        }
+      },
+      "single_class": false
+    },
+    "email": {
+      "n": 3,
+      "n_human": 2,
+      "n_ai": 1,
+      "auc": 1.0,
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
+        "confusion": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 2,
+          "fn": 0
+        }
+      },
+      "single_class": false
+    },
+    "marketing": {
+      "n": 4,
+      "n_human": 2,
+      "n_ai": 2,
+      "auc": 1.0,
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "tn": 2,
+          "fn": 0
+        }
+      },
+      "single_class": false
+    },
+    "technical": {
+      "n": 5,
+      "n_human": 3,
+      "n_ai": 2,
+      "auc": 1.0,
+      "metrics": {
+        "precision": 0.6667,
+        "recall": 1.0,
+        "f1": 0.8,
+        "accuracy": 0.8,
+        "human_subset_false_positive_rate": 0.3333,
+        "confusion": {
+          "tp": 2,
+          "fp": 1,
+          "tn": 2,
+          "fn": 0
+        }
+      },
+      "single_class": false
+    }
+  },
+  "by_category_ai_share": {
+    "filler": 0.1937,
+    "bold_bullets": 0.1881,
+    "meta_commentary": 0.1727,
+    "rule_of_three": 0.0804,
+    "false_agency": 0.0635,
+    "jargon": 0.0601,
+    "em_dash": 0.0479,
+    "vague_declarative": 0.0426,
+    "burstiness": 0.0403,
+    "puffery": 0.0318,
+    "vague_attribution": 0.0176,
+    "narrator_distance": 0.0135,
+    "paragraph_uniformity": 0.0121,
+    "antithesis": 0.0058,
+    "uniform_openers": 0.005,
+    "negative_listing": 0.005,
+    "redundancy": 0.0042,
+    "ngram_repetition": 0.004,
+    "transitions": 0.0039,
+    "list_uniformity": 0.0038,
+    "wh_opener": 0.0022,
+    "nominalization": 0.0019
   },
   "sweep": [
     {

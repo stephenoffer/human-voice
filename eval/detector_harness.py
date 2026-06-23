@@ -51,16 +51,12 @@ is genuinely better writing, not a passing detector score; do not tune the
 skill to game any single detector.
 """
 
-import importlib.util
-import json
 import os
 import sys
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(HERE)
-CORPUS = os.path.join(HERE, "corpus")
-LABELS_PATH = os.path.join(CORPUS, "LABELS.json")
-DETECTOR_PATH = os.path.join(REPO, "skills", "human-voice", "scripts", "detect_ai_prose.py")
+import lib
+
+CORPUS = lib.CORPUS
 
 # Recognized API-key env vars. The first one set selects the detector.
 KEY_ENV_VARS = ("GPTZERO_API_KEY", "ORIGINALITY_API_KEY", "SAPLING_API_KEY",
@@ -87,25 +83,12 @@ def call_detector(text, api_key):
         "before using the online path.")
 
 
-def load_detector_module():
-    spec = importlib.util.spec_from_file_location("detect_ai_prose", DETECTOR_PATH)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def load_labels():
-    with open(LABELS_PATH, encoding="utf-8") as fh:
-        return json.load(fh)["labels"]
-
-
 def run_offline_summary():
     """The default, network-free path: just report the linter floor scores and
     explain what the online path would add."""
-    dap = load_detector_module()
-    patterns = dap.load_patterns(os.path.join(REPO, "skills", "human-voice",
-                                              "scripts", "ai_prose_patterns.json"))
-    labels = load_labels()
+    dap = lib.load_detector()
+    patterns = lib.load_patterns(dap)
+    labels = lib.load_labels()
     print("Offline path: linter floor scores only (no external detector called).")
     print()
     print("  %-38s %-6s %8s" % ("file", "label", "floor"))
@@ -118,10 +101,9 @@ def run_offline_summary():
 
 
 def run_online(key_var, api_key):
-    dap = load_detector_module()
-    patterns = dap.load_patterns(os.path.join(REPO, "skills", "human-voice",
-                                              "scripts", "ai_prose_patterns.json"))
-    labels = load_labels()
+    dap = lib.load_detector()
+    patterns = lib.load_patterns(dap)
+    labels = lib.load_labels()
     print("Online path: using %s. Calling external detector per file." % key_var)
     print("(External detectors are biased; treat scores as evidence, not truth.)")
     print()

@@ -1,158 +1,77 @@
 #!/usr/bin/env python3
 """Evaluate the human-voice linter's FLOOR score as a binary AI/human classifier.
 
-Loads the labeled calibration corpus under eval/corpus/, scores every file with
-the bundled detector (imported, not shelled out), and treats the floor score as
-a one-dimensional classifier: predict "ai" when score >= threshold.
+Scores every file in the labeled calibration corpus, treats the floor score as a
+one-dimensional classifier (predict "ai" when score >= threshold), and reports —
+at the default "watch" boundary (5.0) and a swept best-F1 threshold — precision,
+recall, F1, accuracy, the confusion matrix, the human-subset false-positive rate,
+ROC AUC, a per-register breakdown, and bootstrap confidence intervals.
 
-Reports, both at the default "watch" boundary (5.0) and at a swept best-F1
-threshold: precision, recall, F1, accuracy, the confusion matrix, and the
-false-positive rate on the human subset specifically. Writes eval/results.json.
+  python3 run_eval.py            # recompute and write eval/results.json (the golden)
+  python3 run_eval.py --check    # recompute in memory, fail if it drifts from the golden
 
-Pure standard library. Runs offline. Exits 0.
+Pure standard library. Runs offline.
 
-IMPORTANT HONESTY NOTE: the corpus is small and AUTHORED to exhibit (human) or
-avoid (... wait, reversed) the exact tells the linter scores. These numbers
-measure calibration and internal separation, not real-world accuracy. The linter
-is a FLOOR, never ground truth -- a skeptical human read is the real test.
+HONESTY NOTE: the corpus is small and AUTHORED to exhibit (ai) or avoid (human)
+the exact tells the linter scores. These numbers measure calibration and internal
+separation, not real-world accuracy. The linter is a FLOOR, never ground truth.
 """
+from __future__ import annotations
 
-import importlib.util
+import argparse
 import json
-import os
 import sys
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(HERE)
-CORPUS = os.path.join(HERE, "corpus")
-LABELS_PATH = os.path.join(CORPUS, "LABELS.json")
-DETECTOR_PATH = os.path.join(REPO, "skills", "human-voice", "scripts", "detect_ai_prose.py")
-RESULTS_PATH = os.path.join(HERE, "results.json")
-
-# The linter's default "watch" boundary: score < 5 reads clean.
-DEFAULT_THRESHOLD = 5.0
+import lib
 
 
-def load_detector():
-    spec = importlib.util.spec_from_file_location("detect_ai_prose", DETECTOR_PATH)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+def build_report():
+    dap = lib.load_detector()
+    patterns = lib.load_patterns(dap)
+    labels = lib.load_labels()
+    records = lib.score_corpus(dap, patterns, labels)
+    items = lib.read_corpus(labels)
 
+    n_human = sum(1 for r in records if r["label"] == "human")
+    n_ai = sum(1 for r in records if r["label"] == "ai")
+    default_m = lib.metrics(*lib.confusion(records, lib.DEFAULT_THRESHOLD))
+    best_th, best_m, sweep_rows = lib.sweep(records)
 
-def load_labels():
-    with open(LABELS_PATH, encoding="utf-8") as fh:
-        return json.load(fh)["labels"]
+    cat_points, total_points = lib.category_score_mass(dap, items, patterns)
+    by_cat = {c: lib.round4(p / total_points) for c, p in cat_points.items()
+              if total_points and p > 0}
 
-
-def score_corpus(dap, patterns, labels):
-    """Return a list of per-file records: filename, label, register, score, verdict."""
-    records = []
-    for rel, meta in sorted(labels.items()):
-        path = os.path.join(CORPUS, rel)
-        with open(path, encoding="utf-8") as fh:
-            text = fh.read()
-        res = dap.lint(text, register=meta["register"], dialect=None, patterns=patterns)
-        records.append({
-            "file": rel,
-            "label": meta["label"],
-            "register": meta["register"],
-            "score": res["score"],
-            "verdict": res["verdict"],
-            "words": res["words"],
-        })
-    return records
-
-
-def confusion(records, threshold):
-    """Predict 'ai' iff score >= threshold. Return tp, fp, tn, fn.
-
-    Positive class = 'ai'.
-    """
-    tp = fp = tn = fn = 0
-    for r in records:
-        pred_ai = r["score"] >= threshold
-        actual_ai = r["label"] == "ai"
-        if pred_ai and actual_ai:
-            tp += 1
-        elif pred_ai and not actual_ai:
-            fp += 1
-        elif not pred_ai and not actual_ai:
-            tn += 1
-        else:
-            fn += 1
-    return tp, fp, tn, fn
-
-
-def metrics(tp, fp, tn, fn):
-    total = tp + fp + tn + fn
-    precision = tp / (tp + fp) if (tp + fp) else 0.0
-    recall = tp / (tp + fn) if (tp + fn) else 0.0
-    f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) else 0.0
-    accuracy = (tp + tn) / total if total else 0.0
-    # False-positive rate among genuinely human texts: fp / (fp + tn).
-    human_fpr = fp / (fp + tn) if (fp + tn) else 0.0
-    return {
-        "precision": round(precision, 4),
-        "recall": round(recall, 4),
-        "f1": round(f1, 4),
-        "accuracy": round(accuracy, 4),
-        "human_subset_false_positive_rate": round(human_fpr, 4),
-        "confusion": {"tp": tp, "fp": fp, "tn": tn, "fn": fn},
+    out = {
+        "corpus_size": len(records),
+        "n_human": n_human,
+        "n_ai": n_ai,
+        "roc_auc": lib.round4(lib.auc(records)),
+        "confidence_intervals": {
+            "roc_auc": lib.auc_ci(records),
+            "default_f1": lib.f1_ci(records),
+            "default_human_fpr": lib.fpr_ci(records),
+        },
+        "default_threshold": lib.DEFAULT_THRESHOLD,
+        "default": default_m,
+        "best_threshold": best_th,
+        "best": best_m,
+        "by_register": lib.metrics_by_register(records, lib.DEFAULT_THRESHOLD),
+        "by_category_ai_share": dict(sorted(by_cat.items(),
+                                            key=lambda kv: -kv[1])),
+        "sweep": [{"threshold": th, "f1": m["f1"], "precision": m["precision"],
+                   "recall": m["recall"], "accuracy": m["accuracy"],
+                   "human_fpr": m["human_subset_false_positive_rate"]}
+                  for th, m in sweep_rows],
+        "records": records,
+        "_note": ("Authored synthetic calibration corpus; measures internal "
+                  "separation/calibration, not real-world accuracy. Linter is a floor."),
     }
-
-
-def candidate_thresholds(records):
-    """Midpoints between sorted unique scores, plus the extremes."""
-    scores = sorted({r["score"] for r in records})
-    cands = set()
-    cands.add(scores[0] - 0.1 if scores else 0.0)
-    cands.add(scores[-1] + 0.1 if scores else 0.0)
-    for i in range(len(scores)):
-        cands.add(scores[i])
-        if i + 1 < len(scores):
-            cands.add(round((scores[i] + scores[i + 1]) / 2, 3))
-    return sorted(c for c in cands if c >= 0)
-
-
-def sweep(records):
-    """Find the threshold maximizing F1 (tie-break: fewer human false positives,
-    then higher accuracy, then lower threshold)."""
-    best = None
-    rows = []
-    for th in candidate_thresholds(records):
-        m = metrics(*confusion(records, th))
-        rows.append((th, m))
-        key = (m["f1"], -m["human_subset_false_positive_rate"], m["accuracy"], -th)
-        if best is None or key > best[0]:
-            best = (key, th, m)
-    return best[1], best[2], rows
-
-
-def auc(records):
-    """ROC AUC via rank statistic (Mann-Whitney U). Positive = 'ai'.
-
-    Higher score should mean more AI-like. AUC = P(score_ai > score_human),
-    with ties counted as 0.5.
-    """
-    pos = [r["score"] for r in records if r["label"] == "ai"]
-    neg = [r["score"] for r in records if r["label"] == "human"]
-    if not pos or not neg:
-        return None
-    wins = 0.0
-    for p in pos:
-        for n in neg:
-            if p > n:
-                wins += 1.0
-            elif p == n:
-                wins += 0.5
-    return round(wins / (len(pos) * len(neg)), 4)
+    return out, labels, dap
 
 
 def fmt_table(records):
-    lines = []
-    lines.append("  %-38s %-6s %-10s %8s  %s" % ("file", "label", "register", "score", "verdict"))
-    lines.append("  " + "-" * 78)
+    lines = ["  %-38s %-6s %-10s %8s  %s" % ("file", "label", "register", "score", "verdict"),
+             "  " + "-" * 78]
     for r in sorted(records, key=lambda x: (x["label"], x["file"])):
         lines.append("  %-38s %-6s %-10s %8.1f  %s" % (
             r["file"], r["label"], r["register"], r["score"], r["verdict"]))
@@ -172,65 +91,86 @@ def fmt_metrics(title, threshold, m):
     ])
 
 
-def main():
-    dap = load_detector()
-    patterns = dap.load_patterns(os.path.join(REPO, "skills", "human-voice",
-                                              "scripts", "ai_prose_patterns.json"))
-    labels = load_labels()
-    records = score_corpus(dap, patterns, labels)
-
-    n_human = sum(1 for r in records if r["label"] == "human")
-    n_ai = sum(1 for r in records if r["label"] == "ai")
-
-    default_m = metrics(*confusion(records, DEFAULT_THRESHOLD))
-    best_th, best_m, sweep_rows = sweep(records)
-    roc_auc = auc(records)
-
+def print_report(out):
     print("=" * 80)
     print("human-voice linter floor-score evaluation")
     print("corpus: %d files (%d human, %d ai)   [authored synthetic calibration set]"
-          % (len(records), n_human, n_ai))
+          % (out["corpus_size"], out["n_human"], out["n_ai"]))
     print("=" * 80)
     print()
     print("Per-file scores:")
-    print(fmt_table(records))
+    print(fmt_table(out["records"]))
     print()
-    hs = sorted(r["score"] for r in records if r["label"] == "human")
-    asc = sorted(r["score"] for r in records if r["label"] == "ai")
-    print("Score separation:")
-    print("  human scores: min %.1f  max %.1f" % (hs[0], hs[-1]))
-    print("  ai scores:    min %.1f  max %.1f" % (asc[0], asc[-1]))
-    print("  ROC AUC (rank-based, ties=0.5): %s" % roc_auc)
+    print("  ROC AUC (rank-based, ties=0.5): %s" % out["roc_auc"])
     print()
-    print(fmt_metrics("DEFAULT boundary", DEFAULT_THRESHOLD, default_m))
+    print(fmt_metrics("DEFAULT boundary", out["default_threshold"], out["default"]))
     print()
-    print(fmt_metrics("SWEPT best-F1 threshold", best_th, best_m))
+    print(fmt_metrics("SWEPT best-F1 threshold", out["best_threshold"], out["best"]))
+    print()
+    print("Per-register breakdown (threshold %.1f):" % out["default_threshold"])
+    print("  %-12s %3s %5s %4s %8s %7s %7s" % (
+        "register", "n", "human", "ai", "AUC", "F1", "h-FPR"))
+    for reg, b in out["by_register"].items():
+        m = b["metrics"]
+        auc_s = "  n/a" if b["single_class"] else "%6.3f" % b["auc"]
+        print("  %-12s %3d %5d %4d %8s %7.3f %7.3f%s" % (
+            reg, b["n"], b["n_human"], b["n_ai"], auc_s, m["f1"],
+            m["human_subset_false_positive_rate"],
+            "  *single-class" if b["single_class"] else ""))
+    print()
+    ci = out["confidence_intervals"]
+    print("95%% bootstrap CIs (stratified, seed=%d, %d iters):"
+          % (lib.BOOTSTRAP_SEED, lib.BOOTSTRAP_ITERS))
+    print("  ROC AUC    %.3f  [%.3f, %.3f]" % (ci["roc_auc"]["point"],
+          ci["roc_auc"]["lo"], ci["roc_auc"]["hi"]))
+    print("  F1@%.1f     %.3f  [%.3f, %.3f]" % (out["default_threshold"],
+          ci["default_f1"]["point"], ci["default_f1"]["lo"], ci["default_f1"]["hi"]))
+    print("  human-FPR  %.3f  [%.3f, %.3f]" % (ci["default_human_fpr"]["point"],
+          ci["default_human_fpr"]["lo"], ci["default_human_fpr"]["hi"]))
+    print("  Note: intervals reflect resampling variance of an AUTHORED corpus.")
     print()
     print("Note: this corpus is small and authored to exhibit/avoid the exact")
     print("tells the linter scores. These numbers measure calibration, not")
     print("real-world detection. The linter is a FLOOR, not ground truth.")
 
-    out = {
-        "corpus_size": len(records),
-        "n_human": n_human,
-        "n_ai": n_ai,
-        "roc_auc": roc_auc,
-        "default_threshold": DEFAULT_THRESHOLD,
-        "default": default_m,
-        "best_threshold": best_th,
-        "best": best_m,
-        "sweep": [{"threshold": th, "f1": m["f1"], "precision": m["precision"],
-                   "recall": m["recall"], "accuracy": m["accuracy"],
-                   "human_fpr": m["human_subset_false_positive_rate"]}
-                  for th, m in sweep_rows],
-        "records": records,
-        "_note": ("Authored synthetic calibration corpus; measures internal "
-                  "separation/calibration, not real-world accuracy. Linter is a floor."),
-    }
-    with open(RESULTS_PATH, "w", encoding="utf-8") as fh:
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--check", action="store_true",
+                    help="compare against the committed results.json; exit 1 on drift")
+    ap.add_argument("--tol", type=float, default=1e-4,
+                    help="tolerance for non-exact gated metrics (default 1e-4)")
+    args = ap.parse_args(argv)
+
+    out, labels, dap = build_report()
+
+    corpus_problems = lib.validate_corpus(labels, dap)
+    for p in corpus_problems:
+        sys.stderr.write("corpus: %s\n" % p)
+
+    if args.check:
+        try:
+            with open(lib.RESULTS_PATH, encoding="utf-8") as fh:
+                golden = json.load(fh)
+        except (OSError, ValueError) as exc:
+            sys.stderr.write("error: cannot read golden %s: %s\n" % (lib.RESULTS_PATH, exc))
+            return 2
+        diffs = lib.compare_results(out, golden, tol=args.tol)
+        if diffs or corpus_problems:
+            sys.stderr.write("EVAL REGRESSION: metrics drifted from the committed baseline.\n")
+            for d in diffs:
+                sys.stderr.write("  %s\n" % d)
+            sys.stderr.write("If this change is intentional, run `python3 eval/run_eval.py` "
+                             "to regenerate results.json and review the diff.\n")
+            return 1
+        print("eval --check: OK (metrics match the committed baseline within tol=%g)" % args.tol)
+        return 0
+
+    print_report(out)
+    with open(lib.RESULTS_PATH, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
     print()
-    print("Wrote %s" % RESULTS_PATH)
+    print("Wrote %s" % lib.RESULTS_PATH)
     return 0
 
 
