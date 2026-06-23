@@ -1,14 +1,14 @@
-<!-- Register: technical. Linter: before strong-tell (over_correction + internet_tells) -> after clean. -->
-<!-- This is the AFTER: a real, plain voice. Normal capitalization, committed -->
-<!-- stance, varied rhythm, no slang. Also no "second dialect": the ", and" -->
-<!-- splice rhythm is broken up and the "X is Y" copulas are varied. -->
+<!-- Register: technical (postmortem). Before: strong-tell (over_correction + -->
+<!-- internet_tells). After: clean -- and in a lived-in on-call voice, distinct -->
+<!-- from the crisp report cadence of after.md, so the example set isn't all one -->
+<!-- "confident tech-blog" register. No slang, no "second dialect" tics. -->
 
 # The cache outage
 
-The cache caused it. We shipped the new read path on Tuesday. Within the hour, p99 latency jumped from 80ms to 900ms.
+This one was the cache, though it took us four days to believe it.
 
-Nobody caught it in review, for a specific reason: the eviction policy did more work than anyone realized. Under a burst of hot-key traffic, the LRU store thrashed. It would evict the key we needed, refetch it, then drop it again on the very next request. Capacity went to churn instead of serving reads.
+We shipped the new read path Tuesday morning, and by noon p99 had climbed from 80ms to 900ms. Review missed it because the bug wasn't really in the diff. The eviction policy was quietly doing far more work than the change suggested. When hot-key traffic spiked, the LRU store began to thrash: it evicted the key we had just asked for, fetched it again, then dropped it once more on the next request. Most of the cache capacity went to that churn instead of serving reads.
 
-We traced it on Friday. The keys checked out. So did the TTLs. What we had wrong was the size. A 200MB working set never fit, so every hot key sat one cold request away from eviction.
+When we finally traced it on Friday, the cause turned out to be almost dull. The keys were right. So were the TTLs. The working-set size was the problem: at 200MB the set never fit, so any hot key sat one cold request from eviction.
 
-Fixing it took two changes. First we raised the limit to 2GB. Then we added an admission filter so a single cold key can no longer evict a hot one. P99 dropped back to 80ms and held there. We shipped Saturday. The dashboards have been quiet since.
+Two changes fixed it. We raised the cap to 2GB, then added an admission filter so a single cold key can no longer evict a hot one. p99 settled back to 80ms and stayed there. We shipped Saturday, and the graphs have been quiet since, which after a week like that was all we wanted.

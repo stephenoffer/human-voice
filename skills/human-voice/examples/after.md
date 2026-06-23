@@ -1,6 +1,6 @@
 # Choosing a Data Infrastructure for Distributed Systems
 
-Most teams pick their data infrastructure before they understand their access patterns. That order is backwards. It costs them a rewrite a year later. This report works the other way: start from how your services actually read and write, then choose the architecture that fits.
+Most teams pick their data infrastructure before they understand how their services read and write. That's backwards. The bill comes due a year later, as a rewrite. So flip the order: learn the access patterns first, then pick the architecture that fits them.
 
 ## What to weigh
 
