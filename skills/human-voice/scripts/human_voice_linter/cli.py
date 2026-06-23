@@ -50,7 +50,8 @@ def analyze_target(target, args, patterns, weights, bands):
     }, hits, report, words, floor
 
 
-def main(argv=None):
+def build_parser():
+    """Construct the CLI argument parser (separated out for testability)."""
     ap = argparse.ArgumentParser(description="Detect surface tells of AI-written prose.")
     ap.add_argument("input", nargs="+", help="file path(s) or directory, or - for stdin")
     ap.add_argument("--register", choices=REGISTERS, default=None,
@@ -84,8 +85,15 @@ def main(argv=None):
                     help="apply unambiguous 1:1 word swaps in place (files only)")
     ap.add_argument("--fix-dry-run", action="store_true", dest="fix_dry_run",
                     help="print the autofixed text to stdout without writing")
-    args = ap.parse_args(argv)
+    return ap
 
+
+def resolve_config(args):
+    """Load patterns, merge .humanvoicerc, resolve register/dialect, validate.
+
+    Mutates args (enable/disable/register/dialect) and returns
+    (patterns, weights, bands).
+    """
     if args.lang and args.lang.lower() not in ("en", "english"):
         warn("only English ('en') is supported today; patterns are English-only. "
              "Proceeding, but results for %r are not meaningful." % args.lang)
@@ -117,8 +125,12 @@ def main(argv=None):
     for issue in validate(patterns):
         warn("config: %s" % issue)
 
-    weights = resolve_weights(patterns)
-    bands = resolve_bands(patterns)
+    return patterns, resolve_weights(patterns), resolve_bands(patterns)
+
+
+def main(argv=None):
+    args = build_parser().parse_args(argv)
+    patterns, weights, bands = resolve_config(args)
 
     # --- autofix mode (single file) ---
     if args.fix or args.fix_dry_run:
@@ -184,4 +196,6 @@ __all__ = [
     'filter_hits',
     'analyze_target',
     'main',
+    'build_parser',
+    'resolve_config',
 ]

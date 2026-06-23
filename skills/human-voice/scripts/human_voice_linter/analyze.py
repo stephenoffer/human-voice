@@ -33,6 +33,9 @@ def analyze(text: str, register: str, dialect: str | None,
     th = patterns.get("thresholds", {})
     if not isinstance(th, dict):
         th = {}
+
+    def thr(key):  # JSON value if present, else the canonical default
+        return safe_float(th, key, threshold_default(key))
     hits = []
     seen = {}
     report = {}
@@ -68,28 +71,27 @@ def analyze(text: str, register: str, dialect: str | None,
     check_pattern_list(code_stripped, patterns.get("dramatic_fragmentation_patterns"), "dramatic_fragmentation",
                        "use complete sentences; trust the content over the staccato", hits, lm_code, protected)
 
-    check_em_dash(metric_prose, word_count, safe_float(th, "em_dash_per_1k_words", threshold_default("em_dash_per_1k_words")), hits, report, lm_metric)
-    check_bold_bullets(text, safe_float(th, "bold_bullet_ratio", threshold_default("bold_bullet_ratio")), hits, report, lm_raw)
+    check_em_dash(metric_prose, word_count, thr("em_dash_per_1k_words"), hits, report, lm_metric)
+    check_bold_bullets(text, thr("bold_bullet_ratio"), hits, report, lm_raw)
     check_rule_of_three(metric_prose, hits, lm_metric)
-    check_uniform_openers(sents, safe_float(th, "uniform_opener_ratio", threshold_default("uniform_opener_ratio")), hits, report)
-    check_wh_openers(sents, safe_float(th, "wh_opener_ratio", threshold_default("wh_opener_ratio")),
-                     int(safe_float(th, "wh_opener_run", threshold_default("wh_opener_run"))), hits, report)
-    check_formatting(text, safe_float(th, "section_rule_max", threshold_default("section_rule_max")), hits, report, lm_raw)
-    check_burstiness(sents, safe_float(th, "burstiness_cov_floor", threshold_default("burstiness_cov_floor")), hits, report)
-    check_lexical_diversity(metric_prose, safe_float(th, "ttr_floor", threshold_default("ttr_floor")), hits, report)
+    check_uniform_openers(sents, thr("uniform_opener_ratio"), hits, report)
+    check_wh_openers(sents, thr("wh_opener_ratio"), int(thr("wh_opener_run")), hits, report)
+    check_formatting(text, thr("section_rule_max"), hits, report, lm_raw)
+    check_burstiness(sents, thr("burstiness_cov_floor"), hits, report)
+    check_lexical_diversity(metric_prose, thr("ttr_floor"), hits, report)
     check_ngram_repetition(metric_prose, safe_int_list(th, "ngram_sizes", threshold_default("ngram_sizes")),
-                           int(safe_float(th, "ngram_min_count", threshold_default("ngram_min_count"))), hits)
+                           int(thr("ngram_min_count")), hits)
     check_heading_case(text, hits, lm_raw)
 
-    # Density / structural checks (Phase 2). Conservative thresholds keep clean
-    # human prose clean; several are muted by register (see register_mutes).
+    # Density / structural checks. Conservative thresholds keep clean human prose
+    # clean; several are muted by register (see register_mutes).
     check_colon_summary(metric_prose, hits, report, lm_metric)
-    check_passive_voice(metric_prose, word_count, safe_float(th, "passive_per_1k", threshold_default("passive_per_1k")), hits, report)
-    check_adverbs(tokens, word_count, safe_float(th, "adverb_per_1k", threshold_default("adverb_per_1k")), hits, report)
-    check_nominalizations(metric_prose, word_count, safe_float(th, "nominalization_per_1k", threshold_default("nominalization_per_1k")), hits, report)
-    check_rhetorical(sents, word_count, safe_float(th, "rhetorical_per_1k", threshold_default("rhetorical_per_1k")), hits, report)
-    check_paragraph_uniformity(code_stripped, safe_float(th, "paragraph_cov_floor", threshold_default("paragraph_cov_floor")), hits, report)
-    check_list_uniformity(code_stripped, safe_float(th, "list_item_cov_floor", threshold_default("list_item_cov_floor")), hits, report)
+    check_passive_voice(metric_prose, word_count, thr("passive_per_1k"), hits, report)
+    check_adverbs(tokens, word_count, thr("adverb_per_1k"), hits, report)
+    check_nominalizations(metric_prose, word_count, thr("nominalization_per_1k"), hits, report)
+    check_rhetorical(sents, word_count, thr("rhetorical_per_1k"), hits, report)
+    check_paragraph_uniformity(code_stripped, thr("paragraph_cov_floor"), hits, report)
+    check_list_uniformity(code_stripped, thr("list_item_cov_floor"), hits, report)
     check_circular_conclusion(code_stripped, hits, report)
     check_parallel_structure(sents, hits, report)
     adj_prose = prose_for_adjacency(text)
