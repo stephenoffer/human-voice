@@ -65,28 +65,28 @@ def analyze(text, register, dialect, patterns):
     check_pattern_list(code_stripped, patterns.get("dramatic_fragmentation_patterns"), "dramatic_fragmentation",
                        "use complete sentences; trust the content over the staccato", hits, lm_code, protected)
 
-    check_em_dash(metric_prose, word_count, safe_float(th, "em_dash_per_1k_words", 6.0), hits, report, lm_metric)
-    check_bold_bullets(text, safe_float(th, "bold_bullet_ratio", 0.5), hits, report, lm_raw)
+    check_em_dash(metric_prose, word_count, safe_float(th, "em_dash_per_1k_words", threshold_default("em_dash_per_1k_words")), hits, report, lm_metric)
+    check_bold_bullets(text, safe_float(th, "bold_bullet_ratio", threshold_default("bold_bullet_ratio")), hits, report, lm_raw)
     check_rule_of_three(metric_prose, hits, lm_metric)
-    check_uniform_openers(sents, safe_float(th, "uniform_opener_ratio", 0.3), hits, report)
-    check_wh_openers(sents, safe_float(th, "wh_opener_ratio", 0.30),
-                     int(safe_float(th, "wh_opener_run", 3)), hits, report)
-    check_formatting(text, safe_float(th, "section_rule_max", 2), hits, report, lm_raw)
-    check_burstiness(sents, safe_float(th, "burstiness_cov_floor", 0.45), hits, report)
-    check_lexical_diversity(metric_prose, safe_float(th, "ttr_floor", 0.40), hits, report)
-    check_ngram_repetition(metric_prose, safe_int_list(th, "ngram_sizes", [2, 3]),
-                           int(safe_float(th, "ngram_min_count", 3)), hits)
+    check_uniform_openers(sents, safe_float(th, "uniform_opener_ratio", threshold_default("uniform_opener_ratio")), hits, report)
+    check_wh_openers(sents, safe_float(th, "wh_opener_ratio", threshold_default("wh_opener_ratio")),
+                     int(safe_float(th, "wh_opener_run", threshold_default("wh_opener_run"))), hits, report)
+    check_formatting(text, safe_float(th, "section_rule_max", threshold_default("section_rule_max")), hits, report, lm_raw)
+    check_burstiness(sents, safe_float(th, "burstiness_cov_floor", threshold_default("burstiness_cov_floor")), hits, report)
+    check_lexical_diversity(metric_prose, safe_float(th, "ttr_floor", threshold_default("ttr_floor")), hits, report)
+    check_ngram_repetition(metric_prose, safe_int_list(th, "ngram_sizes", threshold_default("ngram_sizes")),
+                           int(safe_float(th, "ngram_min_count", threshold_default("ngram_min_count"))), hits)
     check_heading_case(text, hits, lm_raw)
 
     # Density / structural checks (Phase 2). Conservative thresholds keep clean
     # human prose clean; several are muted by register (see register_mutes).
     check_colon_summary(metric_prose, hits, report, lm_metric)
-    check_passive_voice(metric_prose, word_count, safe_float(th, "passive_per_1k", 45.0), hits, report)
-    check_adverbs(tokens, word_count, safe_float(th, "adverb_per_1k", 55.0), hits, report)
-    check_nominalizations(metric_prose, word_count, safe_float(th, "nominalization_per_1k", 60.0), hits, report)
-    check_rhetorical(sents, word_count, safe_float(th, "rhetorical_per_1k", 18.0), hits, report)
-    check_paragraph_uniformity(code_stripped, safe_float(th, "paragraph_cov_floor", 0.30), hits, report)
-    check_list_uniformity(code_stripped, safe_float(th, "list_item_cov_floor", 0.22), hits, report)
+    check_passive_voice(metric_prose, word_count, safe_float(th, "passive_per_1k", threshold_default("passive_per_1k")), hits, report)
+    check_adverbs(tokens, word_count, safe_float(th, "adverb_per_1k", threshold_default("adverb_per_1k")), hits, report)
+    check_nominalizations(metric_prose, word_count, safe_float(th, "nominalization_per_1k", threshold_default("nominalization_per_1k")), hits, report)
+    check_rhetorical(sents, word_count, safe_float(th, "rhetorical_per_1k", threshold_default("rhetorical_per_1k")), hits, report)
+    check_paragraph_uniformity(code_stripped, safe_float(th, "paragraph_cov_floor", threshold_default("paragraph_cov_floor")), hits, report)
+    check_list_uniformity(code_stripped, safe_float(th, "list_item_cov_floor", threshold_default("list_item_cov_floor")), hits, report)
     check_circular_conclusion(code_stripped, hits, report)
     check_parallel_structure(sents, hits, report)
     adj_prose = prose_for_adjacency(text)

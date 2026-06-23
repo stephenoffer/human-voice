@@ -763,6 +763,19 @@ unknown = {c for cats_ in mc.values() if isinstance(cats_, list) for c in cats_
            if c not in dap.KNOWN_CATEGORIES}
 check("patterns_mute_cats_known", not unknown, "unknown: %s" % unknown)
 
+# drift guard (Phase 2): the shipped JSON must stay consistent with DEFAULTS so
+# the code fallbacks and the user-editable file can never silently diverge.
+_D = dap.DEFAULTS
+for _sect in ("thresholds", "category_weights", "score_bands"):
+    _json_sect = PAT.get(_sect, {})
+    _drift = {k: (v, _json_sect.get(k)) for k, v in _D[_sect].items()
+              if _json_sect.get(k) != v}
+    check("defaults_drift_" + _sect, not _drift, "JSON vs DEFAULTS: %s" % _drift)
+# every category in DEFAULTS["category_weights"] is a known category and vice versa
+check("defaults_weights_cover_categories",
+      set(_D["category_weights"]) == set(dap.KNOWN_CATEGORIES),
+      "mismatch: %s" % (set(_D["category_weights"]) ^ set(dap.KNOWN_CATEGORIES)))
+
 # marketplace plugin source path must exist
 with open(os.path.join(ROOT, ".claude-plugin/marketplace.json"), encoding="utf-8") as fh:
     mkt = json.load(fh)
