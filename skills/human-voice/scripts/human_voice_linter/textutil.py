@@ -145,6 +145,19 @@ class LineMap:
     def line_of(self, index):
         return bisect.bisect_left(self.offsets, index) + 1
 
+    def loc(self, start, end):
+        """Return (line, col, end_line, end_col), all 1-based, for [start, end).
+
+        Columns are only meaningful when the index refers to a text whose
+        geometry matches the source file (e.g. code_stripped or the raw text);
+        callers working on markup-stripped text should not pass columns through.
+        """
+        line = bisect.bisect_left(self.offsets, start) + 1
+        line_start = (self.offsets[line - 2] + 1) if line > 1 else 0
+        end_line = bisect.bisect_left(self.offsets, end) + 1
+        end_line_start = (self.offsets[end_line - 2] + 1) if end_line > 1 else 0
+        return line, start - line_start + 1, end_line, end - end_line_start + 1
+
 
 def strip_inline_markup(line):
     line = LINK_RE.sub(r"\1", line)        # links/images -> anchor text only

@@ -788,6 +788,23 @@ check("schema_flags_unknown_category", any("ghost" in m for m in _bad))
 check("schema_flags_bad_regex", any("unclosed" in m for m in _bad))
 check("schema_flags_unknown_mute_cat", any("not_a_cat" in m for m in _bad))
 
+# span offsets (Phase 5): column-accurate checks point at the real characters.
+_span_txt = "We leverage robust synergy here."
+_span_res = dap.lint(_span_txt, register="marketing")
+_fill = next((h for h in _span_res["hits"]
+              if h["category"] == "filler" and h.get("col")), None)
+check("span_columns_present", _fill is not None)
+if _fill:
+    check("span_columns_correct",
+          _span_txt[_fill["col"] - 1:_fill["end_col"] - 1] == _fill["text"],
+          "got %r" % _span_txt[_fill["col"] - 1:_fill["end_col"] - 1])
+# document-level findings (low burstiness on uniform sentences) carry scope.
+_doc = ("The cat sat here. The dog ran fast. The bird flew high. "
+        "The fish swam deep. The fox hid low. The owl woke late.")
+_doc_hits = dap.lint(_doc, register="technical")["hits"]
+check("span_document_scope",
+      all(h.get("scope") == "document" for h in _doc_hits if h.get("line") == 0))
+
 # marketplace plugin source path must exist
 with open(os.path.join(ROOT, ".claude-plugin/marketplace.json"), encoding="utf-8") as fh:
     mkt = json.load(fh)

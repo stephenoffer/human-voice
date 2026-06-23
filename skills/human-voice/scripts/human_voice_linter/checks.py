@@ -27,6 +27,17 @@ def _line_bounds(text, idx):
     return start, (end if end != -1 else len(text))
 
 
+def _span_hit(category, lm, m, text, suggestion=None):
+    """Build a Hit carrying a precise (line, col)->(end_line, end_col) span.
+
+    Use only when `m` was matched against a text whose geometry matches the
+    source file (code_stripped or the raw text); otherwise the columns would
+    point at the wrong characters and a line-only Hit should be used instead.
+    """
+    ln, col, eln, ecol = lm.loc(m.start(), m.end())
+    return Hit(category, ln, text, suggestion, col=col, end_line=eln, end_col=ecol)
+
+
 def check_lexical_list(text, value, category, hits, seen_spans, lm, protected=(),
                        cite_guard=False, skip_quoted=False):
     for phrase, suggestion in as_phrase_list(value):
@@ -54,8 +65,8 @@ def check_lexical_list(text, value, category, hits, seen_spans, lm, protected=()
                 if text.count('"', ls, m.start()) % 2 == 1:
                     continue
             seen_spans.setdefault(category, set()).add(span)
-            hits.append(Hit(category, lm.line_of(m.start()), m.group(0),
-                            suggestion if suggestion else "cut"))
+            hits.append(_span_hit(category, lm, m, m.group(0),
+                                  suggestion if suggestion else "cut"))
 
 
 def check_antithesis(text, patterns, hits, lm):
@@ -73,9 +84,9 @@ def check_antithesis(text, patterns, hits, lm):
             snippet = m.group(0)
             if len(snippet) > 70:
                 snippet = snippet[:67] + "..."
-            hits.append(Hit("antithesis", lm.line_of(m.start()),
-                            snippet.replace("\n", " "),
-                            "drop the not-X/it's-Y framing; state it plainly"))
+            hits.append(_span_hit("antithesis", lm, m,
+                                  snippet.replace("\n", " "),
+                                  "drop the not-X/it's-Y framing; state it plainly"))
 
 
 def check_pattern_list(text, patterns, category, suggestion, hits, lm, protected=()):
@@ -101,8 +112,8 @@ def check_pattern_list(text, patterns, category, suggestion, hits, lm, protected
             snippet = m.group(0)
             if len(snippet) > 70:
                 snippet = snippet[:67] + "..."
-            hits.append(Hit(category, lm.line_of(m.start()),
-                            snippet.replace("\n", " "), suggestion))
+            hits.append(_span_hit(category, lm, m,
+                                  snippet.replace("\n", " "), suggestion))
 
 
 EM_DASH_RE = re.compile(r"\s?[—–]\s?|(?<=\w)--(?=\w)|\s--\s")
@@ -164,9 +175,9 @@ def check_bold_bullets(text, threshold, hits, report, lm):
     report["bold_lead_bullets"] = len(bold)
     if bullets and (len(bold) / len(bullets)) >= threshold and len(bold) >= 3:
         for m in bold[:8]:
-            hits.append(Hit("bold_bullets", lm.line_of(m.start()),
-                            m.group(0).strip(),
-                            "convert some to prose; drop ornamental bold"))
+            hits.append(_span_hit("bold_bullets", lm, m,
+                                  m.group(0).strip(),
+                                  "convert some to prose; drop ornamental bold"))
 
 
 # Triads with an optional Oxford comma, joined by "and" or "or":
@@ -256,14 +267,14 @@ def check_formatting(text, max_rules, hits, report, lm):
     report["emoji"] = len(emojis)
     if emojis:
         m = EMOJI_RE.search(text)
-        hits.append(Hit("formatting", lm.line_of(m.start()),
-                        "emoji (%d)" % len(emojis), "remove decorative emoji"))
+        hits.append(_span_hit("formatting", lm, m,
+                              "emoji (%d)" % len(emojis), "remove decorative emoji"))
     rules = list(SECTION_RULE_MULTILINE_RE.finditer(text))
     report["section_rules"] = len(rules)
     if len(rules) > max_rules:
         for m in rules[max_rules:max_rules + 6]:
-            hits.append(Hit("formatting", lm.line_of(m.start()),
-                            "horizontal rule", "drop rules between every section"))
+            hits.append(_span_hit("formatting", lm, m,
+                                  "horizontal rule", "drop rules between every section"))
 
 
 def check_burstiness(sents, floor, hits, report):
@@ -375,7 +386,7 @@ def check_dialect(text, dialect_map, hits, lm):
                 continue
             sug = ("use '%s' for consistent dialect" % right
                    if isinstance(right, str) else "spelling drift")
-            hits.append(Hit("dialect", lm.line_of(m.start()), m.group(0), sug))
+            hits.append(_span_hit("dialect", lm, m, m.group(0), sug))
 
 
 HEADING_RE = re.compile(r"^[ \t]*(#{1,6})[ \t]+(.+?)[ \t]*#*$", re.MULTILINE)

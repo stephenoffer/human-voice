@@ -74,6 +74,13 @@ def render_sarif(results):
             cat = h["category"]
             rules.setdefault(cat, {"id": cat, "name": cat,
                                    "shortDescription": {"text": "AI-prose tell: %s" % cat}})
+            region = {"startLine": max(1, h.get("line") or 1)}
+            if h.get("col") is not None:
+                region["startColumn"] = h["col"]
+            if h.get("end_line") is not None:
+                region["endLine"] = max(1, h["end_line"])
+            if h.get("end_col") is not None:
+                region["endColumn"] = h["end_col"]
             sarif_results.append({
                 "ruleId": cat,
                 "level": {"high": "error", "medium": "warning", "low": "note"}.get(
@@ -82,7 +89,7 @@ def render_sarif(results):
                     h["text"], "  -> " + h["suggestion"] if h.get("suggestion") else "")},
                 "locations": [{"physicalLocation": {
                     "artifactLocation": {"uri": res["input"]},
-                    "region": {"startLine": max(1, h.get("line") or 1)}}}],
+                    "region": region}}],
             })
     return {
         "version": "2.1.0",
