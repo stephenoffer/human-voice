@@ -348,12 +348,109 @@ h_sdh, _, _, _ = run_analyze("tp_spaced_double_hyphen",
     "We shipped it -- finally -- after review and it held -- surprisingly -- up well here.")
 check("tp_spaced_double_hyphen", "em_dash" in cats(h_sdh))
 
+# dash_style: ASCII "--" as a dash fires; spaced hyphen as a dash fires (HV-030)
+h_ds, _, _, _ = run_analyze("tp_dash_style",
+    "The plan was risky--we staged it. The result - in short - held up under load.")
+check("tp_dash_style_fires", "dash_style" in cats(h_ds))
+
+# dash_style: mixed em-dash spacing flagged (HV-031)
+h_dm, _, _, _ = run_analyze("tp_dash_mixed",
+    "We won—again—and then we paused — briefly — before the next release here.")
+check("tp_dash_mixed_fires", "dash_style" in cats(h_dm))
+
+# dash_style is muted in the creative register (dashes are its tool) (HV-032)
+h_dc, _, _, _ = run_analyze("tp_dash_creative",
+    "The plan was risky--we staged it. The result - in short - held.", register="creative")
+check("creative_mutes_dash_style", "dash_style" not in cats(h_dc))
+
+# doubled_word: a real doubling fires; a legit "that that" / boundary does not (HV-033)
+h_dw, _, _, _ = run_analyze("tp_doubled_word",
+    "We we shipped the the release after the review wrapped up late on Friday night.")
+check("tp_doubled_word_fires", "doubled_word" in cats(h_dw))
+h_dwok, _, _, _ = run_analyze("fp_doubled_word_ok",
+    "I know that that release shipped, and they had had trouble with it before then.")
+check("fp_doubled_word_quiet", "doubled_word" not in cats(h_dwok))
+
+# doubled_word must not fire across a heading/line boundary (the "...it\n\nIt..." FP) (HV-034)
+h_dwb, _, _, _ = run_analyze("fp_doubled_word_boundary",
+    "# Why use it\n\nIt fixes the tells that give writing away across many genres here.")
+check("fp_doubled_word_boundary_quiet", "doubled_word" not in cats(h_dwb))
+
+# mechanics: space before punctuation and repeated terminal marks fire (HV-035)
+h_mech, _, _, _ = run_analyze("tp_mechanics",
+    "We shipped it , finally ; and it worked !! Did it really ?? Yes, it did, mostly.")
+check("tp_mechanics_fires", "mechanics" in cats(h_mech))
+
+# mechanics must NOT false-positive on inline code stripped before punctuation (HV-036)
+h_mok, _, _, _ = run_analyze("fp_mechanics_inline_code",
+    "Use the `--fail-over` flag, then run `run_eval.py`; both exit cleanly for you.")
+check("fp_mechanics_inline_code_quiet", "mechanics" not in cats(h_mok))
+
 # new report metrics are populated
 _, rep_m, _, _ = run_analyze("metrics_present", clean)
+check("metric_dash_counts", "dash_ascii_double" in rep_m and "doubled_words" in rep_m)
 check("metric_yules_k", rep_m.get("yules_k") is not None)
 check("metric_opener_entropy", rep_m.get("opener_entropy") is not None)
 check("metric_punctuation", "semicolon_per_1k" in rep_m and "colon_per_1k" in rep_m)
 check("metric_paragraph_cov", "paragraph_len_cov" in rep_m)
+
+# ---------------------------------------------------------------------------
+# 4f. Stop-slop-derived tells: false agency, narrator-from-a-distance,
+# Wh-opener crutch, vague declarative, negative listing, dramatic
+# fragmentation. Each fires on a positive case and is muted/quiet where the
+# register or the content makes the pattern legitimate.
+# ---------------------------------------------------------------------------
+# false agency: abstract subject + human verb fires (technical); muted academic
+h_fa, _, _, _ = run_analyze("tp_false_agency",
+    "The complaint becomes a fix overnight. The data tells us where to invest, and the market rewards the fast.")
+check("tp_false_agency_fires", "false_agency" in cats(h_fa))
+h_fa_ac, _, _, _ = run_analyze("fp_false_agency_academic",
+    "The complaint becomes a fix overnight. The data tells us where to invest, and the market rewards the fast.",
+    register="academic")
+check("academic_mutes_false_agency", "false_agency" not in cats(h_fa_ac))
+# concrete human actor must NOT trip false_agency
+h_fa_ok, _, _, _ = run_analyze("fp_false_agency_named",
+    "The on-call engineer shipped the fix that week. We read the logs and found the drop-off here.")
+check("fp_false_agency_named_quiet", "false_agency" not in cats(h_fa_ok))
+
+# narrator-from-a-distance: lecturer voice fires (casual); muted academic
+h_nd, _, _, _ = run_analyze("tp_narrator_distance",
+    "Nobody designed this. People tend to follow the path of least resistance, and humans are wired to coast.",
+    register="casual")
+check("tp_narrator_distance_fires", "narrator_distance" in cats(h_nd))
+h_nd_ac, _, _, _ = run_analyze("fp_narrator_distance_academic",
+    "Nobody designed this. People tend to follow the path of least resistance, and humans are wired to coast.",
+    register="academic")
+check("academic_mutes_narrator_distance", "narrator_distance" not in cats(h_nd_ac))
+
+# Wh-opener crutch: a run of what/why/how openers fires; varied prose stays quiet
+h_wh, _, _, _ = run_analyze("tp_wh_openers",
+    "What makes this hard is scale. Why does that matter so much? How do you even know it works at all? "
+    "We shipped it on Friday anyway.")
+check("tp_wh_openers_fires", "wh_opener" in cats(h_wh))
+h_wh_ok, _, _, _ = run_analyze("fp_wh_openers_quiet",
+    "Scale is the hard part. The index can't keep up past fifty thousand writes. We sharded it instead here.")
+check("fp_wh_openers_quiet", "wh_opener" not in cats(h_wh_ok))
+
+# vague declarative: announce-the-weight phrasing fires
+h_vd, _, _, _ = run_analyze("tp_vague_declarative",
+    "The implications are significant. The reasons are structural. This is genuinely hard to get right here.")
+check("tp_vague_declarative_fires", "vague_declarative" in cats(h_vd))
+
+# negative listing: multi-item striptease fires (contraction + 'were' forms)
+h_nl, _, _, _ = run_analyze("tp_negative_listing",
+    "It wasn't a tooling problem. It wasn't a staffing problem. It was a priorities problem all along here.")
+check("tp_negative_listing_fires", "negative_listing" in cats(h_nl))
+
+# dramatic fragmentation: performative simplicity fires in exposition,
+# but is muted where fragments are legitimate craft (casual/creative)
+h_df, _, _, _ = run_analyze("tp_dramatic_fragmentation",
+    "You can only pick two. That's it. That's the tradeoff every team eventually has to make here.")
+check("tp_dramatic_fragmentation_fires", "dramatic_fragmentation" in cats(h_df))
+h_df_cas, _, _, _ = run_analyze("fp_dramatic_fragmentation_casual",
+    "You can only pick two. That's it. That's the tradeoff every team eventually has to make here.",
+    register="casual")
+check("casual_mutes_dramatic_fragmentation", "dramatic_fragmentation" not in cats(h_df_cas))
 
 # ---------------------------------------------------------------------------
 # 5. Registers and dialects across all combinations (must not crash)
@@ -535,6 +632,44 @@ with open(_fixsrc, encoding="utf-8") as fh:
     fixed_text = fh.read()
 check("autofix_applied", "utilize" not in fixed_text and "use" in fixed_text)
 os.remove(_fixsrc)
+
+# autofix structural fixes: emoji stripped, dashes -> comma, ranges/compounds/code kept
+_dtext = ("Fast 🚀 — really fast -- and clean - mostly. Range 10–20 ok. A well-known case.\n"
+          "Use `a--b` inline.\n\n```\nx -- y\n```\n")
+_dfix, _sw, _em, _da = dap.autofix(_dtext, PAT, "technical")
+check("autofix_emoji_stripped", "🚀" not in _dfix and _em == 1)
+check("autofix_em_dash_to_comma", "—" not in _dfix and "Fast, really" in _dfix)
+check("autofix_ascii_dash_to_comma", "really fast, and clean" in _dfix)
+check("autofix_spaced_hyphen_to_comma", "clean, mostly" in _dfix)
+check("autofix_dash_count", _da == 3, "dashes replaced: %d" % _da)
+check("autofix_keeps_numeric_range", "10–20" in _dfix)
+check("autofix_keeps_compound_hyphen", "well-known" in _dfix)
+check("autofix_never_touches_code", "`a--b`" in _dfix and "x -- y" in _dfix)
+
+# emoji removal never leaves a doubled or dangling space
+_efix, _, _en, _ = dap.autofix("Fast 🚀 Reliable and 🎉 done.", PAT, "technical")
+check("autofix_emoji_no_double_space",
+      "Fast Reliable" in _efix and "  " not in _efix and _en == 2)
+
+# register gating: creative keeps dashes + emoji; casual keeps emoji but fixes dashes
+_cfix, _, _cem, _cda = dap.autofix(_dtext, PAT, "creative")
+check("autofix_creative_untouched", "🚀" in _cfix and "—" in _cfix and _cem == 0 and _cda == 0)
+_kfix, _, _kem, _kda = dap.autofix(_dtext, PAT, "casual")
+check("autofix_casual_keeps_emoji", "🚀" in _kfix and _kem == 0)
+check("autofix_casual_fixes_dashes", "—" not in _kfix and _kda == 3)
+
+# --fix-dry-run integration: structural fixes flow through the CLI too
+_dfile = os.path.join(tempfile.gettempdir(), "hv_dash_test.md")
+with open(_dfile, "w", encoding="utf-8") as fh:
+    fh.write("We won — again — here. ✨\n")
+_pf = run_cli(["--fix-dry-run", _dfile]).stdout.decode()
+check("cli_fix_strips_dash_emoji", "—" not in _pf and "✨" not in _pf and "won, again, here" in _pf)
+os.remove(_dfile)
+
+# lowered em-dash threshold: just two em-dashes in technical prose now flags em_dash
+h_lowdash, _, _, _ = run_analyze("tp_two_em_dashes",
+    "The result surprised us — it held — and we shipped it the next morning here.")
+check("low_threshold_flags_two_em_dashes", "em_dash" in cats(h_lowdash))
 
 # ---------------------------------------------------------------------------
 # 7c. B4 project config + protected terms (HV-166/167)

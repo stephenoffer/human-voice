@@ -9,7 +9,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.2455
+      "ai_score_share": 0.1937
     },
     {
       "category": "bold_bullets",
@@ -18,7 +18,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.2446
+      "ai_score_share": 0.1881
     },
     {
       "category": "meta_commentary",
@@ -27,7 +27,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.1618
+      "ai_score_share": 0.1727
     },
     {
       "category": "rule_of_three",
@@ -36,7 +36,16 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.1046
+      "ai_score_share": 0.0804
+    },
+    {
+      "category": "false_agency",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0635
     },
     {
       "category": "jargon",
@@ -45,7 +54,25 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0588
+      "ai_score_share": 0.0601
+    },
+    {
+      "category": "em_dash",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0479
+    },
+    {
+      "category": "vague_declarative",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0426
     },
     {
       "category": "burstiness",
@@ -54,7 +81,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0524
+      "ai_score_share": 0.0403
     },
     {
       "category": "puffery",
@@ -63,16 +90,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0317
-    },
-    {
-      "category": "em_dash",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0312
+      "ai_score_share": 0.0318
     },
     {
       "category": "vague_attribution",
@@ -81,7 +99,16 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0229
+      "ai_score_share": 0.0176
+    },
+    {
+      "category": "narrator_distance",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0135
     },
     {
       "category": "paragraph_uniformity",
@@ -90,7 +117,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0158
+      "ai_score_share": 0.0121
     },
     {
       "category": "antithesis",
@@ -99,7 +126,25 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0075
+      "ai_score_share": 0.0058
+    },
+    {
+      "category": "negative_listing",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.005
+    },
+    {
+      "category": "uniform_openers",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.005
     },
     {
       "category": "redundancy",
@@ -108,7 +153,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0055
+      "ai_score_share": 0.0042
     },
     {
       "category": "ngram_repetition",
@@ -117,16 +162,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0052
-    },
-    {
-      "category": "list_uniformity",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.005
+      "ai_score_share": 0.004
     },
     {
       "category": "transitions",
@@ -135,7 +171,25 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.005
+      "ai_score_share": 0.0039
+    },
+    {
+      "category": "list_uniformity",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0038
+    },
+    {
+      "category": "wh_opener",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0022
     },
     {
       "category": "nominalization",
@@ -144,7 +198,7 @@
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0025
+      "ai_score_share": 0.0019
     },
     {
       "category": "adverbs",
@@ -183,7 +237,34 @@
       "ai_score_share": 0.0
     },
     {
+      "category": "dash_style",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
       "category": "dialect",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "doubled_word",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
+      "category": "dramatic_fragmentation",
       "weight": 0.5,
       "auc": 1.0,
       "auc_drop": 0.0,
@@ -228,6 +309,15 @@
       "ai_score_share": 0.0
     },
     {
+      "category": "mechanics",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 1.0,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0
+    },
+    {
       "category": "parallel_structure",
       "weight": 1.0,
       "auc": 1.0,
@@ -257,15 +347,6 @@
     {
       "category": "self_identifying",
       "weight": 4.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "uniform_openers",
-      "weight": 1.0,
       "auc": 1.0,
       "auc_drop": 0.0,
       "best_f1_acc": 1.0,

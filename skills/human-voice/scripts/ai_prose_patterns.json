@@ -1,11 +1,12 @@
 {
-  "version": "0.2.0",
-  "updated": "2026-06-21",
+  "version": "0.3.0",
+  "updated": "2026-06-22",
   "_notes": [
     "Lexical lists are a FLOOR, not proof. Banned-word lists age: the PubMed study (arXiv 2406.07016) measured a ~25x jump in 'delves' in 2024 abstracts, and writers have since learned to avoid it. A hit raises suspicion; it never proves AI authorship, and a clean lexical pass never proves human authorship.",
     "Seeded from the PubMed excess-vocabulary study (arXiv 2406.07016: 280 excess style words, ~66% verbs, ~18% adjectives) plus curated practitioner lists. Edit freely; the linter reads only this file for word lists.",
     "Each lexical entry maps a tell to a suggested fix. null means 'usually cut the word entirely'. A value may also be an object {\"suggestion\": \"...\"} for forward-compatibility.",
-    "Rotate stale tells over time: 'delve' spiked in 2024 then faded as writers learned to avoid it. Treat lexical hits as a floor and refresh this list as the model generation changes."
+    "Rotate stale tells over time: 'delve' spiked in 2024 then faded as writers learned to avoid it. Treat lexical hits as a floor and refresh this list as the model generation changes.",
+    "The em-dash is treated as a strong tell, not a moderate one: em_dash_per_1k_words is low (2.0) and category_weights.em_dash is high (2.0). Replace nearly all em-dashes outside the creative register; creative already mutes em_dash + dash_style. The --fix autofixer rewrites em-dashes (and ASCII '--', spaced hyphens, non-numeric en-dashes) to commas and strips decorative emoji, except in creative (dashes + emoji kept) and casual (emoji kept)."
   ],
   "filler": {
     "delve": "examine",
@@ -189,7 +190,19 @@
     "imagine a world",
     "picture this",
     "ever wondered",
-    "consider this for a moment"
+    "consider this for a moment",
+    "the uncomfortable truth is",
+    "the hard truth is",
+    "the truth is",
+    "the reality is",
+    "let me be clear",
+    "make no mistake",
+    "let that sink in",
+    "at the end of the day",
+    "it turns out that",
+    "here's the kicker",
+    "plot twist",
+    "spoiler alert"
   ],
   "chatbot_scaffold": [
     "sure! here's",
@@ -308,11 +321,56 @@
     "\\bthis (isn'?t|is not|wasn'?t)\\b.{1,50}?,\\s+it'?s\\b",
     ",\\s+(highlighting|underscoring|showcasing|demonstrating|reflecting|emphasizing|reinforcing)\\s+(its|their)\\s+(commitment|dedication|ability|focus|importance|role|value)\\b"
   ],
+  "_false_agency_note": "Abstract/inanimate subject + a human cognition/volition verb. AI loves this because it avoids naming the actor ('the complaint becomes a fix' — someone fixed it). The fix is to name the human (or use 'you'), never to invent one. Conventional in academic/scientific prose ('the data show'), so the false_agency category is muted for the academic register.",
+  "false_agency_patterns": [
+    "\\bthe\\s+(data|market|markets|algorithm|model|system|process|metric|metrics|number|numbers|code|software|platform|product|feature|dashboard|report|spreadsheet)\\s+(tells?|knows?|wants?|decides?|believes?|thinks?|feels?|realizes?|realises?|understands?|chooses?|cares?|prefers?|rewards?|punishes?|demands?|insists?|expects?|remembers?|agrees?|hopes?)\\b",
+    "\\bthe\\s+(complaint|decision|conversation|culture|narrative|momentum|consensus|truth|insight|realization|realisation)\\s+(emerges?|emerged|becomes?|became|shifts?|shifted|moves?|moved|takes\\s+hold|sets\\s+in|crystallizes?|crystallises?)\\b",
+    "\\b(a|the)\\s+\\w+\\s+(lives?\\s+or\\s+dies?|lives\\s+and\\s+dies)\\b"
+  ],
+  "_negative_listing_note": "The multi-item negation striptease — listing what something is NOT across two or more sentences before revealing what it is. Distinct from the two-part 'not X, it's Y' (antithesis). State the final answer; the reader does not need the runway.",
+  "negative_listing_patterns": [
+    "\\b(it|this|that|he|she|they|we)\\s+(is|was|are|were)(?:n'?t|\\s+not)\\s+[^.?!\\n]{1,45}[.?!]\\s+(?:it|this|that|he|she|they|we)\\s+(?:is|was|are|were)(?:n'?t|\\s+not)\\b",
+    "\\bnot\\s+(a|an|the|just|only|about)\\b[^.?!\\n]{1,40}[.?!]\\s+not\\s+(a|an|the|just|only|about)\\b"
+  ],
+  "_dramatic_fragmentation_note": "Sentence fragments deployed for manufactured profundity ('That's it. That's the tradeoff.', 'X. And Y. And Z.'). Performative simplicity reads as generated. Fragments are legitimate in creative/casual/release-notes prose, so this category is muted there via the 'fragments' register allowance.",
+  "dramatic_fragmentation_patterns": [
+    "\\bthat'?s it\\.\\s+that'?s (the|your|our|how|why|what)\\b",
+    "\\.\\s+(and|or|but)\\s+\\w+\\.\\s+(and|or|but)\\s+\\w+\\.",
+    "\\bthis (unlocks|changes|breaks|fixes) (something|everything)\\.\\s+\\w+\\."
+  ],
+  "narrator_distance": [
+    "nobody designed",
+    "no one designed",
+    "nobody decided",
+    "no one decided",
+    "people tend to",
+    "people don't realize",
+    "people fail to",
+    "humans are wired to",
+    "we as humans",
+    "as humans, we",
+    "human nature is to"
+  ],
+  "vague_declarative": [
+    "the reasons are structural",
+    "the implications are significant",
+    "the implications are profound",
+    "the stakes are high",
+    "the stakes could not be higher",
+    "the consequences are real",
+    "the consequences are severe",
+    "this is the deepest problem",
+    "this is the real problem",
+    "this is genuinely hard",
+    "this is what leadership actually looks like",
+    "the problem is structural",
+    "the challenges are immense"
+  ],
   "register_mutes": {
     "technical": [],
     "business": ["warmth"],
     "marketing": ["warmth", "contractions", "you_address", "light_enthusiasm", "rhetorical_questions"],
-    "academic": ["measured_hedging", "passive_voice", "nominal_style"],
+    "academic": ["measured_hedging", "passive_voice", "nominal_style", "lecturer_voice"],
     "casual": ["warmth", "contractions", "you_address", "rhetorical_questions", "fragments"],
     "creative": ["em_dash", "fragments", "wide_cadence", "rhetorical_questions"],
     "email": ["warmth", "contractions", "you_address"],
@@ -330,9 +388,10 @@
     "passive_voice": ["passive_voice"],
     "nominal_style": ["nominalization"],
     "rhetorical_questions": ["rhetorical"],
-    "fragments": ["burstiness"],
-    "em_dash": ["em_dash"],
-    "wide_cadence": ["burstiness"]
+    "fragments": ["burstiness", "dramatic_fragmentation"],
+    "em_dash": ["em_dash", "dash_style"],
+    "wide_cadence": ["burstiness"],
+    "lecturer_voice": ["false_agency", "narrator_distance"]
   },
   "dialect": {
     "american": {
@@ -444,7 +503,7 @@
     }
   },
   "thresholds": {
-    "em_dash_per_1k_words": 6.0,
+    "em_dash_per_1k_words": 2.0,
     "burstiness_cov_floor": 0.40,
     "ttr_floor": 0.38,
     "ngram_min_count": 4,
@@ -457,7 +516,9 @@
     "nominalization_per_1k": 60.0,
     "rhetorical_per_1k": 18.0,
     "paragraph_cov_floor": 0.30,
-    "list_item_cov_floor": 0.22
+    "list_item_cov_floor": 0.22,
+    "wh_opener_ratio": 0.30,
+    "wh_opener_run": 3
   },
   "_protected_terms_note": "Project-specific terms that must NEVER be flagged or rewritten — product names, required jargon, defined terms. Matched as whole words. Empty by default; set per project via a .humanvoicerc file at the repo root.",
   "protected_terms": [],
@@ -492,7 +553,7 @@
     "redundancy": 1.0,
     "self_identifying": 4.0,
     "antithesis": 1.5,
-    "em_dash": 1.0,
+    "em_dash": 2.0,
     "bold_bullets": 1.5,
     "rule_of_three": 1.0,
     "uniform_openers": 1.0,
@@ -510,7 +571,13 @@
     "paragraph_uniformity": 1.5,
     "list_uniformity": 1.0,
     "circular_conclusion": 1.5,
-    "parallel_structure": 1.0
+    "parallel_structure": 1.0,
+    "false_agency": 1.5,
+    "narrator_distance": 1.0,
+    "wh_opener": 0.5,
+    "vague_declarative": 1.5,
+    "negative_listing": 1.0,
+    "dramatic_fragmentation": 0.5
   },
   "_score_bands_note": "Upper-exclusive verdict bands for the floor score (weighted tells / 1k words). score < clean reads clean; < watch is worth a look; at/above watch is a strong floor signal (the open-ended top band uses a large threshold). A FLOOR only — never ground truth.",
   "score_bands": {

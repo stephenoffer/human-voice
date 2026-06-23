@@ -41,6 +41,8 @@
     "ai/a09_marketing_email.md":           {"label": "ai", "register": "marketing"},
     "ai/a10_academic_intro.md":            {"label": "ai", "register": "academic"},
     "ai/a11_business_proposal.md":         {"label": "ai", "register": "business"},
-    "ai/a12_blog_finance.md":              {"label": "ai", "register": "casual"}
+    "ai/a12_blog_finance.md":              {"label": "ai", "register": "casual"},
+    "ai/a13_blog_systems.md":              {"label": "ai", "register": "casual"},
+    "ai/a14_business_strategy.md":         {"label": "ai", "register": "business"}
   }
 }

@@ -54,7 +54,7 @@ CATEGORY_WEIGHTS = {
     "redundancy": 1.0,
     "self_identifying": 4.0,
     "antithesis": 1.5,
-    "em_dash": 1.0,
+    "em_dash": 2.0,
     "bold_bullets": 1.5,
     "rule_of_three": 1.0,
     "uniform_openers": 1.0,
@@ -73,6 +73,15 @@ CATEGORY_WEIGHTS = {
     "list_uniformity": 1.0,
     "circular_conclusion": 1.5,
     "parallel_structure": 1.0,
+    "dash_style": 0.5,
+    "doubled_word": 1.0,
+    "mechanics": 0.5,
+    "false_agency": 1.5,
+    "narrator_distance": 1.0,
+    "wh_opener": 0.5,
+    "vague_declarative": 1.5,
+    "negative_listing": 1.0,
+    "dramatic_fragmentation": 0.5,
 }
 
 # Every category the linter can emit. Used to validate register-mute config.
@@ -358,6 +367,32 @@ def prose_for_metrics(code_stripped):
     return "\n".join(out_paras)
 
 
+def prose_for_adjacency(text):
+    """Text for adjacency checks (dashes, doubled words, punctuation spacing).
+
+    Unlike `strip_code`, which blanks code with equal-length spaces to preserve
+    geometry, this replaces each stripped span (inline code, URLs, footnotes)
+    with a single placeholder word. That keeps a stripped token from leaving a
+    phantom gap — `` of `--flag`, `` must read as `of x,` (no space before the
+    comma), not `of      ,`. Newlines are preserved so line numbers still line
+    up; only within-line columns shift.
+    """
+    text = CODE_FENCE_RE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+    out = []
+    for raw in text.split("\n"):
+        line = HEADING_LINE_RE.sub("", raw)
+        line = BLOCKQUOTE_RE.sub("", line)
+        line = LIST_MARKER_RE.sub("", line)
+        line = INLINE_CODE_RE.sub("x", line)
+        line = LINK_RE.sub(r"\1", line)
+        line = BARE_URL_RE.sub("x", line)
+        line = FOOTNOTE_REF_RE.sub("x", line)
+        line = HTML_TAG_RE.sub("", line)
+        line = EMPHASIS_RE.sub("", line)
+        out.append(line)
+    return "\n".join(out)
+
+
 def sentences(prose):
     if not prose.strip():
         return []
@@ -487,6 +522,33 @@ def check_antithesis(text, patterns, hits, lm):
                             "drop the not-X/it's-Y framing; state it plainly"))
 
 
+def check_pattern_list(text, patterns, category, suggestion, hits, lm, protected=()):
+    """Run a JSON-supplied list of regexes and emit Hits under one category.
+
+    Generalizes check_antithesis for the structural tells that live as regex
+    lists in the patterns file (false agency, negative listing, dramatic
+    fragmentation). Honors protected spans like the lexical checks do.
+    """
+    if not isinstance(patterns, list):
+        return
+    for pat in patterns:
+        if not isinstance(pat, str) or not pat:
+            continue
+        try:
+            rx = re.compile(pat, re.IGNORECASE)
+        except re.error as exc:
+            warn("skipping invalid %s pattern %r: %s" % (category, pat, exc))
+            continue
+        for m in rx.finditer(text):
+            if protected and _overlaps(m.start(), m.end(), protected):
+                continue
+            snippet = m.group(0)
+            if len(snippet) > 70:
+                snippet = snippet[:67] + "..."
+            hits.append(Hit(category, lm.line_of(m.start()),
+                            snippet.replace("\n", " "), suggestion))
+
+
 EM_DASH_RE = re.compile(r"\s?[—–]\s?|(?<=\w)--(?=\w)|\s--\s")
 
 
@@ -595,6 +657,41 @@ def check_uniform_openers(sents, ratio_threshold, hits, report):
         hits.append(Hit("uniform_openers", 0,
                         '%d of %d sentences open with "%s"' % (count, total, word),
                         "vary how sentences begin"))
+
+
+WH_OPENERS = frozenset(("what", "when", "where", "which", "who", "why", "how"))
+
+
+def check_wh_openers(sents, ratio_threshold, run, hits, report):
+    """Flag the Wh-opener crutch: many sentences opening with what/when/why/...
+
+    A specific sub-case of uniform openers ("What makes this hard is...",
+    "Why does this matter?"). Fires on either a high overall ratio or a run of
+    consecutive Wh-openers, so a short passage that stacks three of them is
+    caught even when the document-wide ratio is diluted.
+    """
+    firsts = []
+    for s in sents:
+        m = WORD_RE.search(s)
+        firsts.append(m.group(0).lower() if m else None)
+    wh_flags = [f in WH_OPENERS for f in firsts]
+    total = sum(1 for f in firsts if f is not None)
+    count = sum(wh_flags)
+    report["wh_opener_count"] = count
+    if total < 4:
+        return
+    ratio = count / total
+    report["wh_opener_ratio"] = round(ratio, 2)
+    streak = 0
+    max_streak = 0
+    for flag in wh_flags:
+        streak = streak + 1 if flag else 0
+        max_streak = max(max_streak, streak)
+    if ratio >= ratio_threshold or max_streak >= run:
+        hits.append(Hit("wh_opener", 0,
+                        "%d of %d sentences open with a Wh- word (run of %d)"
+                        % (count, total, max_streak),
+                        "lead with the subject; name the specific thing, not 'What makes this...'"))
 
 
 def check_formatting(text, max_rules, hits, report, lm):
@@ -924,6 +1021,90 @@ def check_parallel_structure(sents, hits, report, run=3):
 
 
 # ---------------------------------------------------------------------------
+# Dash style, doubled words, and punctuation mechanics (grammar/formatting)
+# ---------------------------------------------------------------------------
+
+# ASCII double-hyphen used as a dash ("draft--like this" or "spaced -- like so").
+ASCII_DASH_RE = re.compile(r"(?<=\w)--(?=\w)|\s--\s")
+# An em-dash that hugs its words on both sides (no spaces): "word—word".
+EM_TIGHT_RE = re.compile(r"\w—\w")
+# An em-dash spaced on both sides: "word — word".
+EM_SPACED_RE = re.compile(r"\w\s—\s\w")
+# Spaced hyphen standing in for a dash between lowercase words: "this - that".
+SPACED_HYPHEN_DASH_RE = re.compile(r"(?<=[a-z]) - (?=[a-z])")
+
+
+def check_dash_style(prose_text, hits, report, lm):
+    """Dash *correctness and consistency*, distinct from em-dash density.
+
+    Flags ASCII `--` standing in for a real dash, a spaced hyphen used as a
+    dash, and a document that mixes spaced and unspaced em-dashes.
+    """
+    ascii_dd = list(ASCII_DASH_RE.finditer(prose_text))
+    spaced_hyphen = list(SPACED_HYPHEN_DASH_RE.finditer(prose_text))
+    tight = len(EM_TIGHT_RE.findall(prose_text))
+    spaced = len(EM_SPACED_RE.findall(prose_text))
+    report["dash_ascii_double"] = len(ascii_dd)
+    report["dash_spaced_hyphen"] = len(spaced_hyphen)
+    report["em_dash_spacing_mixed"] = bool(tight and spaced)
+    for m in ascii_dd[:6]:
+        hits.append(Hit("dash_style", lm.line_of(m.start()),
+                        m.group(0).strip() or "--",
+                        "use an em-dash (—) or rework; '--' reads as raw markup"))
+    for m in spaced_hyphen[:6]:
+        ctx = prose_text[max(0, m.start() - 8):m.end() + 8].replace("\n", " ").strip()
+        hits.append(Hit("dash_style", lm.line_of(m.start()), ctx,
+                        "a spaced hyphen isn't a dash; use a comma, period, or em-dash"))
+    if tight and spaced:
+        hits.append(Hit("dash_style", 0,
+                        "em-dash spacing is inconsistent (both word—word and word — word)",
+                        "pick one em-dash spacing convention and hold it"))
+
+
+# Consecutive identical words ("the the"), case-insensitive. The gap is spaces
+# or tabs only (no newline), so a word ending one line/heading and the same word
+# opening the next (e.g. "...use it" / "It does...") is not a false doubling.
+# Excludes words that legitimately repeat ("had had", "that that").
+DOUBLED_WORD_RE = re.compile(r"\b([A-Za-z]{2,})\b[ \t]+\1\b", re.IGNORECASE)
+DOUBLE_OK = {"that", "had", "ha", "no", "so", "very", "really", "blah", "yeah",
+             "ok", "bye", "din", "tut", "hear", "now"}
+
+
+def check_doubled_words(prose_text, hits, report, lm):
+    matches = []
+    for m in DOUBLED_WORD_RE.finditer(prose_text):
+        if m.group(1).lower() in DOUBLE_OK:
+            continue
+        matches.append(m)
+    report["doubled_words"] = len(matches)
+    for m in matches[:8]:
+        hits.append(Hit("doubled_word", lm.line_of(m.start()),
+                        m.group(0).replace("\n", " "),
+                        "remove the duplicated word"))
+
+
+# Space before sentence punctuation: "word ," / "word ;" / "word ?".
+SPACE_BEFORE_PUNCT_RE = re.compile(r"\w[ \t]+([,;:!?])")
+# Repeated terminal punctuation: "!!", "??", or 3+ mixed ("?!?"). A lone "?!"
+# (one of each) is left alone as a legitimate interrobang.
+MULTI_PUNCT_RE = re.compile(r"!{2,}|\?{2,}|[!?]{3,}")
+
+
+def check_mechanics(prose_text, hits, report, lm):
+    space_before = list(SPACE_BEFORE_PUNCT_RE.finditer(prose_text))
+    multi_punct = list(MULTI_PUNCT_RE.finditer(prose_text))
+    report["space_before_punct"] = len(space_before)
+    report["multi_terminal_punct"] = len(multi_punct)
+    for m in space_before[:6]:
+        ctx = prose_text[max(0, m.start() - 6):m.end() + 4].replace("\n", " ").strip()
+        hits.append(Hit("mechanics", lm.line_of(m.start()), ctx,
+                        "no space before '%s'" % m.group(1)))
+    for m in multi_punct[:6]:
+        hits.append(Hit("mechanics", lm.line_of(m.start()), m.group(0),
+                        "one punctuation mark is enough"))
+
+
+# ---------------------------------------------------------------------------
 # Driver
 # ---------------------------------------------------------------------------
 
@@ -976,12 +1157,22 @@ def analyze(text, register, dialect, patterns):
     check_lexical_list(code_stripped, patterns.get("vague_attribution"), "vague_attribution", hits, seen, lm_code, protected, cite_guard=True)
     check_lexical_list(code_stripped, patterns.get("redundancy"), "redundancy", hits, seen, lm_code, protected, skip_quoted=True)
     check_lexical_list(code_stripped, patterns.get("self_identifying"), "self_identifying", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("narrator_distance"), "narrator_distance", hits, seen, lm_code, protected)
+    check_lexical_list(code_stripped, patterns.get("vague_declarative"), "vague_declarative", hits, seen, lm_code, protected)
     check_antithesis(code_stripped, patterns.get("antithesis_patterns"), hits, lm_code)
+    check_pattern_list(code_stripped, patterns.get("false_agency_patterns"), "false_agency",
+                       "name the human actor (or use 'you'); don't invent one", hits, lm_code, protected)
+    check_pattern_list(code_stripped, patterns.get("negative_listing_patterns"), "negative_listing",
+                       "state the final answer; cut the list of what it isn't", hits, lm_code, protected)
+    check_pattern_list(code_stripped, patterns.get("dramatic_fragmentation_patterns"), "dramatic_fragmentation",
+                       "use complete sentences; trust the content over the staccato", hits, lm_code, protected)
 
     check_em_dash(metric_prose, word_count, safe_float(th, "em_dash_per_1k_words", 6.0), hits, report, lm_metric)
     check_bold_bullets(text, safe_float(th, "bold_bullet_ratio", 0.5), hits, report, lm_raw)
     check_rule_of_three(metric_prose, hits, lm_metric)
     check_uniform_openers(sents, safe_float(th, "uniform_opener_ratio", 0.3), hits, report)
+    check_wh_openers(sents, safe_float(th, "wh_opener_ratio", 0.30),
+                     int(safe_float(th, "wh_opener_run", 3)), hits, report)
     check_formatting(text, safe_float(th, "section_rule_max", 2), hits, report, lm_raw)
     check_burstiness(sents, safe_float(th, "burstiness_cov_floor", 0.45), hits, report)
     check_lexical_diversity(metric_prose, safe_float(th, "ttr_floor", 0.40), hits, report)
@@ -1000,6 +1191,11 @@ def analyze(text, register, dialect, patterns):
     check_list_uniformity(code_stripped, safe_float(th, "list_item_cov_floor", 0.22), hits, report)
     check_circular_conclusion(code_stripped, hits, report)
     check_parallel_structure(sents, hits, report)
+    adj_prose = prose_for_adjacency(text)
+    lm_adj = LineMap(adj_prose)
+    check_dash_style(adj_prose, hits, report, lm_adj)
+    check_doubled_words(adj_prose, hits, report, lm_adj)
+    check_mechanics(adj_prose, hits, report, lm_adj)
     report_punctuation_profile(metric_prose, word_count, report)
 
     if dialect:
@@ -1162,25 +1358,77 @@ def _match_case(original, replacement):
 # suggestions and structural tells need human judgment and are never auto-applied.
 SAFE_FIX_KEYS = ("filler", "jargon", "redundancy")
 
+# Registers where decorative emoji can be legitimate (casual/social copy), so the
+# autofixer leaves them alone; everywhere else it strips them.
+EMOJI_KEEP_REGISTERS = frozenset({"creative", "casual"})
+# The em-dash is the creative writer's native tool, so dash normalization is
+# skipped there; in every other register the autofixer replaces it.
+DASH_KEEP_REGISTERS = frozenset({"creative"})
 
-def autofix(text, patterns):
-    """Apply unambiguous 1:1 word/phrase swaps. Returns (new_text, count).
+# An emoji run plus the inline whitespace hugging it, collapsed in one edit so
+# stripping never leaves a doubled or dangling space. (`[ \t]` only, never a
+# newline, so line geometry is preserved.)
+AUTOFIX_EMOJI_RE = re.compile(r"[ \t]*" + EMOJI_RE.pattern + r"+[ \t]*")
 
-    Runs on strip_code(text) so offsets line up with the original and code is
-    never touched. Overlapping edits keep the leftmost; everything else is left
-    for human judgment.
-    """
-    cs = strip_code(text)
+# Dash-as-pause constructs the autofixer rewrites to a comma. Each alternative
+# keeps the surrounding inline spaces in the match so they collapse cleanly:
+#   em-dash (tight or spaced), en-dash (range guard applied below),
+#   ASCII `--`, and a spaced hyphen between lowercase words.
+AUTOFIX_DASH_RE = re.compile(
+    r"[ \t]*—[ \t]*|[ \t]*–[ \t]*|(?<=\w)[ \t]*--[ \t]*(?=\w)|[ \t]--[ \t]"
+    r"|(?<=[a-z]) - (?=[a-z])")
+
+
+def _emoji_edits(cs, register):
+    """(start, end, replacement) edits that strip decorative emoji from `cs`."""
+    if register in EMOJI_KEEP_REGISTERS:
+        return []
     edits = []
-    for key in SAFE_FIX_KEYS:
-        for phrase, suggestion in as_phrase_list(patterns.get(key)):
-            if not suggestion or suggestion == "cut":
-                continue
-            rx = _phrase_regex(phrase)
-            if rx is None:
-                continue
-            for m in rx.finditer(cs):
-                edits.append((m.start(), m.end(), _match_case(m.group(0), suggestion)))
+    for m in AUTOFIX_EMOJI_RE.finditer(cs):
+        before = cs[m.start() - 1] if m.start() > 0 else ""
+        after = cs[m.end()] if m.end() < len(cs) else ""
+        # Keep one space only when the emoji sat between two words; otherwise the
+        # emoji (and its padding) goes entirely.
+        flanked = bool(before) and not before.isspace() and bool(after) and not after.isspace()
+        edits.append((m.start(), m.end(), " " if flanked else ""))
+    return edits
+
+
+def _dash_edits(cs, register):
+    """(start, end, replacement) edits that rewrite dash-as-pause marks to commas.
+
+    Numeric en-dash ranges (10–20, 2024 – 25) are preserved; compound hyphens
+    (well-known) are never matched.
+    """
+    if register in DASH_KEEP_REGISTERS:
+        return []
+    edits = []
+    for m in AUTOFIX_DASH_RE.finditer(cs):
+        if "–" in m.group(0) and _is_numeric_en_dash(cs, m):
+            continue
+        after = cs[m.end()] if m.end() < len(cs) else ""
+        # A comma needs no trailing space at end-of-line / end-of-text.
+        rep = ", " if (after and after != "\n") else ","
+        edits.append((m.start(), m.end(), rep))
+    return edits
+
+
+def _mask_code(text):
+    """Blank fenced and inline code with EQUAL-LENGTH filler (spaces, newlines
+    kept in place). Unlike strip_code -- which collapses a fence to bare newlines
+    -- this preserves exact character offsets, so a match found in the mask
+    splices back into the original text correctly even after a code block."""
+    def fence_sub(m):
+        return "".join("\n" if c == "\n" else " " for c in m.group(0))
+    masked = CODE_FENCE_RE.sub(fence_sub, text)
+    masked = INLINE_CODE_RE.sub(lambda m: " " * len(m.group(0)), masked)
+    return masked
+
+
+def _apply_edits(text, edits):
+    """Splice (start, end, replacement) edits into `text`; keep the leftmost on
+    overlap. Returns (new_text, applied_count). Offsets index `_mask_code(text)`,
+    which shares geometry with `text`, so code is never modified."""
     edits.sort(key=lambda e: e[0])
     out, pos, last, applied = [], 0, -1, 0
     for s, e, rep in edits:
@@ -1191,6 +1439,40 @@ def autofix(text, patterns):
         pos, last, applied = e, e, applied + 1
     out.append(text[pos:])
     return "".join(out), applied
+
+
+def _swap_edits(cs, patterns):
+    """(start, end, replacement) edits for unambiguous 1:1 lexical swaps."""
+    edits = []
+    for key in SAFE_FIX_KEYS:
+        for phrase, suggestion in as_phrase_list(patterns.get(key)):
+            if not suggestion or suggestion == "cut":
+                continue
+            rx = _phrase_regex(phrase)
+            if rx is None:
+                continue
+            for m in rx.finditer(cs):
+                edits.append((m.start(), m.end(), _match_case(m.group(0), suggestion)))
+    return edits
+
+
+def autofix(text, patterns, register="technical"):
+    """Apply deterministic fixes. Returns (new_text, swaps, emoji, dashes).
+
+    Three classes of edit, all unambiguous enough to apply without human
+    judgment: 1:1 lexical swaps (filler/jargon/redundancy), decorative-emoji
+    removal, and dash-as-pause -> comma normalization. Emoji and dash fixes are
+    register-gated (kept in creative; emoji also kept in casual).
+
+    Applied as three sequential passes rather than one merged edit list: emoji
+    and dash constructs share the whitespace between them, so merging would let
+    one edit swallow the space the next one needs. Each pass re-derives
+    _mask_code(text) so code is never touched.
+    """
+    text, swaps = _apply_edits(text, _swap_edits(_mask_code(text), patterns))
+    text, emoji = _apply_edits(text, _emoji_edits(_mask_code(text), register))
+    text, dashes = _apply_edits(text, _dash_edits(_mask_code(text), register))
+    return text, swaps, emoji, dashes
 
 
 def apply_threshold_overrides(patterns, overrides):
@@ -1414,14 +1696,15 @@ def main(argv=None):
             return 2
         target = args.input[0]
         original = read_input(target)
-        fixed, n = autofix(original, patterns)
+        fixed, swaps, emoji, dashes = autofix(original, patterns, args.register)
         if args.fix_dry_run:
             sys.stdout.write(fixed)
             return 0
-        if n and not os.path.isdir(target):
+        if (swaps or emoji or dashes) and not os.path.isdir(target):
             with open(target, "w", encoding="utf-8") as fh:
                 fh.write(fixed)
-        sys.stderr.write("autofix: applied %d swap(s) to %s\n" % (n, target))
+        sys.stderr.write("autofix: %d swap(s), %d emoji, %d dash(es) in %s\n"
+                         % (swaps, emoji, dashes, target))
         return 0
 
     # --- compare mode (input vs baseline) ---

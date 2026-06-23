@@ -10,7 +10,7 @@ In today's fast-paced digital landscape, it's important to note that organizatio
 
 Furthermore, studies suggest that adopting a comprehensive strategy is crucial for success. Moreover, it's worth noting that experts believe a holistic approach yields the best results. Additionally, the system boasts a vibrant ecosystem of integrations. We leverage our synergies to operationalize best-in-class, actionable solutions that move the needle for every stakeholder.
 
-It's not just about technology, it's about people. The platform stands as a testament to innovation, highlighting its commitment to excellence. This isn't merely a tool, it's a complete solution that unlocks the potential of your organization.
+It's not just about technology, it's about people. The platform — which our team built from the ground up — stands as a testament to innovation — highlighting its commitment to excellence. This isn't merely a tool -- it's a complete solution that unlocks the potential of your organization. ✨
 
 ## Conclusion
 
