@@ -14,7 +14,7 @@ from .defaults import *  # noqa: F401,F403
 from .hit import *  # noqa: F401,F403
 
 
-def muted_categories(register, patterns):
+def muted_categories(register: str, patterns: dict) -> set:
     mutes = patterns.get("register_mutes", {})
     mutes = mutes.get(register, []) if isinstance(mutes, dict) else []
     muted_map = patterns.get("muted_checks", {})
@@ -27,7 +27,7 @@ def muted_categories(register, patterns):
     return cats
 
 
-def resolve_weights(patterns):
+def resolve_weights(patterns: dict) -> dict:
     """Category weights from the patterns file merged over the built-in defaults."""
     weights = dict(CATEGORY_WEIGHTS)
     cfg = patterns.get("category_weights") if isinstance(patterns, dict) else None
@@ -41,7 +41,7 @@ def resolve_weights(patterns):
     return weights
 
 
-def score(hits, word_count, weights=None):
+def score(hits: list, word_count: int, weights: dict | None = None) -> float:
     if weights is None:
         weights = CATEGORY_WEIGHTS
     weighted = sum(weights.get(h.category, 1.0) for h in hits)
@@ -49,7 +49,7 @@ def score(hits, word_count, weights=None):
     return round(per_1k, 1)
 
 
-def resolve_bands(patterns):
+def resolve_bands(patterns: dict) -> tuple:
     """(label, upper) bands sorted ascending; falls back to DEFAULT_BANDS."""
     cfg = patterns.get("score_bands") if isinstance(patterns, dict) else None
     if isinstance(cfg, dict) and cfg:
@@ -64,7 +64,7 @@ def resolve_bands(patterns):
     return DEFAULT_BANDS
 
 
-def verdict_band(floor_score, bands):
+def verdict_band(floor_score: float, bands: tuple) -> str:
     """Map a floor score to its band label (the highest band is open-ended)."""
     for label, upper in bands:
         if floor_score < upper:
@@ -72,7 +72,7 @@ def verdict_band(floor_score, bands):
     return bands[-1][0] if bands else "n/a"
 
 
-def severity_of(category, weights):
+def severity_of(category: str, weights: dict) -> str:
     w = weights.get(category, 1.0)
     if w >= 2.0:
         return "high"
@@ -81,7 +81,7 @@ def severity_of(category, weights):
     return "low"
 
 
-def line_hotspots(hits, top=5):
+def line_hotspots(hits: list, top: int = 5) -> list:
     counts = Counter(h.line for h in hits if h.line)
     return counts.most_common(top)
 

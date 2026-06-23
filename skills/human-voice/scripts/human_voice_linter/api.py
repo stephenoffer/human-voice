@@ -20,7 +20,8 @@ from .analyze import *  # noqa: F401,F403
 from .report import *  # noqa: F401,F403
 
 
-def lint(text, register="technical", dialect=None, patterns=None):
+def lint(text: str, register: str = "technical", dialect: str | None = None,
+         patterns: dict | None = None) -> dict:
     """Library entry point: analyze text and return the result dict.
 
     Mirrors the --json payload so callers can import this module instead of

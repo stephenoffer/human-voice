@@ -18,7 +18,7 @@ PATTERNS_FILE = os.path.join(
     "ai_prose_patterns.json")
 
 
-def load_patterns(path=PATTERNS_FILE):
+def load_patterns(path: str = PATTERNS_FILE) -> dict:
     try:
         with open(path, "r", encoding="utf-8", errors="replace") as fh:
             data = json.load(fh)
@@ -40,7 +40,7 @@ def load_patterns(path=PATTERNS_FILE):
     return data
 
 
-def as_phrase_list(value):
+def as_phrase_list(value) -> list:
     """Coerce a pattern value into a list of (phrase, suggestion) pairs."""
     pairs = []
     if isinstance(value, dict):
@@ -65,14 +65,14 @@ def as_phrase_list(value):
     return pairs
 
 
-def safe_float(d, key, default):
+def safe_float(d: dict, key: str, default: float) -> float:
     try:
         return float(d.get(key, default))
     except (TypeError, ValueError):
         return default
 
 
-def safe_int_list(d, key, default):
+def safe_int_list(d: dict, key: str, default: list) -> list:
     val = d.get(key, default)
     if not isinstance(val, list):
         return list(default)
@@ -83,13 +83,6 @@ def safe_int_list(d, key, default):
         except (TypeError, ValueError):
             continue
     return out or list(default)
-
-
-# ---------------------------------------------------------------------------
-# Text utilities
-# ---------------------------------------------------------------------------
-
-# Fenced code: ``` or ~~~ (3+), with optional info string, possibly unterminated.
 
 
 __all__ = [

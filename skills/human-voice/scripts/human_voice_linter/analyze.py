@@ -19,7 +19,9 @@ from .checks import *  # noqa: F401,F403
 from .score import *  # noqa: F401,F403
 
 
-def analyze(text, register, dialect, patterns):
+def analyze(text: str, register: str, dialect: str | None,
+            patterns: dict) -> tuple:
+    """Run every check over `text` and return (hits, report, word_count)."""
     text = blank_frontmatter(text)
     code_stripped = strip_code(text)
     metric_prose = prose_for_metrics(code_stripped)

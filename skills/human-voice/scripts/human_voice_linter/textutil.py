@@ -245,7 +245,8 @@ def _phrase_regex(phrase):
     right = r"\b" if phrase[-1:].isalnum() else ""
     try:
         return re.compile(left + body + right, re.IGNORECASE)
-    except re.error:
+    except re.error as exc:
+        warn("skipping unmatchable phrase %r: %s" % (phrase, exc))
         return None
 
 
@@ -254,7 +255,8 @@ def _word_regex(word):
     """Cached \\bword\\b matcher (case-insensitive) for dialect checks."""
     try:
         return re.compile(r"\b" + re.escape(word) + r"\b", re.IGNORECASE)
-    except re.error:
+    except re.error as exc:
+        warn("skipping unmatchable dialect word %r: %s" % (word, exc))
         return None
 
 
