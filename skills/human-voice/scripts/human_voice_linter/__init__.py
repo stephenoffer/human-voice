@@ -5,7 +5,7 @@ import importlib
 
 # Submodules in dependency order (low layers first).
 _MODS = ["util", "defaults", "hit", "patterns", "textutil", "checks", "score",
-         "analyze", "report", "autofix", "config", "api", "cli"]
+         "analyze", "report", "autofix", "config", "schema", "api", "cli"]
 
 # Aggregate the public surface BEFORE the star-imports below clobber package
 # attributes. Several names are both a submodule name and a function name
@@ -30,5 +30,6 @@ from .analyze import *    # noqa: E402,F401,F403
 from .report import *     # noqa: E402,F401,F403
 from .autofix import *    # noqa: E402,F401,F403
 from .config import *     # noqa: E402,F401,F403
+from .schema import *     # noqa: E402,F401,F403
 from .api import *        # noqa: E402,F401,F403
 from .cli import *        # noqa: E402,F401,F403

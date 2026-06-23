@@ -20,6 +20,7 @@ from .analyze import *  # noqa: F401,F403
 from .report import *  # noqa: F401,F403
 from .autofix import *  # noqa: F401,F403
 from .config import *  # noqa: F401,F403
+from .schema import *  # noqa: F401,F403
 from .api import *  # noqa: F401,F403
 
 
@@ -110,14 +111,11 @@ def main(argv=None):
     if args.dialect not in (None, "american", "british"):
         args.dialect = None
     patterns = apply_threshold_overrides(patterns, args.threshold)
-    # One-time sanity warning if the mute config references unknown categories.
-    muted_map = patterns.get("muted_checks", {})
-    if isinstance(muted_map, dict):
-        for token, cats in muted_map.items():
-            if isinstance(cats, list):
-                for c in cats:
-                    if c not in KNOWN_CATEGORIES:
-                        warn("muted_checks[%r] references unknown category %r" % (token, c))
+    # Validate the resolved config once and surface any problems on stderr.
+    # Non-fatal: the linter still runs (degrading per-key to defaults), but a
+    # typo or malformed value is now announced instead of silently swallowed.
+    for issue in validate(patterns):
+        warn("config: %s" % issue)
 
     weights = resolve_weights(patterns)
     bands = resolve_bands(patterns)

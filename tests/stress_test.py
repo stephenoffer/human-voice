@@ -776,6 +776,18 @@ check("defaults_weights_cover_categories",
       set(_D["category_weights"]) == set(dap.KNOWN_CATEGORIES),
       "mismatch: %s" % (set(_D["category_weights"]) ^ set(dap.KNOWN_CATEGORIES)))
 
+# schema validator (Phase 4): the shipped patterns file is clean; bad config is
+# flagged but never fatal.
+check("schema_shipped_clean", dap.validate(PAT) == [], "issues: %s" % dap.validate(PAT))
+_bad = dap.validate({"thresholds": {"ttr_floor": "x", "nope": 1},
+                     "category_weights": {"ghost": 2.0},
+                     "muted_checks": {"t": ["not_a_cat"]},
+                     "antithesis_patterns": ["(unclosed"]})
+check("schema_flags_bad_threshold", any("ttr_floor" in m for m in _bad))
+check("schema_flags_unknown_category", any("ghost" in m for m in _bad))
+check("schema_flags_bad_regex", any("unclosed" in m for m in _bad))
+check("schema_flags_unknown_mute_cat", any("not_a_cat" in m for m in _bad))
+
 # marketplace plugin source path must exist
 with open(os.path.join(ROOT, ".claude-plugin/marketplace.json"), encoding="utf-8") as fh:
     mkt = json.load(fh)
