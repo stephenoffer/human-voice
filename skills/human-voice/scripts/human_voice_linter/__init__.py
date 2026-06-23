@@ -19,18 +19,18 @@ for _name in _MODS:
     __all__ += [x for x in getattr(_mod, "__all__", []) if x not in __all__]
 del _name, _mod
 
-from .util import *       # noqa: E402,F401,F403
-from .defaults import *   # noqa: E402,F401,F403
-from .hit import *        # noqa: E402,F401,F403
-from .patterns import *   # noqa: E402,F401,F403
-from .textutil import *   # noqa: E402,F401,F403
+from .analyze import *  # noqa: E402,F401,F403
+from .api import *  # noqa: E402,F401,F403
+from .autofix import *  # noqa: E402,F401,F403
+from .checks import *  # noqa: E402,F401,F403
+from .cli import *  # noqa: E402,F401,F403
+from .config import *  # noqa: E402,F401,F403
+from .defaults import *  # noqa: E402,F401,F403
 from .directives import *  # noqa: E402,F401,F403
-from .checks import *     # noqa: E402,F401,F403
-from .score import *      # noqa: E402,F401,F403
-from .analyze import *    # noqa: E402,F401,F403
-from .report import *     # noqa: E402,F401,F403
-from .autofix import *    # noqa: E402,F401,F403
-from .config import *     # noqa: E402,F401,F403
-from .schema import *     # noqa: E402,F401,F403
-from .api import *        # noqa: E402,F401,F403
-from .cli import *        # noqa: E402,F401,F403
+from .hit import *  # noqa: E402,F401,F403
+from .patterns import *  # noqa: E402,F401,F403
+from .report import *  # noqa: E402,F401,F403
+from .schema import *  # noqa: E402,F401,F403
+from .score import *  # noqa: E402,F401,F403
+from .textutil import *  # noqa: E402,F401,F403
+from .util import *  # noqa: E402,F401,F403

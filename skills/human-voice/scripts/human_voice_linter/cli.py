@@ -2,26 +2,22 @@
 from __future__ import annotations
 
 import argparse
-import bisect
-import functools
 import json
-import math
 import os
-import re
 import sys
-from collections import Counter
-from .util import *  # noqa: F401,F403
+
+from .analyze import *  # noqa: F401,F403
+from .api import *  # noqa: F401,F403
+from .autofix import *  # noqa: F401,F403
+from .checks import *  # noqa: F401,F403
+from .config import *  # noqa: F401,F403
 from .defaults import *  # noqa: F401,F403
 from .patterns import *  # noqa: F401,F403
-from .textutil import *  # noqa: F401,F403
-from .checks import *  # noqa: F401,F403
-from .score import *  # noqa: F401,F403
-from .analyze import *  # noqa: F401,F403
 from .report import *  # noqa: F401,F403
-from .autofix import *  # noqa: F401,F403
-from .config import *  # noqa: F401,F403
 from .schema import *  # noqa: F401,F403
-from .api import *  # noqa: F401,F403
+from .score import *  # noqa: F401,F403
+from .textutil import *  # noqa: F401,F403
+from .util import *  # noqa: F401,F403
 
 
 def filter_hits(hits, enable, disable):

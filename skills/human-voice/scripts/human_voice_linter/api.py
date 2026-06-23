@@ -1,23 +1,14 @@
 """api — part of human_voice_linter (split from detect_ai_prose.py)."""
 from __future__ import annotations
 
-import argparse
-import bisect
-import functools
-import json
-import math
-import os
-import re
-import sys
-from collections import Counter
-from .hit import *  # noqa: F401,F403
-from .defaults import *  # noqa: F401,F403
-from .patterns import *  # noqa: F401,F403
-from .textutil import *  # noqa: F401,F403
-from .checks import *  # noqa: F401,F403
-from .score import *  # noqa: F401,F403
 from .analyze import *  # noqa: F401,F403
+from .checks import *  # noqa: F401,F403
+from .defaults import *  # noqa: F401,F403
+from .hit import *  # noqa: F401,F403
+from .patterns import *  # noqa: F401,F403
 from .report import *  # noqa: F401,F403
+from .score import *  # noqa: F401,F403
+from .textutil import *  # noqa: F401,F403
 
 
 def lint(text: str, register: str = "technical", dialect: str | None = None,

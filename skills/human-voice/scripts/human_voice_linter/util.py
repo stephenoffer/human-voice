@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import sys
 
-
 MAX_CHARS = 5_000_000
 
 # Category weights feed the single "floor" score (tells per 1000 words).

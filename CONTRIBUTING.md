@@ -2,19 +2,33 @@
 
 Thanks for helping improve the skill. It has two halves: the **methodology**
 (`skills/human-voice/SKILL.md`, `references/ai-tells.md`, `STYLE-GUIDE.md`,
-`examples/`) and the **linter** (`scripts/detect_ai_prose.py` with
-`scripts/ai_prose_patterns.json`). Both are pure-stdlib Python 3.8+ — no
-`pip install` needed.
+`examples/`) and the **linter** — the `scripts/human_voice_linter/` package with
+`scripts/ai_prose_patterns.json`, run via the `scripts/detect_ai_prose.py` entry
+point. Both are pure-stdlib Python 3.8+ — no `pip install` needed to run them.
+
+The linter package is split into small modules: `defaults` (the single source of
+truth for thresholds/weights/bands), `checks` (every `check_*`), `analyze` (the
+orchestrator), `score`, `report`, `autofix`, `config`, `schema` (config
+validation), `directives` (inline ignore comments), `cli`, and `api`.
+`detect_ai_prose.py` is a thin shim that re-exports the package.
 
 ## Run the tests
 
 ```bash
-python3 tests/stress_test.py     # 400+ checks; must print "all green"
-python3 eval/run_eval.py         # corpus precision/recall/FPR
+make test          # stress suite (500+ checks); must print "all green"
+make eval-check    # fail if eval metrics drift from the committed golden JSON
+make eval          # regenerate the golden metrics after an intentional change
+make quality       # dev-only: ruff + mypy + pytest (needs `pip install ruff mypy pytest`)
 ```
 
-CI runs the stress suite on Python 3.8–3.13 (`.github/workflows/test.yml`). A PR
-must keep the suite green.
+CI runs the stress suite on Python 3.8–3.13 plus a single-version `quality` job
+(ruff/mypy/pytest) and the eval regression gate (`.github/workflows/test.yml`).
+The runtime stays pure stdlib; ruff/mypy/pytest are dev-only (the `dev` extra in
+`pyproject.toml`). A PR must keep all of it green.
+
+If you change patterns or a check and the eval metrics move intentionally, run
+`make eval` to regenerate `eval/results.json` / `eval/ablation_results.json` and
+review the diff — that committed change is what `make eval-check` gates against.
 
 ## Adding or editing tells (word lists)
 
@@ -36,12 +50,14 @@ thresholds, category weights, and verdict bands from it.
 
 ## Adding a new linter check
 
-1. Write a `check_*` function that appends `Hit`s; population of report metrics is
-   fine too.
-2. Add its category to `CATEGORY_WEIGHTS` in the script **and** to
-   `category_weights` in the patterns file (keep them in sync).
-3. Wire it into `analyze()`, with a threshold read from `patterns["thresholds"]`
-   via `safe_float` where relevant.
+1. Write a `check_*` function in `scripts/human_voice_linter/checks.py` that
+   appends `Hit`s (and populates report metrics if useful). For source-accurate
+   columns on text whose geometry matches the file, build hits with `_span_hit`.
+2. Add its category to `DEFAULTS["category_weights"]` in `defaults.py` **and** to
+   `category_weights` in the patterns file (a stress-test drift guard fails if
+   they disagree). Add any threshold to `DEFAULTS["thresholds"]` too.
+3. Wire it into `analyze()` in `analyze.py`, reading thresholds via the local
+   `thr("key")` helper where relevant.
 4. Mute it by register in `register_mutes`/`muted_checks` if it doesn't apply
    everywhere (e.g. passive voice in academic prose).
 5. Add positive and negative tests. Confirm `examples/after.md` still scores

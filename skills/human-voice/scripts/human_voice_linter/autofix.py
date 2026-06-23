@@ -1,21 +1,14 @@
 """autofix — part of human_voice_linter (split from detect_ai_prose.py)."""
 from __future__ import annotations
 
-import argparse
-import bisect
-import functools
-import json
-import math
-import os
 import re
-import sys
-from collections import Counter
-from .util import *  # noqa: F401,F403
-from .hit import *  # noqa: F401,F403
-from .defaults import *  # noqa: F401,F403
-from .textutil import *  # noqa: F401,F403
-from .patterns import *  # noqa: F401,F403
+
 from .checks import _is_numeric_en_dash  # shared dash helper
+from .defaults import *  # noqa: F401,F403
+from .hit import *  # noqa: F401,F403
+from .patterns import *  # noqa: F401,F403
+from .textutil import *  # noqa: F401,F403
+from .util import *  # noqa: F401,F403
 
 
 def _match_case(original, replacement):

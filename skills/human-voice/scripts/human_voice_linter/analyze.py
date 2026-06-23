@@ -1,23 +1,14 @@
 """analyze — part of human_voice_linter (split from detect_ai_prose.py)."""
 from __future__ import annotations
 
-import argparse
-import bisect
-import functools
-import json
-import math
-import os
-import re
-import sys
-from collections import Counter
-from .util import *  # noqa: F401,F403
-from .hit import *  # noqa: F401,F403
-from .defaults import *  # noqa: F401,F403
-from .textutil import *  # noqa: F401,F403
-from .patterns import *  # noqa: F401,F403
 from .checks import *  # noqa: F401,F403
-from .score import *  # noqa: F401,F403
+from .defaults import *  # noqa: F401,F403
 from .directives import *  # noqa: F401,F403
+from .hit import *  # noqa: F401,F403
+from .patterns import *  # noqa: F401,F403
+from .score import *  # noqa: F401,F403
+from .textutil import *  # noqa: F401,F403
+from .util import *  # noqa: F401,F403
 
 
 def analyze(text: str, register: str, dialect: str | None,
@@ -36,9 +27,9 @@ def analyze(text: str, register: str, dialect: str | None,
 
     def thr(key):  # JSON value if present, else the canonical default
         return safe_float(th, key, threshold_default(key))
-    hits = []
-    seen = {}
-    report = {}
+    hits: list = []
+    seen: dict = {}
+    report: dict = {}
 
     # One LineMap per distinct text so each hit's line lookup is O(log n).
     lm_code = LineMap(code_stripped)

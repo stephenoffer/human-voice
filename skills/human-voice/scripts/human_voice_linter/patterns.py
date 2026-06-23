@@ -1,17 +1,11 @@
 """patterns — part of human_voice_linter (split from detect_ai_prose.py)."""
 from __future__ import annotations
 
-import argparse
-import bisect
-import functools
 import json
-import math
 import os
-import re
 import sys
-from collections import Counter
-from .util import *  # noqa: F401,F403
 
+from .util import *  # noqa: F401,F403
 
 PATTERNS_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -20,7 +14,7 @@ PATTERNS_FILE = os.path.join(
 
 def load_patterns(path: str = PATTERNS_FILE) -> dict:
     try:
-        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        with open(path, encoding="utf-8", errors="replace") as fh:
             data = json.load(fh)
     except FileNotFoundError:
         sys.stderr.write(
@@ -42,13 +36,13 @@ def load_patterns(path: str = PATTERNS_FILE) -> dict:
 
 def as_phrase_list(value) -> list:
     """Coerce a pattern value into a list of (phrase, suggestion) pairs."""
-    pairs = []
+    pairs: list = []
     if isinstance(value, dict):
-        items = value.items()
+        items = list(value.items())
     elif isinstance(value, list):
-        items = ((v, None) for v in value)
+        items = [(v, None) for v in value]
     elif isinstance(value, str):
-        items = ((value, None),)
+        items = [(value, None)]
     else:
         return pairs
     for phrase, suggestion in items:

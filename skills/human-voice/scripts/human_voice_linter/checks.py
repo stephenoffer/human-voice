@@ -1,21 +1,15 @@
 """checks — part of human_voice_linter (split from detect_ai_prose.py)."""
 from __future__ import annotations
 
-import argparse
-import bisect
-import functools
-import json
 import math
-import os
 import re
-import sys
 from collections import Counter
-from .util import *  # noqa: F401,F403
-from .hit import *  # noqa: F401,F403
-from .defaults import *  # noqa: F401,F403
-from .textutil import *  # noqa: F401,F403
-from .patterns import *  # noqa: F401,F403
 
+from .defaults import *  # noqa: F401,F403
+from .hit import *  # noqa: F401,F403
+from .patterns import *  # noqa: F401,F403
+from .textutil import *  # noqa: F401,F403
+from .util import *  # noqa: F401,F403
 
 CITATION_NEAR_RE = re.compile(
     r"\[\^?\d|\[\d+\]|\(\s*[A-Z][\w.&-]+,?\s*(?:et al\.?,?\s*)?\d{4}|\(\d{4}\)|https?://|doi:")
@@ -545,7 +539,6 @@ def check_list_uniformity(code_stripped, floor, hits, report, min_items=4):
 
 
 def check_circular_conclusion(code_stripped, hits, report, min_paras=3, overlap=0.5):
-    counts = []
     paras = [p for p in re.split(r"\n[ \t]*\n", code_stripped) if p.strip()]
     prose = []
     for block in paras:

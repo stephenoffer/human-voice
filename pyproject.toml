@@ -1,0 +1,39 @@
+[project]
+name = "human-voice-linter"
+version = "0.1.0"
+description = "Deterministic floor linter for AI-prose tells (dev tooling config only)."
+requires-python = ">=3.8"
+# No runtime dependencies on purpose: the linter and eval run on the standard
+# library alone. Dev-only tools live in the optional 'dev' extra below.
+
+[project.optional-dependencies]
+dev = ["ruff", "mypy", "pytest"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 110
+extend-exclude = ["eval/corpus", "skills/human-voice/examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+# UP006/UP007: keep 3.8-friendly typing in any runtime-evaluated annotations.
+# E501: long lines are tolerated (the codebase favors readable single-line calls).
+# F405: the package wires its internal modules with intentional, controlled
+#   `from .X import *` (so the code split from the monolith stays verbatim); the
+#   names are defined, just via star-import, so this check is noise here.
+# UP031: the codebase consistently uses %-formatting; not converting to f-strings.
+ignore = ["UP006", "UP007", "E501", "F405", "UP031"]
+
+[tool.mypy]
+# Runtime targets 3.8 (enforced by ruff target-version); mypy itself needs a
+# newer version string, so we leave python_version unset and let it default.
+files = ["skills/human-voice/scripts/human_voice_linter", "eval/lib.py"]
+ignore_missing_imports = true
+# Start lenient: the split package is not fully annotated yet. Tighten per-module
+# over time by adding stricter overrides here.
+disallow_untyped_defs = false
+warn_unused_ignores = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "eval/tests"]
+python_files = ["test_*.py"]

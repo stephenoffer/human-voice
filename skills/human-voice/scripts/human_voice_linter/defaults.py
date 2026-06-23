@@ -12,7 +12,7 @@ from __future__ import annotations
 REGISTERS = ["technical", "business", "marketing", "academic", "casual", "creative",
              "email", "release_notes", "ux_microcopy", "tutorial"]
 
-DEFAULTS = {
+DEFAULTS: dict = {
     # Numeric knobs read by the checks. Densities are per-1000-words; *_floor are
     # minimum acceptable values (firing below the floor); *_ratio are fractions.
     "thresholds": {
