@@ -187,6 +187,14 @@ detector is a side effect of good writing, not the objective.
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md). Tests:
 `python3 tests/stress_test.py` (also run on Python 3.8–3.13 in CI).
 
+## Credits
+
+The v0.4 recalibration — ranking tells by what readers *cite* rather than what a
+scanner *matches* — draws on two MIT-licensed projects and the ~90k-post Reddit
+study behind them: [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells)
+and [ryanthedev/oberskills](https://github.com/ryanthedev/oberskills). See
+[`references/cited-vs-matched.md`](skills/human-voice/references/cited-vs-matched.md).
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

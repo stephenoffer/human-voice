@@ -179,6 +179,13 @@ def check_bold_bullets(text, threshold, hits, report, lm):
 RULE_OF_THREE_RE = re.compile(
     r"\b([A-Za-z]+(?:ly)?)\s*,\s+([A-Za-z]+(?:ly)?)\s*,?\s+(?:and|or)\s+([A-Za-z]+(?:ly)?)\b")
 
+# Noun-PHRASE triads the single-word pattern misses ("encryption at rest,
+# row-level access control, and audit logging"). Members are 1-3 words; at least
+# one must be multi-word (a single-word triad is already handled above).
+NOUN_TRIAD_RE = re.compile(
+    r"\b([A-Za-z][\w-]*(?:\s+[\w-]+){0,2}),\s+([A-Za-z][\w-]*(?:\s+[\w-]+){0,2}),"
+    r"\s+and\s+([A-Za-z][\w-]*(?:\s+[\w-]+){0,2})\b")
+
 
 def check_rule_of_three(prose_text, hits, lm):
     for m in RULE_OF_THREE_RE.finditer(prose_text):
@@ -194,6 +201,24 @@ def check_rule_of_three(prose_text, hits, lm):
             continue
         hits.append(Hit("rule_of_three", lm.line_of(m.start()),
                         m.group(0), "vary to two or four, or a clause"))
+    # Noun-phrase triads: the reflexive STACKING is the tell, so only flag when a
+    # document has 2+ of them; a single legitimate enumeration is left alone.
+    np_hits = []
+    for m in NOUN_TRIAD_RE.finditer(prose_text):
+        members = (m.group(1), m.group(2), m.group(3))
+        if not any(len(x.split()) > 1 for x in members):
+            continue  # all single-word -> already covered above
+        # Proper-noun list guard (members 2/3; member 1 may be capitalized by
+        # sentence position): "Slack, Google Drive, and GitHub" is a real list.
+        if members[1][0].isupper() or members[2][0].isupper():
+            continue
+        np_hits.append(m)
+    if len(np_hits) >= 2:
+        for m in np_hits[:6]:
+            snippet = m.group(0)
+            hits.append(Hit("rule_of_three", lm.line_of(m.start()),
+                            (snippet[:60] + "...") if len(snippet) > 63 else snippet,
+                            "break the triad: two items, four, or a clause"))
 
 
 def check_uniform_openers(sents, ratio_threshold, hits, report):
@@ -665,6 +690,181 @@ def check_mechanics(prose_text, hits, report, lm):
 
 
 # ---------------------------------------------------------------------------
+# Structure, rhetoric, and over-correction checks (v0.4)
+# ---------------------------------------------------------------------------
+
+
+def _prose_paragraph_texts(code_stripped):
+    """Prose paragraphs as plain strings (structural lines stripped out)."""
+    out = []
+    for block in re.split(r"\n[ \t]*\n", code_stripped):
+        lines = []
+        for ln in block.split("\n"):
+            if (HEADING_LINE_RE.match(ln) or SETEXT_RE.match(ln) or SECTION_RULE_RE.match(ln)
+                    or TABLE_ROW_RE.match(ln) or LIST_MARKER_RE.match(ln)):
+                continue
+            lines.append(ln)
+        text = strip_inline_markup(" ".join(lines)).strip()
+        if WORD_RE.findall(text):
+            out.append(text)
+    return out
+
+
+CONCLUSION_OPENER_RE = re.compile(
+    r"^\s*(?:in conclusion|in summary|to sum up|to summarize|to summarise|"
+    r"in closing|all in all|in short|to conclude|overall,|ultimately,)\b",
+    re.IGNORECASE)
+
+
+def check_five_paragraph_shape(code_stripped, hits, report):
+    """The intro / three-body / 'in conclusion' wrap-up essay mold.
+
+    A doc-level structural tell readers cite often (the five-paragraph shape).
+    Fires only when a multi-paragraph piece closes on an explicit conclusion
+    marker, so a normal essay that simply ends is left alone.
+    """
+    paras = _prose_paragraph_texts(code_stripped)
+    report["prose_paragraphs"] = len(paras)
+    if not (4 <= len(paras) <= 9):
+        return
+    if CONCLUSION_OPENER_RE.match(paras[-1]):
+        hits.append(Hit("five_paragraph_shape", 0,
+                        "%d-paragraph essay closing on a conclusion wrap-up" % len(paras),
+                        "let the structure follow the argument; end on the last real point, not a recap"))
+
+
+HYPOPHORA_ANSWER_RE = re.compile(
+    r"^\s*(?:because|the answer|it'?s\b|its\b|simple\.|yes\b|no\b|turns out|"
+    r"here'?s why|that'?s because|the reason|short answer)\b",
+    re.IGNORECASE)
+
+
+def check_hypophora(sents, hits, report):
+    """Ask-then-immediately-answer ('Why does this matter? Because ...').
+
+    Distinct from a bare rhetorical question: the next sentence supplies the
+    answer. One is fine; a run of them is the LinkedIn-explainer cadence.
+    """
+    count = 0
+    for i in range(len(sents) - 1):
+        if sents[i].rstrip().endswith("?") and HYPOPHORA_ANSWER_RE.match(sents[i + 1]):
+            count += 1
+    report["hypophora"] = count
+    if count >= 2:
+        hits.append(Hit("hypophora", 0,
+                        "%d question-then-answer beats" % count,
+                        "ask fewer rhetorical questions; just state the point"))
+
+
+# Absolute/superlative claims. Kept distinct from the filler lists to limit
+# double-counting; the check only fires when the claim is NOT backed by a
+# nearby number, since "the best (by 12%)" is an earned superlative.
+SUPERLATIVE_RE = re.compile(
+    r"\b(?:the\s+)?(?:most|best|worst|greatest|finest|biggest|largest|fastest|"
+    r"ultimate|perfect|unprecedented|unparalleled|unmatched|premier|foremost|"
+    r"world-?class|game-?changing|the only|never before|second to none)\b",
+    re.IGNORECASE)
+_NUMBER_NEAR_RE = re.compile(r"\d")
+
+
+def check_superlative_creep(prose_text, words, threshold, hits, report, min_words=150):
+    matches = list(SUPERLATIVE_RE.finditer(prose_text))
+    unbacked = [m for m in matches
+                if not _NUMBER_NEAR_RE.search(prose_text[m.end():m.end() + 40])]
+    count = len(unbacked)
+    per_1k = (count / words * 1000) if words else 0.0
+    report["superlative_per_1k"] = round(per_1k, 1)
+    if words >= min_words and per_1k > threshold and count >= 3:
+        for m in unbacked[:6]:
+            hits.append(Hit("superlative_creep", 0, m.group(0).strip(),
+                            "match the claim to evidence; cut the superlative or give the number"))
+
+
+# Subject-class openers: the canonical Subject-Verb-Object lead. A long run of
+# them is the flat, even cadence a scanner can't see in any single sentence.
+SUBJECT_OPENERS = frozenset((
+    "the", "this", "that", "these", "those", "it", "we", "you", "they", "i",
+    "a", "an", "our", "their", "his", "her", "its", "he", "she"))
+
+
+def check_svo_monotony(sents, hits, report, run=6, min_sents=8):
+    """Flag a long *consecutive run* of subject-initial sentences.
+
+    Subject-Verb-Object is English's default order, so most prose is majority
+    subject-initial; an overall-share test would false-positive on careful human
+    writing (and on ESL prose especially). The discriminating signal is a long
+    unbroken run with no question, fragment, fronted adverbial, or transition to
+    break it. Conservative on purpose; burstiness and uniform_openers cover the
+    rest.
+    """
+    flags = []
+    for s in sents:
+        m = WORD_RE.search(s)
+        flags.append(bool(m) and m.group(0).lower() in SUBJECT_OPENERS)
+    if len(sents) < min_sents:
+        return
+    streak = max_streak = 0
+    for f in flags:
+        streak = streak + 1 if f else 0
+        max_streak = max(max_streak, streak)
+    report["subject_opener_run"] = max_streak
+    if max_streak >= run:
+        hits.append(Hit("svo_monotony", 0,
+                        "%d sentences in a row open with a subject (Subject-Verb-Object lead)"
+                        % max_streak,
+                        "break the run: lead with a clause, a question, or a fronted adverbial"))
+
+
+# Default AI character names and reflexive honorifics (fiction/creative tell).
+DEFAULT_NAME_RE = re.compile(r"\b(Emily|Sarah|Michael|Jacob|Elena|Maya)\b")
+DR_TITLE_RE = re.compile(r"\bDr\.\s+[A-Z]")
+
+
+def check_name_selection(text, hits, report):
+    names = Counter(m.group(1) for m in DEFAULT_NAME_RE.finditer(text))
+    dr = len(DR_TITLE_RE.findall(text))
+    report["default_names"] = sum(names.values())
+    report["dr_titles"] = dr
+    top = names.most_common(1)
+    if top and top[0][1] >= 2:
+        hits.append(Hit("name_selection", 0,
+                        '"%s" used %d times (AI defaults to a few stock names)' % top[0],
+                        "pick names that fit the era, region, and class of your characters"))
+    if dr >= 3:
+        hits.append(Hit("name_selection", 0, "%d 'Dr.' honorifics" % dr,
+                        "AI over-titles; use first names or nicknames after introduction"))
+
+
+# The "anti-AI costume": performed casualness that is itself a tell.
+COSTUME_SLANG_RE = re.compile(r"\b(?:lol|lmao|idk|tbh|ngl|imo|fr|smh|iirc)\b", re.IGNORECASE)
+SENTENCE_START_RE = re.compile(r"(?:^|[.!?]\s+)([A-Za-z])")
+
+
+def check_over_correction(text, prose_text, hits, report):
+    """Detect over-correction into the anti-AI costume.
+
+    Forced all-lowercase sentence starts and sprinkled chat slang read as a
+    *performed* humanness. A new class so the linter never rewards swapping one
+    costume for another. Muted in casual/creative where the voice is native.
+    """
+    starts = SENTENCE_START_RE.findall(prose_text)
+    slang = len(COSTUME_SLANG_RE.findall(prose_text))
+    report["costume_slang"] = slang
+    if len(starts) >= 6:
+        lower = sum(1 for c in starts if c.islower())
+        share = lower / len(starts)
+        report["lowercase_sentence_share"] = round(share, 2)
+        if share >= 0.5:
+            hits.append(Hit("over_correction", 0,
+                            "%d%% of sentences start lowercase" % round(share * 100),
+                            "forced lowercase is its own tell; write in a real register, not the anti-AI costume"))
+    if slang >= 3:
+        hits.append(Hit("over_correction", 0,
+                        "%d chat-slang markers (lol/idk/tbh/...)" % slang,
+                        "sprinkled slang reads as performed casualness; drop it or commit to the register"))
+
+
+# ---------------------------------------------------------------------------
 # Driver
 # ---------------------------------------------------------------------------
 
@@ -683,6 +883,7 @@ __all__ = [
     'BULLET_RE',
     'check_bold_bullets',
     'RULE_OF_THREE_RE',
+    'NOUN_TRIAD_RE',
     'check_rule_of_three',
     'check_uniform_openers',
     'WH_OPENERS',
@@ -725,4 +926,19 @@ __all__ = [
     'SPACE_BEFORE_PUNCT_RE',
     'MULTI_PUNCT_RE',
     'check_mechanics',
+    '_prose_paragraph_texts',
+    'CONCLUSION_OPENER_RE',
+    'check_five_paragraph_shape',
+    'HYPOPHORA_ANSWER_RE',
+    'check_hypophora',
+    'SUPERLATIVE_RE',
+    'check_superlative_creep',
+    'SUBJECT_OPENERS',
+    'check_svo_monotony',
+    'DEFAULT_NAME_RE',
+    'DR_TITLE_RE',
+    'check_name_selection',
+    'COSTUME_SLANG_RE',
+    'SENTENCE_START_RE',
+    'check_over_correction',
 ]

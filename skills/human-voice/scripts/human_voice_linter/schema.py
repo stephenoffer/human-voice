@@ -18,10 +18,12 @@ from .defaults import DEFAULTS, KNOWN_CATEGORIES
 
 # Pattern keys whose value is coerced by as_phrase_list (dict | list | str).
 _PHRASE_KEYS = (
-    "filler", "jargon", "redundancy", "overused_transitions", "meta_commentary",
-    "chatbot_scaffold", "hedging", "puffery", "vague_attribution",
-    "self_identifying", "vague_declarative", "narrator_distance",
-    "protected_terms", "context_exceptions",
+    "filler", "soft_filler", "jargon", "redundancy", "overused_transitions",
+    "meta_commentary", "chatbot_scaffold", "sycophancy", "hedging", "puffery",
+    "vague_attribution", "cowardly_passive", "self_identifying",
+    "vague_declarative", "narrator_distance", "aidiolect", "cliche_metaphor",
+    "internet_tells", "significance_inflation", "protected_terms",
+    "context_exceptions",
 )
 # Pattern keys whose value is a list of regex strings.
 _REGEX_LIST_KEYS = (

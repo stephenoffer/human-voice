@@ -221,6 +221,28 @@ check("fp_proper_noun_no_rule3", "rule_of_three" not in cats(h_pn))
 h_adj, _, _, _ = run_analyze("tp_adjective_triad", "The system is fast, reliable, and scalable across every workload here.")
 check("tp_adjective_rule3", "rule_of_three" in cats(h_adj))
 
+# noun-PHRASE triads: a lone one is a legitimate enumeration (no flag); two or
+# more is the reflexive triadic-prose tell (flag).
+h_np1, _, _, _ = run_analyze("fp_single_noun_triad",
+    "The schema needs encryption at rest, row-level access control, and audit logging here.")
+check("fp_single_noun_triad_quiet", "rule_of_three" not in cats(h_np1))
+h_np2, _, _, _ = run_analyze("tp_stacked_noun_triads",
+    "It needs encryption at rest, row-level access control, and audit logging. "
+    "We value clean code, fast reviews, and honest estimates every single day.")
+check("tp_stacked_noun_triads_fire", "rule_of_three" in cats(h_np2))
+h_npn, _, _, _ = run_analyze("fp_proper_noun_phrase_triad",
+    "We deploy on Amazon Web Services, Google Cloud Platform, and Microsoft Azure. "
+    "We use New York, San Francisco, and Los Angeles offices for this work today.")
+check("fp_proper_noun_phrase_quiet", "rule_of_three" not in cats(h_npn))
+
+# the "[inanimate thing] lives in [place]" locative is a false_agency tell
+h_loc, _, _, _ = run_analyze("tp_locative_false_agency",
+    "The business logic lives in the controller and the config lives in a YAML file.")
+check("tp_locative_fires", "false_agency" in cats(h_loc))
+h_locfp, _, _, _ = run_analyze("fp_person_lives_quiet",
+    "Maria lives in Lisbon now, and her brother lives in Porto near the river.")
+check("fp_person_lives_quiet", "false_agency" not in cats(h_locfp))
+
 # numeric en-dash range must NOT count as em-dash; real em-dash overuse must
 h_rng, _, _, _ = run_analyze("fp_numeric_range", "Revenue rose across 2024–2025, 2025–2026, and 2026–2027 in our books.")
 check("fp_range_no_emdash", "em_dash" not in cats(h_rng))
@@ -806,7 +828,7 @@ check("span_document_scope",
       all(h.get("scope") == "document" for h in _doc_hits if h.get("line") == 0))
 
 # inline ignore directives (Phase 6).
-_dbase = "We leverage robust synergy."
+_dbase = "We leverage seamless synergy."
 _dn = len(dap.lint(_dbase)["hits"])
 check("directive_baseline", _dn == 3)
 check("directive_ignore_one",

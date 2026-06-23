@@ -32,6 +32,25 @@ bold term is its own machine tell — it trades one fingerprint for another
   they're paragraphs.
 - Uniform list shape across a whole document (every list a bold-lead-in triad).
 
+## Match claim strength to evidence
+
+Two-thirds of AI drafts are rhetorically *stronger* than the human original they
+replace, and rhetoric intensity correlates with estimated LLM usage (r≈0.904).
+Overstatement reads as machine; understatement reads as confidence. Keep claims
+no stronger than the evidence behind them: "improves by 12%" over "revolutionizes",
+"the first report of X in Y" over "groundbreaking", a named limit over a hedge.
+The linter flags `superlative_creep` (an absolute with no number nearby) and
+`significance_inflation` ("opens new avenues", "cannot be overstated") for this.
+
+## Don't flatten into the anti-AI costume
+
+Removing tells must not install a new uniform signature. Forced all-lowercase,
+fake typos, staccato fragments everywhere, sprinkled "lol/honestly?", and
+conspicuous dash-avoidance are the *anti-AI costume* — as much a tell as the slop
+they replace, and the linter flags them (`over_correction`, `internet_tells`).
+The goal is a real, deliberate voice in the register the genre wants, not the
+mechanical absence of the old tells. See `references/over-correction.md`.
+
 ## The test
 
 Ask of any structure: *does this carry information a reader needs, or is it

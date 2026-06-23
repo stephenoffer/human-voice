@@ -16,9 +16,16 @@
     "register values match the linter's --register choices where applicable",
     "(technical, business, marketing, academic, casual, creative, email).",
     "",
-    "36 samples (18 human, 18 ai), balanced so every register has both classes.",
-    "The two creative 'ai' samples lean on non-dash tells (filler, rule-of-three,",
-    "antithesis, vacuity) because the creative register mutes the dash checks."
+    "Binary classifier set: 58 files (34 human, 24 ai), balanced so every register",
+    "has both classes. The two creative 'ai' samples lean on non-dash tells",
+    "(filler, rule-of-three, antithesis, vacuity) because the creative register",
+    "mutes the dash checks.",
+    "",
+    "Hard negatives carry a 'group' tag. esl_formal/ (10, label human, group esl)",
+    "are careful non-native / formal-human samples that real detectors over-flag;",
+    "they stay in the binary set and feed a dedicated ESL false-positive rate.",
+    "over_corrected/ (10, label over_corrected) is the anti-AI costume -- text that",
+    "SHOULD be flagged -- held out of the binary AUC and scored on its own recall."
   ],
   "labels": {
     "human/h01_technical_postmortem.md":   {"label": "human", "register": "technical"},
@@ -57,6 +64,42 @@
     "ai/a15_creative_fiction.md":          {"label": "ai", "register": "creative"},
     "ai/a16_creative_essay.md":            {"label": "ai", "register": "creative"},
     "ai/a17_email_outreach.md":            {"label": "ai", "register": "email"},
-    "ai/a18_technical_overview.md":        {"label": "ai", "register": "technical"}
+    "ai/a18_technical_overview.md":        {"label": "ai", "register": "technical"},
+
+    "human/h19_technical_migration.md":    {"label": "human", "register": "technical"},
+    "human/h20_business_pricing.md":       {"label": "human", "register": "business"},
+    "human/h21_academic_methods.md":       {"label": "human", "register": "academic"},
+    "human/h22_marketing_product.md":      {"label": "human", "register": "marketing"},
+    "human/h23_casual_cooking.md":         {"label": "human", "register": "casual"},
+    "human/h24_creative_flash.md":         {"label": "human", "register": "creative"},
+
+    "ai/a19_technical_overview.md":        {"label": "ai", "register": "technical"},
+    "ai/a20_business_strategy.md":         {"label": "ai", "register": "business"},
+    "ai/a21_academic_intro.md":            {"label": "ai", "register": "academic"},
+    "ai/a22_marketing_launch.md":          {"label": "ai", "register": "marketing"},
+    "ai/a23_creative_fiction.md":          {"label": "ai", "register": "creative"},
+    "ai/a24_creative_essay.md":            {"label": "ai", "register": "creative"},
+
+    "esl_formal/e01_technical_postgres.md":   {"label": "human", "register": "technical", "group": "esl"},
+    "esl_formal/e02_business_supplier.md":    {"label": "human", "register": "business", "group": "esl"},
+    "esl_formal/e03_academic_bilingual.md":   {"label": "human", "register": "academic", "group": "esl"},
+    "esl_formal/e04_email_deadline.md":       {"label": "human", "register": "email", "group": "esl"},
+    "esl_formal/e05_casual_marathon.md":      {"label": "human", "register": "casual", "group": "esl"},
+    "esl_formal/e06_marketing_coffee.md":     {"label": "human", "register": "marketing", "group": "esl"},
+    "esl_formal/e07_technical_rust.md":       {"label": "human", "register": "technical", "group": "esl"},
+    "esl_formal/e08_academic_groundwater.md": {"label": "human", "register": "academic", "group": "esl"},
+    "esl_formal/e09_business_remote.md":      {"label": "human", "register": "business", "group": "esl"},
+    "esl_formal/e10_email_intro.md":          {"label": "human", "register": "email", "group": "esl"},
+
+    "over_corrected/o01_technical_caching.md":   {"label": "over_corrected", "register": "technical", "group": "over_corrected"},
+    "over_corrected/o02_technical_migration.md": {"label": "over_corrected", "register": "technical", "group": "over_corrected"},
+    "over_corrected/o03_business_quarterly.md":  {"label": "over_corrected", "register": "business", "group": "over_corrected"},
+    "over_corrected/o04_business_strategy.md":   {"label": "over_corrected", "register": "business", "group": "over_corrected"},
+    "over_corrected/o05_academic_methods.md":    {"label": "over_corrected", "register": "academic", "group": "over_corrected"},
+    "over_corrected/o06_academic_literature.md": {"label": "over_corrected", "register": "academic", "group": "over_corrected"},
+    "over_corrected/o07_email_outage.md":        {"label": "over_corrected", "register": "email", "group": "over_corrected"},
+    "over_corrected/o08_email_proposal.md":      {"label": "over_corrected", "register": "email", "group": "over_corrected"},
+    "over_corrected/o09_marketing_launch.md":    {"label": "over_corrected", "register": "marketing", "group": "over_corrected"},
+    "over_corrected/o10_marketing_webinar.md":   {"label": "over_corrected", "register": "marketing", "group": "over_corrected"}
   }
 }
