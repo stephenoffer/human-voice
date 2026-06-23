@@ -805,6 +805,22 @@ _doc_hits = dap.lint(_doc, register="technical")["hits"]
 check("span_document_scope",
       all(h.get("scope") == "document" for h in _doc_hits if h.get("line") == 0))
 
+# inline ignore directives (Phase 6).
+_dbase = "We leverage robust synergy."
+_dn = len(dap.lint(_dbase)["hits"])
+check("directive_baseline", _dn == 3)
+check("directive_ignore_one",
+      {h["category"] for h in dap.lint(_dbase + "  <!-- human-voice: ignore filler -->")["hits"]} == {"jargon"})
+check("directive_ignore_all",
+      dap.lint(_dbase + "  <!-- human-voice: ignore -->")["hits"] == [])
+check("directive_next_line",
+      dap.lint("<!-- human-voice: ignore -->\n" + _dbase)["hits"] == [])
+check("directive_inert_in_fence",
+      len(dap.lint("```\n<!-- human-voice: ignore -->\n```\n" + _dbase)["hits"]) == 3)
+check("directive_block",
+      dap.lint("<!-- human-voice: ignore-start -->\n" + _dbase +
+               "\n<!-- human-voice: ignore-end -->")["hits"] == [])
+
 # marketplace plugin source path must exist
 with open(os.path.join(ROOT, ".claude-plugin/marketplace.json"), encoding="utf-8") as fh:
     mkt = json.load(fh)
