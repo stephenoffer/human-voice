@@ -102,15 +102,23 @@ and invoke `/human-voice`.
 - `generate` drafts new copy that reads human from the start.
 - `register` matches the genre's conventions; it's inferred if you omit it.
 
-Run the linter on its own anytime:
+Run it on its own anytime:
 
 ```bash
 python3 skills/human-voice/scripts/detect_ai_prose.py <file>
 python3 skills/human-voice/scripts/detect_ai_prose.py --register marketing <file>
 python3 skills/human-voice/scripts/detect_ai_prose.py --dialect american <file>
 python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 5 <file>   # exit 1 if score > 5 (CI gate)
+python3 skills/human-voice/scripts/detect_ai_prose.py --fix <file>          # rewrite em-dashes/--/spaced hyphens to commas, strip emoji, swap filler
+python3 skills/human-voice/scripts/detect_ai_prose.py --fix-dry-run <file>  # preview the autofix without writing
 printf '%s' "$TEXT" | python3 skills/human-voice/scripts/detect_ai_prose.py -
 ```
+
+`--fix` applies only the unambiguous, deterministic edits: dash-to-comma
+normalization, decorative-emoji removal, and 1:1 filler/jargon swaps. It skips
+dash and emoji changes in the `creative` register (and keeps emoji in `casual`),
+never touches code, numbers, or links, and leaves the judgment work — varying
+the replacement mark, cutting vacuity, sharpening stance — to the rewrite pass.
 
 On Windows, use the `py` launcher (or `python`) instead of `python3`, and pipe
 text with PowerShell: `$TEXT | py skills/human-voice/scripts/detect_ai_prose.py -`.
@@ -130,7 +138,7 @@ human read.
 `skills/human-voice/examples/` has a before/after pair for every register
 (technical, marketing, casual, academic, email) plus a generate-mode example, a
 refusal-to-fabricate example, a restraint case, and an annotated walkthrough. Each
-"after" scores `clean`; run the linter on both halves to confirm.
+"after" scores `clean`; run it on both halves to confirm.
 
 The linter is measured, not asserted: `eval/` holds a labeled corpus and
 `run_eval.py`, and [`eval/EVAL.md`](eval/EVAL.md) reports precision/recall and the
@@ -151,8 +159,8 @@ shallowest pass.
 
 ## FAQ
 
-**Will this beat GPTZero?** Sometimes, as a side effect — but that is not the goal
-and not a promise. The goal is prose a skeptical human reads as human-written. No
+**Will this beat GPTZero?** Sometimes, as a side effect, but that isn't the point
+and isn't a promise. The aim is prose a skeptical human reads as human-written. No
 detector is ground truth; they carry real false-positive rates.
 
 **Why did it flag my human-written text?** The linter is a regex floor; it over-
@@ -171,8 +179,8 @@ add protected terms. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 It improves writing; it does not disguise machine text. No Unicode homoglyphs,
 no zero-width characters, no deliberate typos, no meaning-degrading synonym
-swaps, and never invented facts, quotes, or statistics to seem human. Passing a
-detector is a side effect of good writing, not the goal.
+swaps, and never an invented fact or a faked quote to seem human. Passing a
+detector is a side effect of good writing, not the objective.
 
 ## Contributing
 

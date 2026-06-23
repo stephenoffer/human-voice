@@ -2,7 +2,7 @@
 
 This traces the existing `before.md` to `after.md` edit by edit, naming the tell
 each change removes and the catalog category it belongs to. Register: technical.
-Linter: before 380.8 strong-tell -> after 0.0 clean. Read it top to bottom to see
+Linter: before 383.1 strong-tell -> after 0.0 clean. Read it top to bottom to see
 the rewrite order in action — substance first, diction last (principle 1).
 
 ## The starting text (before.md)
@@ -26,10 +26,10 @@ the rewrite order in action — substance first, diction last (principle 1).
 > ecosystem of integrations. We leverage our synergies to operationalize
 > best-in-class, actionable solutions that move the needle for every stakeholder.
 >
-> It's not just about technology, it's about people. The platform stands as a
-> testament to innovation, highlighting its commitment to excellence. This isn't
-> merely a tool, it's a complete solution that unlocks the potential of your
-> organization.
+> It's not just about technology, it's about people. The platform — which our
+> team built from the ground up — stands as a testament to innovation —
+> highlighting its commitment to excellence. This isn't merely a tool -- it's a
+> complete solution that unlocks the potential of your organization. ✨
 >
 > ## Conclusion
 > In conclusion, navigating the ever-evolving landscape of technology requires a
@@ -81,12 +81,17 @@ excellence" is puffery plus a tailing significance clause. These don't get
 swapped word-for-word; the whole sentence is rebuilt around a concrete claim, or
 deleted when there's nothing under it.
 
-## Edit 5 — drop the "not X, it's Y" templates (Structure: antithesis)
+## Edit 5 — drop the "not X, it's Y" templates and the dash pile-up (Structure: antithesis, dashes)
 
 "It's not just about technology, it's about people" and "This isn't merely a
-tool, it's a complete solution" are the antithesis template firing twice. Replaced
-by saying what the thing actually is — in the after, a worked recommendation with
-a mechanism:
+tool, it's a complete solution" are the antithesis template firing twice. The
+same paragraph also piles up dashes — two em-dash asides, a trailing em-dash, and
+a raw ASCII `--` — which is one of the loudest tells on the page (category 9).
+Running `--fix` first would rewrite every one of those to a comma and strip the
+trailing ✨ in a single deterministic pass; the rewrite then varies the marks
+(comma, period, colon) so the rhythm doesn't flatten into all-commas. Here the
+whole paragraph is vacuous, so it's replaced wholesale by saying what the thing
+actually is — in the after, a worked recommendation with a mechanism:
 
 > For a service expecting rapid growth and handling regulated data, we recommend a
 > partitioned Postgres cluster over a NoSQL store. The reason is concrete: you keep

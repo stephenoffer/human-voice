@@ -64,11 +64,16 @@ another reason the goal is genuinely better writing, not a passing score.
    vacuous sentences → vary rhythm → dismantle rule-of-three and bold-bullet
    templates → cut meta-commentary → *then* fix diction. Diction is last and
    least.
-2. **Aim for natural variance, not a new banned-token list.** An em-dash, a
-   tricolon, a "however" are all fine in moderation. Eliminating every one
+2. **Aim for natural variance, not a new banned-token list.** A tricolon, a
+   "however", a semicolon are all fine in moderation. Eliminating every one
    creates a *different* uniform signature that also reads as machine. Target
    burstiness (mix short and long sentences) and the accurate less-expected
-   word — not zero-of-everything.
+   word, not zero-of-everything. **The em-dash is the exception:** outside the
+   `creative` register, treat it as a strong tell and replace nearly all of
+   them. The trick that keeps this from becoming its own uniform signature is to
+   *vary the replacement* — a comma here, a period there, a colon or parentheses
+   or an outright restructure elsewhere — so the rhythm stays bursty even as the
+   dashes go. Emoji are not human in most registers either; cut them.
 3. **Never fabricate to sound human.** Do not alter or invent facts, numbers,
    code, citations, links, defined terms, or claims to make prose flow. If a
    sentence is empty, cut it — do not dress it with fake specificity. Humanizing
@@ -193,8 +198,13 @@ The highest-signal tells, with one-line fixes. The **full** catalog with BAD →
 GOOD pairs for every category is in
 [`references/ai-tells.md`](references/ai-tells.md) — load it for the rewrite.
 
-- **Em-dash as default connector** → use commas, periods, parens; keep the rare
-  earned one.
+- **Dashes** → the em-dash is one of the loudest AI tells: outside `creative`,
+  replace nearly all of them with a comma, period, colon, or parentheses (vary
+  the mark; don't swap every one for a comma). Keep the hyphen for compounds and
+  the en-dash for ranges (10–20). Never `--` or a spaced ` - ` as a dash. The
+  `--fix` autofixer rewrites em-dashes, `--`, spaced hyphens, and non-numeric
+  en-dashes to commas automatically (skipped in `creative`). See category 9 in
+  `references/ai-tells.md`.
 - **Rule of three everywhere** ("fast, reliable, and scalable") → vary to two or
   four, or a sentence.
 - **Bold-lead-in bullets** (`- **Term:** ...` on every item) → convert some to
@@ -214,6 +224,20 @@ GOOD pairs for every category is in
 - **Vacuity** — a paragraph you can delete with no information loss → delete it.
 - **Agent self-narration** ("Our analysis determined", "The agent identified") →
   say it directly ("GPU sits at 22%").
+- **False agency** (abstract subject + human verb: "the complaint becomes a fix",
+  "the data tells us", "the market rewards") → name the human who acted, or use
+  "you"; never invent an actor. Muted for `academic` ("the data show").
+- **Narrator-from-a-distance** ("Nobody designed this", "People tend to…") → put
+  the reader in the scene with "you" (a tell in reader-facing genres; fine in
+  `academic`).
+- **Telling not showing / vague declarative** ("The implications are
+  significant", "the reasons are structural") → name the specific thing, or cut.
+- **Negative listing** ("It wasn't X. It wasn't Y. It was Z.") → state Z; drop
+  the runway.
+- **Performative fragmentation** ("Speed. That's it. That's the tradeoff.") →
+  complete sentences in exposition; fragments stay only in creative/casual.
+- **Wh-opener crutch** (a run of "What makes this… / Why does this…") → lead with
+  the subject and name the thing.
 - **Fabricated specificity** ("up to 40%") with no source → cite or cut; never
   invent.
 - **Puffery / hype** ("stands as a testament", "plays a vital role",
@@ -226,14 +250,20 @@ GOOD pairs for every category is in
   free half.
 - **Low burstiness** (every sentence the same length) → vary; drop a short
   sentence against a long one.
-- **Emoji / decorative bold / `---` between every section** → remove.
+- **Emoji / decorative bold / `---` between every section** → remove. (`--fix`
+  strips decorative emoji outside `creative`/`casual`.)
+- **Doubled words** ("the the", "to to") → cut the duplicate; it's an editing typo.
+- **Repetition** → vary repeated bigrams and repeated sentence openers, but keep
+  one term per concept (terminology consistency is not the repetition to fix).
+- **Punctuation mechanics** → no space before `,;:!?`; one terminal mark (not
+  "!!" / "?!?"); one quote and ellipsis style throughout. See category 9.
 - **Fence-sitting / false balance** ("several approaches, each with tradeoffs")
   → commit to one and say why the others lose here.
 - **Terminology drift** (one concept, three names) → one term per concept.
 - **Dialect / heading-case / voice drift** → one dialect, one heading
   convention, one author voice throughout.
 
-### Four highest-signal fixes (BAD → GOOD)
+### Five highest-signal fixes (BAD → GOOD)
 
 Concrete anchors for the most common tells. The full catalog with a pair for every
 category is in [`references/ai-tells.md`](references/ai-tells.md).
@@ -250,6 +280,10 @@ category is in [`references/ai-tells.md`](references/ai-tells.md).
 - **Chatbot scaffolding** — BAD: "Great question! Let's dive in. Here's the thing
   about caching…" → GOOD: open on the content: "Caching helps here only when
   reads dominate writes."
+- **False agency** — BAD: "The complaint becomes a fix and the data tells us
+  where to invest." → GOOD: name the actor: "The on-call engineer shipped the
+  fix; the conversion logs showed where users dropped off." (Never invent the
+  actor — if the source names none, use "you" or flag it.)
 
 ## Quick reference (one pass)
 
@@ -305,10 +339,16 @@ Work in this order (principle 1). Do not jump to diction first.
    per concept (no renaming "the model" → "the LLM" → "the network"); keep one
    dialect, one heading-case convention, one tense for findings, and consistent
    number/term/list formatting. See category 7.
-9. **Fix diction and jargon.** Replace filler words, clichés, and business
-   jargon with the plain word the meaning needs — or cut. Apply the Anti-jargon
-   rules: keep necessary technical terms, cut empty buzzwords, never stack them.
-   Skip swaps that leave the sentence vague.
+9. **Fix diction, jargon, and mechanics.** Replace filler words, clichés, and
+   business jargon with the plain word the meaning needs — or cut. Apply the
+   Anti-jargon rules: keep necessary technical terms, cut empty buzzwords, never
+   stack them. Fix punctuation and dashes here too: outside `creative`, replace
+   nearly all em-dashes with a varied mark (comma, period, colon, parens), keep
+   the hyphen for compounds and en-dash for ranges, no `--`/spaced-hyphen dashes,
+   no doubled words, no space before `,;:!?`, one terminal mark. Running the
+   linter with `--fix` clears the mechanical ones (em-dashes, `--`, spaced
+   hyphens, emoji) before you do the judgment work. Skip swaps that leave the
+   sentence vague. See category 9.
 10. **Calibrate to the register.** Match the genre's conventions (Register
     profiles) and hold them end to end — professional for a report, conversational
     for marketing, narrative for fiction. Add what the genre wants (contractions
@@ -335,7 +375,7 @@ vibe.
 
 **Hit concrete targets**, not "improve it":
 - burstiness CoV ≥ ~0.5 (sentence-length variation);
-- em-dash density ≤ ~1 per ~150 words (outside `creative`);
+- em-dash density ≈0 outside `creative` (replace nearly all with varied marks);
 - in `fix` mode, expect to cut 15–25% of the words;
 - no run of 3+ same-length sentences — read the length sequence aloud in your head.
 
@@ -453,10 +493,18 @@ category for it ("synergy", "leverage", "circle back", "move the needle",
 
 ## Anti-overcorrection guardrails
 
-- **Do** keep the occasional em-dash, tricolon, and transition where natural.
+- **Do** keep the occasional tricolon and transition where natural — but the
+  em-dash is the exception: replace nearly all of them outside `creative`,
+  varying the replacement mark so the rhythm doesn't flatten.
 - **Do** keep purposeful structure the document wants — callout tiers, scannable
   lists, code-comment density (see [`STYLE-GUIDE.md`](STYLE-GUIDE.md)).
 - **Don't** ban a token globally; that just trades one signature for another.
+  Target *patterns in excess* (false agency, the Wh-opener run, three same-length
+  fragments), not a category to zero. The newer structural checks fire on
+  density and runs, not on a single instance — keep them that way. (Public lists
+  like stop-slop reach for "kill all adverbs / no em dashes ever / always two not
+  three"; those manufacture a fresh uniform signature, which is exactly principle
+  2's failure mode.)
 - **Don't** add slang, jokes, typos, or forced first-person voice.
 - **Don't** cut precision a technical doc needs in the name of "plain language".
 
@@ -489,14 +537,21 @@ category for it ("synergy", "leverage", "circle back", "move the needle",
    sentence-length sequence and flag any run of 3+ similar lengths; (b) scan the
    first word of each sentence for repeated openers; (c) grep your draft for the
    top filler words (delve, leverage, robust, seamless, crucial, comprehensive,
-   landscape); (d) count em-dashes — more than one per ~150 words is a tell; (e)
-   check every list for the bold-lead-in `- **Term:**` pattern.
-3. **Rewrite** per the procedure above, loading `references/ai-tells.md`.
-4. **Self-critique loop** until clean or 3 passes.
-5. **Apply / present.** For a file, ensure it is recoverable (git-tracked or
+   landscape); (d) count em-dashes (outside `creative`, essentially any is a
+   tell); (e) check every list for the bold-lead-in `- **Term:**` pattern.
+3. **Optional autofix.** Clear the mechanical, unambiguous tells in one pass
+   before the judgment work: `python3 scripts/detect_ai_prose.py --fix --register
+   <reg> <file>` rewrites em-dashes, `--`, spaced hyphens, and non-numeric
+   en-dashes to commas, strips decorative emoji, and applies 1:1 filler/jargon
+   swaps (em-dash + emoji fixes are skipped in `creative`; emoji also kept in
+   `casual`). Use `--fix-dry-run` to preview. This never touches code, numbers,
+   or links. It does not vary the replacement mark, so still do the rewrite pass.
+4. **Rewrite** per the procedure above, loading `references/ai-tells.md`.
+5. **Self-critique loop** until clean or 3 passes.
+6. **Apply / present.** For a file, ensure it is recoverable (git-tracked or
    `.bak`d), show the rewrite/diff, then edit in place; for pasted text, print the
    rewrite. Always print the Humanization Audit.
-6. **Confirm invariants** with a diff (`git diff` or a before/after of numbers,
+7. **Confirm invariants** with a diff (`git diff` or a before/after of numbers,
    code, links).
 
 ## Output templates

@@ -74,6 +74,31 @@ precise.
 - BAD → "Our analysis determined that the GPU utilization was suboptimal."
 - GOOD → "GPU sits at 22%."
 
+**False agency** — an abstract or inanimate subject performing a human verb. AI
+reaches for this because it lets a sentence sound active while dodging the actual
+actor. A complaint doesn't *become* a fix; someone fixed it. Data doesn't *tell*
+you anything; you read it and drew a conclusion. The fix is to name the human —
+or, when no specific person fits, put the reader in the seat with "you." Never
+invent an actor to satisfy the rule (that is fabrication; see the
+anti-hallucination protocol). The linter flags this as `false_agency`, and
+**mutes it for `academic`**, where "the data show" is a genuine convention.
+
+- BAD → "The complaint becomes a fix that week."
+- GOOD → "The on-call engineer shipped the fix that week."
+- BAD → "The market rewards speed, and the data tells us where to invest."
+- GOOD → "Buyers pay for the faster product; the conversion logs show where the
+  drop-off is."
+
+**Telling instead of showing / vague declarative** — a sentence that *announces*
+weight (structural, significant, deep, hard) without naming the specific thing.
+It is vacuity wearing a serious face: cut it, or replace it with the concrete
+fact it gestures at. The linter flags the stock phrasings as `vague_declarative`.
+
+- BAD → "The implications are significant." / "The reasons are structural." /
+  "This is genuinely hard."
+- GOOD → name the implication: "If this ships late, the launch slips a quarter
+  and the contract renewal lapses."
+
 ---
 
 ## 2. Structure & rhythm
@@ -112,6 +137,15 @@ strongest mechanical tell.
 - BAD → six sentences in a row opening with "The platform".
 - GOOD → vary subject and structure.
 
+**Wh-opener crutch** — a run of sentences opening with *What / When / Why / How /
+Which* ("What makes this hard is…", "Why does this matter?"). A specific,
+high-frequency case of uniform openers and a Socratic-posturing tell; the linter
+flags it as `wh_opener` on a run of three or a high ratio. The fix is to lead
+with the subject and name the thing.
+
+- BAD → "What makes this hard is scale. Why does that matter? How do you know?"
+- GOOD → "Scale is the hard part: at 50k writes/sec the index can't keep up."
+
 **N-gram repetition** — the same bigram/trigram recurring.
 
 - BAD → "in order to" four times; "it is important to" twice.
@@ -136,6 +170,26 @@ is simple: ...", "Here's the catch: ...").
 
 - BAD → "The result is clear: latency wins. The reason is simple: users feel it."
 - GOOD → fold the clause into the sentence: "Latency wins because users feel it."
+
+**Negative listing** — the multi-item striptease: listing what something is *not*
+across two or more sentences before revealing what it *is*. Distinct from the
+two-part "not X, it's Y" (that's antithesis); this is the three-beat runway. The
+reader doesn't need it — state the answer. The linter flags it as
+`negative_listing`.
+
+- BAD → "It wasn't a tooling problem. It wasn't a staffing problem. It was a
+  priorities problem."
+- GOOD → "We had the tools and the people; we'd ranked the work wrong."
+
+**Dramatic fragmentation / performative simplicity** — sentence fragments staged
+for profundity ("Speed. That's it. That's the tradeoff.", "X. And Y. And Z."). A
+machine cadence in expository prose. Fragments are legitimate craft in
+`creative`, `casual`, and terse `release_notes`, so the linter
+(`dramatic_fragmentation`) **mutes this for those registers** — fix it only where
+the genre is straight exposition.
+
+- BAD → "You can only pick two. That's it. That's the tradeoff."
+- GOOD → "Speed, quality, cost — pick two."
 
 ---
 
@@ -226,7 +280,8 @@ tacked on.
 ## 5. Formatting
 
 **Decorative emoji** in headings or bullets (outside genuinely casual/social
-copy) → remove.
+copy) → remove. The `--fix` autofixer strips them automatically in every
+register except `creative` and `casual`.
 
 **Ornamental bold** — bolding for emphasis on phrases that aren't terms → remove.
 
@@ -264,6 +319,17 @@ holds everywhere.
   solid, which is awesome 🔥"
 - GOOD (technical) → "The cluster sustained 50k writes/sec for six hours with no
   failovers."
+
+**Narrator-from-a-distance** — the disembodied lecturer voice that floats above
+the scene ("Nobody designed this.", "People tend to…", "Humans are wired to…")
+instead of putting the reader in it. A tell in reader-facing genres
+(`marketing`, `casual`, `tutorial`), where "you" lands harder than "people."
+Conventional and correct in `academic` prose, so the linter
+(`narrator_distance`) **mutes it there**.
+
+- BAD → "Nobody sits down and decides to accrue tech debt. People just ship."
+- GOOD → "You never decide to take on tech debt; you just ship the Friday
+  hotfix and mean to clean it up Monday."
 
 **Over-explaining / audience miscalibration** — explaining what the reader
 already knows. Common when the register is technical but the prose condescends.
@@ -345,6 +411,74 @@ committing.
 **Naming genuine limits** — honest stance, not hedging.
 
 - GOOD → "Not load-tested past 50k writes/sec, and this assumes a single region."
+
+---
+
+## 9. Punctuation & mechanics (dashes, repetition, spacing)
+
+Mechanical correctness that the linter checks directly (`dash_style`,
+`doubled_word`, `mechanics`) plus the consistency rules around them. These are
+universal-core: wrong in every register.
+
+### Dashes — use the right mark, and stay consistent
+
+Three marks, three jobs. Mixing them up, or overusing the em-dash, is one of the
+loudest AI tells.
+
+- **Hyphen `-`** joins compound modifiers only: *well-known*, *state-of-the-art*,
+  *read-only*. It is never a sentence connector.
+- **En-dash `–`** is for ranges and spans: *10–20 requests*, *2024–25*,
+  *pages 30–34*. Not a pause in a sentence.
+- **Em-dash `—`** is one of the loudest AI tells. Outside the `creative`
+  register, replace nearly all of them with a comma, period, colon, or
+  parentheses — *vary* the mark so you don't trade the dash signature for a
+  uniform comma signature. A paired aside becomes an appositive
+  (`result — which surprised us — held` → `result, which surprised us, held`); a
+  single dash usually wants a period or a colon. Reserve the em-dash for
+  `creative`, where wide cadence is the genre's tool. The `--fix` autofixer
+  rewrites em-dashes (and `--`, spaced hyphens, non-numeric en-dashes) to commas
+  automatically; the rewrite pass then upgrades to a period/colon/parens where
+  they read better.
+
+Hard rules:
+
+- **Never use `--` or a spaced hyphen ` - ` as a dash.** That is raw draft
+  markup, not typography.
+  - BAD → "The migration was risky -- we staged it." / "The plan - in short - worked."
+  - GOOD → "The migration was risky, so we staged it." / "The plan worked, in short."
+- **Pick one em-dash spacing and hold it.** American style sets it tight
+  (`risk—we`); journalistic/British style spaces it (`risk — we`). Either is
+  fine; mixing both in one document is a drift tell.
+- **Em-dash overuse is the headline tell.** Two or more dashed asides in a short
+  passage reads as machine cadence even when each is grammatical.
+  - BAD → "The result — which surprised us — held up — mostly — under load."
+  - GOOD → "The result surprised us. It held up under load, mostly."
+
+### Repetition — three kinds, three fixes
+
+- **Doubled words** ("the the", "to to", "is is") are editing typos. Cut the
+  duplicate. (A real "that that" or "had had" is grammatical and stays.)
+  - BAD → "We we shipped it." → GOOD → "We shipped it."
+- **Phrase repetition** — the same bigram/trigram recurring ("it is important
+  to" twice, "in order to" four times). Rephrase or cut; see category 2.
+- **Structural repetition** — consecutive sentences with the same opening
+  ("This lets… This means… This is…"). Vary the subject and shape; see category 2.
+
+The one repetition you *keep*: a single term per concept (don't rotate
+"the model" / "the LLM" / "the network"). That is terminology consistency
+(category 7), not the repetition to fix. Repeating a precise name is correct;
+repeating a sentence shape is the tell.
+
+### Spacing & punctuation mechanics
+
+- **No space before** `,` `;` `:` `!` `?`; exactly one space after. ("done ,"
+  and "ready ?" are errors.)
+- **One terminal mark.** Not "!!", "??", or "?!?" — one period or one question
+  mark. (Interrobang `?!` is a rare, deliberate exception, casual/creative only.)
+- **One sentence-spacing convention** (one space or two) held throughout, not mixed.
+- **One quote style.** Don't mix straight (`"`) and curly (`"` `"`) quotes, or
+  straight and curly apostrophes, in the same document.
+- **One ellipsis style** (`…` or `...`), not both.
 
 ---
 

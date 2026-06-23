@@ -24,7 +24,26 @@ jobs:
         run: |
           python3 skills/human-voice/scripts/detect_ai_prose.py skills/human-voice/examples/after.md
           python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 5 skills/human-voice/examples/after.md
-      - name: Run the evaluation harness
+      - name: Evaluation regression gate (no metric drift allowed)
         run: |
-          python3 eval/run_eval.py
-          python3 eval/ablation.py
+          python3 eval/run_eval.py --check
+          python3 eval/ablation.py --check
+      - name: Detector harness smoke (offline, no network)
+        run: python3 eval/detector_harness.py
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dev tooling
+        run: pip install ruff mypy pytest
+      - name: Ruff (lint)
+        run: ruff check skills/human-voice/scripts/human_voice_linter eval tests
+      - name: Mypy (type-check the package + eval/lib.py)
+        run: mypy
+      - name: Pytest (eval unit tests + stress wrapper)
+        run: pytest -q
