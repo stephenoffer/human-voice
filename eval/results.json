@@ -1,7 +1,7 @@
 {
-  "corpus_size": 36,
-  "n_human": 18,
-  "n_ai": 18,
+  "corpus_size": 58,
+  "n_human": 34,
+  "n_ai": 24,
   "roc_auc": 1.0,
   "confidence_intervals": {
     "roc_auc": {
@@ -14,18 +14,18 @@
       "caveat": "n is small and the corpus is authored; this interval reflects resampling variance within the fixed set, not sampling from real-world text."
     },
     "default_f1": {
-      "point": 0.9,
-      "lo": 0.8182,
-      "hi": 0.973,
+      "point": 0.8136,
+      "lo": 0.75,
+      "hi": 0.8889,
       "iters": 2000,
       "seed": 1729,
       "method": "stratified percentile bootstrap",
       "caveat": "n is small and the corpus is authored; this interval reflects resampling variance within the fixed set, not sampling from real-world text."
     },
     "default_human_fpr": {
-      "point": 0.2222,
-      "lo": 0.0556,
-      "hi": 0.4444,
+      "point": 0.3235,
+      "lo": 0.1765,
+      "hi": 0.4706,
       "iters": 2000,
       "seed": 1729,
       "method": "stratified percentile bootstrap",
@@ -34,19 +34,19 @@
   },
   "default_threshold": 5.0,
   "default": {
-    "precision": 0.8182,
+    "precision": 0.6857,
     "recall": 1.0,
-    "f1": 0.9,
-    "accuracy": 0.8889,
-    "human_subset_false_positive_rate": 0.2222,
+    "f1": 0.8136,
+    "accuracy": 0.8103,
+    "human_subset_false_positive_rate": 0.3235,
     "confusion": {
-      "tp": 18,
-      "fp": 4,
-      "tn": 14,
+      "tp": 24,
+      "fp": 11,
+      "tn": 23,
       "fn": 0
     }
   },
-  "best_threshold": 45.6,
+  "best_threshold": 67.0,
   "best": {
     "precision": 1.0,
     "recall": 1.0,
@@ -54,37 +54,77 @@
     "accuracy": 1.0,
     "human_subset_false_positive_rate": 0.0,
     "confusion": {
-      "tp": 18,
+      "tp": 24,
       "fp": 0,
-      "tn": 18,
+      "tn": 34,
       "fn": 0
     }
   },
   "by_register": {
     "academic": {
-      "n": 4,
-      "n_human": 2,
-      "n_ai": 2,
+      "n": 8,
+      "n_human": 5,
+      "n_ai": 3,
       "auc": 1.0,
       "metrics": {
-        "precision": 0.6667,
+        "precision": 0.6,
         "recall": 1.0,
-        "f1": 0.8,
+        "f1": 0.75,
         "accuracy": 0.75,
-        "human_subset_false_positive_rate": 0.5,
+        "human_subset_false_positive_rate": 0.4,
         "confusion": {
-          "tp": 2,
-          "fp": 1,
-          "tn": 1,
+          "tp": 3,
+          "fp": 2,
+          "tn": 3,
           "fn": 0
         }
       },
       "single_class": false
     },
     "business": {
-      "n": 6,
+      "n": 10,
+      "n_human": 6,
+      "n_ai": 4,
+      "auc": 1.0,
+      "metrics": {
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.8889,
+        "accuracy": 0.9,
+        "human_subset_false_positive_rate": 0.1667,
+        "confusion": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 5,
+          "fn": 0
+        }
+      },
+      "single_class": false
+    },
+    "casual": {
+      "n": 10,
+      "n_human": 6,
+      "n_ai": 4,
+      "auc": 1.0,
+      "metrics": {
+        "precision": 0.5714,
+        "recall": 1.0,
+        "f1": 0.7273,
+        "accuracy": 0.7,
+        "human_subset_false_positive_rate": 0.5,
+        "confusion": {
+          "tp": 4,
+          "fp": 3,
+          "tn": 3,
+          "fn": 0
+        }
+      },
+      "single_class": false
+    },
+    "creative": {
+      "n": 7,
       "n_human": 3,
-      "n_ai": 3,
+      "n_ai": 4,
       "auc": 1.0,
       "metrics": {
         "precision": 1.0,
@@ -93,7 +133,7 @@
         "accuracy": 1.0,
         "human_subset_false_positive_rate": 0.0,
         "confusion": {
-          "tp": 3,
+          "tp": 4,
           "fp": 0,
           "tn": 3,
           "fn": 0
@@ -101,19 +141,39 @@
       },
       "single_class": false
     },
-    "casual": {
-      "n": 8,
+    "email": {
+      "n": 6,
       "n_human": 4,
-      "n_ai": 4,
+      "n_ai": 2,
       "auc": 1.0,
       "metrics": {
-        "precision": 0.6667,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.8,
-        "accuracy": 0.75,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
+        "confusion": {
+          "tp": 2,
+          "fp": 0,
+          "tn": 4,
+          "fn": 0
+        }
+      },
+      "single_class": false
+    },
+    "marketing": {
+      "n": 7,
+      "n_human": 4,
+      "n_ai": 3,
+      "auc": 1.0,
+      "metrics": {
+        "precision": 0.6,
+        "recall": 1.0,
+        "f1": 0.75,
+        "accuracy": 0.7143,
         "human_subset_false_positive_rate": 0.5,
         "confusion": {
-          "tp": 4,
+          "tp": 3,
           "fp": 2,
           "tn": 2,
           "fn": 0
@@ -121,81 +181,21 @@
       },
       "single_class": false
     },
-    "creative": {
-      "n": 4,
-      "n_human": 2,
-      "n_ai": 2,
-      "auc": 1.0,
-      "metrics": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "accuracy": 1.0,
-        "human_subset_false_positive_rate": 0.0,
-        "confusion": {
-          "tp": 2,
-          "fp": 0,
-          "tn": 2,
-          "fn": 0
-        }
-      },
-      "single_class": false
-    },
-    "email": {
-      "n": 4,
-      "n_human": 2,
-      "n_ai": 2,
-      "auc": 1.0,
-      "metrics": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "accuracy": 1.0,
-        "human_subset_false_positive_rate": 0.0,
-        "confusion": {
-          "tp": 2,
-          "fp": 0,
-          "tn": 2,
-          "fn": 0
-        }
-      },
-      "single_class": false
-    },
-    "marketing": {
-      "n": 4,
-      "n_human": 2,
-      "n_ai": 2,
-      "auc": 1.0,
-      "metrics": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "accuracy": 1.0,
-        "human_subset_false_positive_rate": 0.0,
-        "confusion": {
-          "tp": 2,
-          "fp": 0,
-          "tn": 2,
-          "fn": 0
-        }
-      },
-      "single_class": false
-    },
     "technical": {
-      "n": 6,
-      "n_human": 3,
-      "n_ai": 3,
+      "n": 10,
+      "n_human": 6,
+      "n_ai": 4,
       "auc": 1.0,
       "metrics": {
-        "precision": 0.75,
+        "precision": 0.5714,
         "recall": 1.0,
-        "f1": 0.8571,
-        "accuracy": 0.8333,
-        "human_subset_false_positive_rate": 0.3333,
+        "f1": 0.7273,
+        "accuracy": 0.7,
+        "human_subset_false_positive_rate": 0.5,
         "confusion": {
-          "tp": 3,
-          "fp": 1,
-          "tn": 2,
+          "tp": 4,
+          "fp": 3,
+          "tn": 3,
           "fn": 0
         }
       },
@@ -203,105 +203,243 @@
     }
   },
   "by_category_ai_share": {
-    "filler": 0.2479,
-    "meta_commentary": 0.1652,
-    "bold_bullets": 0.1609,
-    "rule_of_three": 0.1003,
-    "jargon": 0.0671,
-    "false_agency": 0.0465,
-    "em_dash": 0.0351,
-    "burstiness": 0.0347,
-    "vague_declarative": 0.0312,
-    "puffery": 0.0309,
-    "paragraph_uniformity": 0.0167,
-    "vague_attribution": 0.0129,
-    "narrator_distance": 0.0099,
-    "uniform_openers": 0.0063,
-    "negative_listing": 0.0063,
-    "ngram_repetition": 0.0055,
-    "parallel_structure": 0.0052,
-    "antithesis": 0.0042,
-    "redundancy": 0.0031,
-    "transitions": 0.0028,
-    "list_uniformity": 0.0028,
-    "nominalization": 0.0027,
-    "wh_opener": 0.0016
+    "filler": 0.1818,
+    "rule_of_three": 0.1381,
+    "bold_bullets": 0.1292,
+    "meta_commentary": 0.0971,
+    "aidiolect": 0.0707,
+    "puffery": 0.0555,
+    "jargon": 0.0499,
+    "soft_filler": 0.0347,
+    "significance_inflation": 0.0299,
+    "vague_attribution": 0.0277,
+    "false_agency": 0.0236,
+    "burstiness": 0.022,
+    "antithesis": 0.019,
+    "paragraph_uniformity": 0.0182,
+    "em_dash": 0.0178,
+    "vague_declarative": 0.0158,
+    "cliche_metaphor": 0.0076,
+    "transitions": 0.0074,
+    "sycophancy": 0.0068,
+    "five_paragraph_shape": 0.0068,
+    "uniform_openers": 0.0053,
+    "negative_listing": 0.0053,
+    "narrator_distance": 0.005,
+    "chatbot_scaffold": 0.0045,
+    "parallel_structure": 0.0037,
+    "svo_monotony": 0.0035,
+    "superlative_creep": 0.0034,
+    "ngram_repetition": 0.0028,
+    "nominalization": 0.0025,
+    "redundancy": 0.0016,
+    "list_uniformity": 0.0014,
+    "wh_opener": 0.0008,
+    "heading_case": 0.0006
+  },
+  "hard_negatives": {
+    "esl_formal": {
+      "fpr": 0.3,
+      "flagged": 3,
+      "n": 10,
+      "threshold": 5.0
+    },
+    "over_corrected": {
+      "n": 10,
+      "flagged_rate": 1.0,
+      "costume_category_rate": 1.0,
+      "flagged": 10,
+      "costume_caught": 10,
+      "threshold": 5.0
+    }
   },
   "sweep": [
     {
       "threshold": 0.0,
-      "f1": 0.6667,
-      "precision": 0.5,
+      "f1": 0.5854,
+      "precision": 0.4138,
       "recall": 1.0,
-      "accuracy": 0.5,
+      "accuracy": 0.4138,
       "human_fpr": 1.0
     },
     {
-      "threshold": 3.4,
-      "f1": 0.9,
-      "precision": 0.8182,
+      "threshold": 2.4,
+      "f1": 0.8,
+      "precision": 0.6667,
       "recall": 1.0,
-      "accuracy": 0.8889,
-      "human_fpr": 0.2222
+      "accuracy": 0.7931,
+      "human_fpr": 0.3529
+    },
+    {
+      "threshold": 4.8,
+      "f1": 0.8,
+      "precision": 0.6667,
+      "recall": 1.0,
+      "accuracy": 0.7931,
+      "human_fpr": 0.3529
+    },
+    {
+      "threshold": 5.0,
+      "f1": 0.8136,
+      "precision": 0.6857,
+      "recall": 1.0,
+      "accuracy": 0.8103,
+      "human_fpr": 0.3235
+    },
+    {
+      "threshold": 5.2,
+      "f1": 0.8136,
+      "precision": 0.6857,
+      "recall": 1.0,
+      "accuracy": 0.8103,
+      "human_fpr": 0.3235
+    },
+    {
+      "threshold": 6.0,
+      "f1": 0.8276,
+      "precision": 0.7059,
+      "recall": 1.0,
+      "accuracy": 0.8276,
+      "human_fpr": 0.2941
     },
     {
       "threshold": 6.8,
-      "f1": 0.9,
-      "precision": 0.8182,
+      "f1": 0.8276,
+      "precision": 0.7059,
       "recall": 1.0,
-      "accuracy": 0.8889,
-      "human_fpr": 0.2222
+      "accuracy": 0.8276,
+      "human_fpr": 0.2941
     },
     {
       "threshold": 6.9,
-      "f1": 0.9231,
-      "precision": 0.8571,
+      "f1": 0.8421,
+      "precision": 0.7273,
       "recall": 1.0,
-      "accuracy": 0.9167,
-      "human_fpr": 0.1667
+      "accuracy": 0.8448,
+      "human_fpr": 0.2647
     },
     {
       "threshold": 7.0,
-      "f1": 0.9231,
-      "precision": 0.8571,
+      "f1": 0.8421,
+      "precision": 0.7273,
       "recall": 1.0,
-      "accuracy": 0.9167,
-      "human_fpr": 0.1667
+      "accuracy": 0.8448,
+      "human_fpr": 0.2647
     },
     {
-      "threshold": 7.3,
-      "f1": 0.9474,
-      "precision": 0.9,
+      "threshold": 7.05,
+      "f1": 0.8571,
+      "precision": 0.75,
       "recall": 1.0,
-      "accuracy": 0.9444,
-      "human_fpr": 0.1111
+      "accuracy": 0.8621,
+      "human_fpr": 0.2353
+    },
+    {
+      "threshold": 7.1,
+      "f1": 0.8571,
+      "precision": 0.75,
+      "recall": 1.0,
+      "accuracy": 0.8621,
+      "human_fpr": 0.2353
+    },
+    {
+      "threshold": 7.25,
+      "f1": 0.8727,
+      "precision": 0.7742,
+      "recall": 1.0,
+      "accuracy": 0.8793,
+      "human_fpr": 0.2059
+    },
+    {
+      "threshold": 7.4,
+      "f1": 0.8727,
+      "precision": 0.7742,
+      "recall": 1.0,
+      "accuracy": 0.8793,
+      "human_fpr": 0.2059
+    },
+    {
+      "threshold": 7.5,
+      "f1": 0.8889,
+      "precision": 0.8,
+      "recall": 1.0,
+      "accuracy": 0.8966,
+      "human_fpr": 0.1765
     },
     {
       "threshold": 7.6,
-      "f1": 0.9474,
-      "precision": 0.9,
+      "f1": 0.8889,
+      "precision": 0.8,
       "recall": 1.0,
-      "accuracy": 0.9444,
-      "human_fpr": 0.1111
+      "accuracy": 0.8966,
+      "human_fpr": 0.1765
     },
     {
-      "threshold": 16.5,
-      "f1": 0.973,
-      "precision": 0.9474,
+      "threshold": 7.7,
+      "f1": 0.9231,
+      "precision": 0.8571,
       "recall": 1.0,
-      "accuracy": 0.9722,
-      "human_fpr": 0.0556
+      "accuracy": 0.931,
+      "human_fpr": 0.1176
+    },
+    {
+      "threshold": 7.8,
+      "f1": 0.9231,
+      "precision": 0.8571,
+      "recall": 1.0,
+      "accuracy": 0.931,
+      "human_fpr": 0.1176
+    },
+    {
+      "threshold": 7.9,
+      "f1": 0.9412,
+      "precision": 0.8889,
+      "recall": 1.0,
+      "accuracy": 0.9483,
+      "human_fpr": 0.0882
+    },
+    {
+      "threshold": 8.0,
+      "f1": 0.9412,
+      "precision": 0.8889,
+      "recall": 1.0,
+      "accuracy": 0.9483,
+      "human_fpr": 0.0882
+    },
+    {
+      "threshold": 9.8,
+      "f1": 0.96,
+      "precision": 0.9231,
+      "recall": 1.0,
+      "accuracy": 0.9655,
+      "human_fpr": 0.0588
+    },
+    {
+      "threshold": 11.6,
+      "f1": 0.96,
+      "precision": 0.9231,
+      "recall": 1.0,
+      "accuracy": 0.9655,
+      "human_fpr": 0.0588
+    },
+    {
+      "threshold": 18.5,
+      "f1": 0.9796,
+      "precision": 0.96,
+      "recall": 1.0,
+      "accuracy": 0.9828,
+      "human_fpr": 0.0294
     },
     {
       "threshold": 25.4,
-      "f1": 0.973,
-      "precision": 0.9474,
+      "f1": 0.9796,
+      "precision": 0.96,
       "recall": 1.0,
-      "accuracy": 0.9722,
-      "human_fpr": 0.0556
+      "accuracy": 0.9828,
+      "human_fpr": 0.0294
     },
     {
-      "threshold": 45.6,
+      "threshold": 67.0,
       "f1": 1.0,
       "precision": 1.0,
       "recall": 1.0,
@@ -309,7 +447,7 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 65.8,
+      "threshold": 108.6,
       "f1": 1.0,
       "precision": 1.0,
       "recall": 1.0,
@@ -317,283 +455,379 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 70.75,
-      "f1": 0.9714,
+      "threshold": 109.65,
+      "f1": 0.9787,
       "precision": 1.0,
-      "recall": 0.9444,
-      "accuracy": 0.9722,
+      "recall": 0.9583,
+      "accuracy": 0.9828,
       "human_fpr": 0.0
     },
     {
-      "threshold": 75.7,
-      "f1": 0.9714,
+      "threshold": 110.7,
+      "f1": 0.9787,
       "precision": 1.0,
-      "recall": 0.9444,
-      "accuracy": 0.9722,
+      "recall": 0.9583,
+      "accuracy": 0.9828,
       "human_fpr": 0.0
     },
     {
-      "threshold": 88.2,
-      "f1": 0.9412,
+      "threshold": 111.25,
+      "f1": 0.9565,
       "precision": 1.0,
-      "recall": 0.8889,
-      "accuracy": 0.9444,
+      "recall": 0.9167,
+      "accuracy": 0.9655,
       "human_fpr": 0.0
     },
     {
-      "threshold": 100.7,
-      "f1": 0.9412,
+      "threshold": 111.8,
+      "f1": 0.9565,
       "precision": 1.0,
-      "recall": 0.8889,
-      "accuracy": 0.9444,
+      "recall": 0.9167,
+      "accuracy": 0.9655,
       "human_fpr": 0.0
     },
     {
-      "threshold": 101.35,
+      "threshold": 116.75,
+      "f1": 0.9333,
+      "precision": 1.0,
+      "recall": 0.875,
+      "accuracy": 0.9483,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 121.7,
+      "f1": 0.9333,
+      "precision": 1.0,
+      "recall": 0.875,
+      "accuracy": 0.9483,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 125.3,
       "f1": 0.9091,
       "precision": 1.0,
       "recall": 0.8333,
-      "accuracy": 0.9167,
+      "accuracy": 0.931,
       "human_fpr": 0.0
     },
     {
-      "threshold": 102.0,
+      "threshold": 128.9,
       "f1": 0.9091,
       "precision": 1.0,
       "recall": 0.8333,
-      "accuracy": 0.9167,
+      "accuracy": 0.931,
       "human_fpr": 0.0
     },
     {
-      "threshold": 104.0,
-      "f1": 0.875,
+      "threshold": 133.4,
+      "f1": 0.8837,
       "precision": 1.0,
-      "recall": 0.7778,
-      "accuracy": 0.8889,
+      "recall": 0.7917,
+      "accuracy": 0.9138,
       "human_fpr": 0.0
     },
     {
-      "threshold": 106.0,
-      "f1": 0.875,
+      "threshold": 137.9,
+      "f1": 0.8837,
       "precision": 1.0,
-      "recall": 0.7778,
-      "accuracy": 0.8889,
+      "recall": 0.7917,
+      "accuracy": 0.9138,
       "human_fpr": 0.0
     },
     {
-      "threshold": 106.2,
-      "f1": 0.8387,
+      "threshold": 138.4,
+      "f1": 0.8571,
       "precision": 1.0,
-      "recall": 0.7222,
-      "accuracy": 0.8611,
+      "recall": 0.75,
+      "accuracy": 0.8966,
       "human_fpr": 0.0
     },
     {
-      "threshold": 106.4,
-      "f1": 0.8387,
+      "threshold": 138.9,
+      "f1": 0.8571,
       "precision": 1.0,
-      "recall": 0.7222,
-      "accuracy": 0.8611,
+      "recall": 0.75,
+      "accuracy": 0.8966,
       "human_fpr": 0.0
     },
     {
-      "threshold": 106.65,
+      "threshold": 140.4,
+      "f1": 0.8293,
+      "precision": 1.0,
+      "recall": 0.7083,
+      "accuracy": 0.8793,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 141.9,
+      "f1": 0.8293,
+      "precision": 1.0,
+      "recall": 0.7083,
+      "accuracy": 0.8793,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 144.85,
       "f1": 0.8,
       "precision": 1.0,
       "recall": 0.6667,
-      "accuracy": 0.8333,
+      "accuracy": 0.8621,
       "human_fpr": 0.0
     },
     {
-      "threshold": 106.9,
+      "threshold": 147.8,
       "f1": 0.8,
       "precision": 1.0,
       "recall": 0.6667,
-      "accuracy": 0.8333,
+      "accuracy": 0.8621,
       "human_fpr": 0.0
     },
     {
-      "threshold": 107.25,
-      "f1": 0.7586,
+      "threshold": 149.65,
+      "f1": 0.7692,
       "precision": 1.0,
-      "recall": 0.6111,
-      "accuracy": 0.8056,
+      "recall": 0.625,
+      "accuracy": 0.8448,
       "human_fpr": 0.0
     },
     {
-      "threshold": 107.6,
-      "f1": 0.7586,
+      "threshold": 151.5,
+      "f1": 0.7692,
       "precision": 1.0,
-      "recall": 0.6111,
-      "accuracy": 0.8056,
+      "recall": 0.625,
+      "accuracy": 0.8448,
       "human_fpr": 0.0
     },
     {
-      "threshold": 112.4,
-      "f1": 0.7143,
+      "threshold": 152.0,
+      "f1": 0.7368,
       "precision": 1.0,
-      "recall": 0.5556,
-      "accuracy": 0.7778,
+      "recall": 0.5833,
+      "accuracy": 0.8276,
       "human_fpr": 0.0
     },
     {
-      "threshold": 117.2,
-      "f1": 0.7143,
+      "threshold": 152.5,
+      "f1": 0.7368,
       "precision": 1.0,
-      "recall": 0.5556,
-      "accuracy": 0.7778,
+      "recall": 0.5833,
+      "accuracy": 0.8276,
       "human_fpr": 0.0
     },
     {
-      "threshold": 119.15,
+      "threshold": 155.15,
+      "f1": 0.7027,
+      "precision": 1.0,
+      "recall": 0.5417,
+      "accuracy": 0.8103,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 157.8,
+      "f1": 0.7027,
+      "precision": 1.0,
+      "recall": 0.5417,
+      "accuracy": 0.8103,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 158.35,
       "f1": 0.6667,
       "precision": 1.0,
       "recall": 0.5,
-      "accuracy": 0.75,
+      "accuracy": 0.7931,
       "human_fpr": 0.0
     },
     {
-      "threshold": 121.1,
+      "threshold": 158.9,
       "f1": 0.6667,
       "precision": 1.0,
       "recall": 0.5,
-      "accuracy": 0.75,
+      "accuracy": 0.7931,
       "human_fpr": 0.0
     },
     {
-      "threshold": 121.15,
-      "f1": 0.6154,
+      "threshold": 161.65,
+      "f1": 0.6286,
       "precision": 1.0,
-      "recall": 0.4444,
-      "accuracy": 0.7222,
+      "recall": 0.4583,
+      "accuracy": 0.7759,
       "human_fpr": 0.0
     },
     {
-      "threshold": 121.2,
-      "f1": 0.6154,
+      "threshold": 164.4,
+      "f1": 0.6286,
       "precision": 1.0,
-      "recall": 0.4444,
-      "accuracy": 0.7222,
+      "recall": 0.4583,
+      "accuracy": 0.7759,
       "human_fpr": 0.0
     },
     {
-      "threshold": 121.4,
-      "f1": 0.56,
+      "threshold": 170.55,
+      "f1": 0.5882,
       "precision": 1.0,
-      "recall": 0.3889,
-      "accuracy": 0.6944,
+      "recall": 0.4167,
+      "accuracy": 0.7586,
       "human_fpr": 0.0
     },
     {
-      "threshold": 121.6,
-      "f1": 0.56,
+      "threshold": 176.7,
+      "f1": 0.5882,
       "precision": 1.0,
-      "recall": 0.3889,
-      "accuracy": 0.6944,
+      "recall": 0.4167,
+      "accuracy": 0.7586,
       "human_fpr": 0.0
     },
     {
-      "threshold": 132.95,
+      "threshold": 184.2,
+      "f1": 0.5455,
+      "precision": 1.0,
+      "recall": 0.375,
+      "accuracy": 0.7414,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 191.7,
+      "f1": 0.5455,
+      "precision": 1.0,
+      "recall": 0.375,
+      "accuracy": 0.7414,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 192.85,
       "f1": 0.5,
       "precision": 1.0,
       "recall": 0.3333,
-      "accuracy": 0.6667,
+      "accuracy": 0.7241,
       "human_fpr": 0.0
     },
     {
-      "threshold": 144.3,
+      "threshold": 194.0,
       "f1": 0.5,
       "precision": 1.0,
       "recall": 0.3333,
-      "accuracy": 0.6667,
+      "accuracy": 0.7241,
       "human_fpr": 0.0
     },
     {
-      "threshold": 146.8,
-      "f1": 0.4348,
+      "threshold": 203.95,
+      "f1": 0.4516,
       "precision": 1.0,
-      "recall": 0.2778,
-      "accuracy": 0.6389,
+      "recall": 0.2917,
+      "accuracy": 0.7069,
       "human_fpr": 0.0
     },
     {
-      "threshold": 149.3,
-      "f1": 0.4348,
+      "threshold": 213.9,
+      "f1": 0.4516,
       "precision": 1.0,
-      "recall": 0.2778,
-      "accuracy": 0.6389,
+      "recall": 0.2917,
+      "accuracy": 0.7069,
       "human_fpr": 0.0
     },
     {
-      "threshold": 158.7,
-      "f1": 0.3636,
+      "threshold": 235.05,
+      "f1": 0.4,
       "precision": 1.0,
-      "recall": 0.2222,
-      "accuracy": 0.6111,
+      "recall": 0.25,
+      "accuracy": 0.6897,
       "human_fpr": 0.0
     },
     {
-      "threshold": 168.1,
-      "f1": 0.3636,
+      "threshold": 256.2,
+      "f1": 0.4,
       "precision": 1.0,
-      "recall": 0.2222,
-      "accuracy": 0.6111,
+      "recall": 0.25,
+      "accuracy": 0.6897,
       "human_fpr": 0.0
     },
     {
-      "threshold": 178.95,
+      "threshold": 261.1,
+      "f1": 0.3448,
+      "precision": 1.0,
+      "recall": 0.2083,
+      "accuracy": 0.6724,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 266.0,
+      "f1": 0.3448,
+      "precision": 1.0,
+      "recall": 0.2083,
+      "accuracy": 0.6724,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 295.4,
       "f1": 0.2857,
       "precision": 1.0,
       "recall": 0.1667,
-      "accuracy": 0.5833,
+      "accuracy": 0.6552,
       "human_fpr": 0.0
     },
     {
-      "threshold": 189.8,
+      "threshold": 324.8,
       "f1": 0.2857,
       "precision": 1.0,
       "recall": 0.1667,
-      "accuracy": 0.5833,
+      "accuracy": 0.6552,
       "human_fpr": 0.0
     },
     {
-      "threshold": 202.9,
-      "f1": 0.2,
+      "threshold": 344.95,
+      "f1": 0.2222,
       "precision": 1.0,
-      "recall": 0.1111,
-      "accuracy": 0.5556,
+      "recall": 0.125,
+      "accuracy": 0.6379,
       "human_fpr": 0.0
     },
     {
-      "threshold": 216.0,
-      "f1": 0.2,
+      "threshold": 365.1,
+      "f1": 0.2222,
       "precision": 1.0,
-      "recall": 0.1111,
-      "accuracy": 0.5556,
+      "recall": 0.125,
+      "accuracy": 0.6379,
       "human_fpr": 0.0
     },
     {
-      "threshold": 233.9,
-      "f1": 0.1053,
+      "threshold": 367.45,
+      "f1": 0.1538,
       "precision": 1.0,
-      "recall": 0.0556,
-      "accuracy": 0.5278,
+      "recall": 0.0833,
+      "accuracy": 0.6207,
       "human_fpr": 0.0
     },
     {
-      "threshold": 251.8,
-      "f1": 0.1053,
+      "threshold": 369.8,
+      "f1": 0.1538,
       "precision": 1.0,
-      "recall": 0.0556,
-      "accuracy": 0.5278,
+      "recall": 0.0833,
+      "accuracy": 0.6207,
       "human_fpr": 0.0
     },
     {
-      "threshold": 251.9,
+      "threshold": 375.05,
+      "f1": 0.08,
+      "precision": 1.0,
+      "recall": 0.0417,
+      "accuracy": 0.6034,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 380.3,
+      "f1": 0.08,
+      "precision": 1.0,
+      "recall": 0.0417,
+      "accuracy": 0.6034,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 380.40000000000003,
       "f1": 0.0,
       "precision": 0.0,
       "recall": 0.0,
-      "accuracy": 0.5,
+      "accuracy": 0.5862,
       "human_fpr": 0.0
     }
   ],
@@ -602,7 +836,8 @@
       "file": "ai/a01_marketing_landing.md",
       "label": "ai",
       "register": "marketing",
-      "score": 251.8,
+      "group": "ai",
+      "score": 324.8,
       "verdict": "strong-tell",
       "words": 137
     },
@@ -610,7 +845,8 @@
       "file": "ai/a02_technical_overview.md",
       "label": "ai",
       "register": "technical",
-      "score": 144.3,
+      "group": "ai",
+      "score": 164.4,
       "verdict": "strong-tell",
       "words": 149
     },
@@ -618,7 +854,8 @@
       "file": "ai/a03_blog_productivity.md",
       "label": "ai",
       "register": "casual",
-      "score": 75.7,
+      "group": "ai",
+      "score": 121.7,
       "verdict": "strong-tell",
       "words": 152
     },
@@ -626,7 +863,8 @@
       "file": "ai/a04_email_outreach.md",
       "label": "ai",
       "register": "email",
-      "score": 121.6,
+      "group": "ai",
+      "score": 141.9,
       "verdict": "strong-tell",
       "words": 148
     },
@@ -634,7 +872,8 @@
       "file": "ai/a05_academic_essay.md",
       "label": "ai",
       "register": "academic",
-      "score": 106.4,
+      "group": "ai",
+      "score": 152.5,
       "verdict": "strong-tell",
       "words": 141
     },
@@ -642,7 +881,8 @@
       "file": "ai/a06_casual_listicle.md",
       "label": "ai",
       "register": "casual",
-      "score": 106.0,
+      "group": "ai",
+      "score": 158.9,
       "verdict": "strong-tell",
       "words": 151
     },
@@ -650,7 +890,8 @@
       "file": "ai/a07_business_report.md",
       "label": "ai",
       "register": "business",
-      "score": 149.3,
+      "group": "ai",
+      "score": 194.0,
       "verdict": "strong-tell",
       "words": 134
     },
@@ -658,7 +899,8 @@
       "file": "ai/a08_technical_tutorial.md",
       "label": "ai",
       "register": "technical",
-      "score": 100.7,
+      "group": "ai",
+      "score": 110.7,
       "verdict": "strong-tell",
       "words": 149
     },
@@ -666,7 +908,8 @@
       "file": "ai/a09_marketing_email.md",
       "label": "ai",
       "register": "marketing",
-      "score": 117.2,
+      "group": "ai",
+      "score": 137.9,
       "verdict": "strong-tell",
       "words": 145
     },
@@ -674,7 +917,8 @@
       "file": "ai/a10_academic_intro.md",
       "label": "ai",
       "register": "academic",
-      "score": 107.6,
+      "group": "ai",
+      "score": 138.9,
       "verdict": "strong-tell",
       "words": 144
     },
@@ -682,7 +926,8 @@
       "file": "ai/a11_business_proposal.md",
       "label": "ai",
       "register": "business",
-      "score": 102.0,
+      "group": "ai",
+      "score": 111.8,
       "verdict": "strong-tell",
       "words": 152
     },
@@ -690,7 +935,8 @@
       "file": "ai/a12_blog_finance.md",
       "label": "ai",
       "register": "casual",
-      "score": 65.8,
+      "group": "ai",
+      "score": 108.6,
       "verdict": "strong-tell",
       "words": 152
     },
@@ -698,7 +944,8 @@
       "file": "ai/a13_blog_systems.md",
       "label": "ai",
       "register": "casual",
-      "score": 121.1,
+      "group": "ai",
+      "score": 128.9,
       "verdict": "strong-tell",
       "words": 128
     },
@@ -706,7 +953,8 @@
       "file": "ai/a14_business_strategy.md",
       "label": "ai",
       "register": "business",
-      "score": 168.1,
+      "group": "ai",
+      "score": 176.7,
       "verdict": "strong-tell",
       "words": 116
     },
@@ -714,7 +962,8 @@
       "file": "ai/a15_creative_fiction.md",
       "label": "ai",
       "register": "creative",
-      "score": 106.9,
+      "group": "ai",
+      "score": 147.8,
       "verdict": "strong-tell",
       "words": 159
     },
@@ -722,7 +971,8 @@
       "file": "ai/a16_creative_essay.md",
       "label": "ai",
       "register": "creative",
-      "score": 121.2,
+      "group": "ai",
+      "score": 151.5,
       "verdict": "strong-tell",
       "words": 165
     },
@@ -730,7 +980,8 @@
       "file": "ai/a17_email_outreach.md",
       "label": "ai",
       "register": "email",
-      "score": 189.8,
+      "group": "ai",
+      "score": 213.9,
       "verdict": "strong-tell",
       "words": 166
     },
@@ -738,14 +989,160 @@
       "file": "ai/a18_technical_overview.md",
       "label": "ai",
       "register": "technical",
-      "score": 216.0,
+      "group": "ai",
+      "score": 256.2,
       "verdict": "strong-tell",
       "words": 162
+    },
+    {
+      "file": "ai/a19_technical_overview.md",
+      "label": "ai",
+      "register": "technical",
+      "group": "ai",
+      "score": 365.1,
+      "verdict": "strong-tell",
+      "words": 189
+    },
+    {
+      "file": "ai/a20_business_strategy.md",
+      "label": "ai",
+      "register": "business",
+      "group": "ai",
+      "score": 380.3,
+      "verdict": "strong-tell",
+      "words": 188
+    },
+    {
+      "file": "ai/a21_academic_intro.md",
+      "label": "ai",
+      "register": "academic",
+      "group": "ai",
+      "score": 266.0,
+      "verdict": "strong-tell",
+      "words": 203
+    },
+    {
+      "file": "ai/a22_marketing_launch.md",
+      "label": "ai",
+      "register": "marketing",
+      "group": "ai",
+      "score": 369.8,
+      "verdict": "strong-tell",
+      "words": 192
+    },
+    {
+      "file": "ai/a23_creative_fiction.md",
+      "label": "ai",
+      "register": "creative",
+      "group": "ai",
+      "score": 157.8,
+      "verdict": "strong-tell",
+      "words": 206
+    },
+    {
+      "file": "ai/a24_creative_essay.md",
+      "label": "ai",
+      "register": "creative",
+      "group": "ai",
+      "score": 191.7,
+      "verdict": "strong-tell",
+      "words": 206
+    },
+    {
+      "file": "esl_formal/e01_technical_postgres.md",
+      "label": "human",
+      "register": "technical",
+      "group": "esl",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 185
+    },
+    {
+      "file": "esl_formal/e02_business_supplier.md",
+      "label": "human",
+      "register": "business",
+      "group": "esl",
+      "score": 8.0,
+      "verdict": "watch",
+      "words": 188
+    },
+    {
+      "file": "esl_formal/e03_academic_bilingual.md",
+      "label": "human",
+      "register": "academic",
+      "group": "esl",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 184
+    },
+    {
+      "file": "esl_formal/e04_email_deadline.md",
+      "label": "human",
+      "register": "email",
+      "group": "esl",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 199
+    },
+    {
+      "file": "esl_formal/e05_casual_marathon.md",
+      "label": "human",
+      "register": "casual",
+      "group": "esl",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 175
+    },
+    {
+      "file": "esl_formal/e06_marketing_coffee.md",
+      "label": "human",
+      "register": "marketing",
+      "group": "esl",
+      "score": 7.8,
+      "verdict": "watch",
+      "words": 193
+    },
+    {
+      "file": "esl_formal/e07_technical_rust.md",
+      "label": "human",
+      "register": "technical",
+      "group": "esl",
+      "score": 7.4,
+      "verdict": "watch",
+      "words": 202
+    },
+    {
+      "file": "esl_formal/e08_academic_groundwater.md",
+      "label": "human",
+      "register": "academic",
+      "group": "esl",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 193
+    },
+    {
+      "file": "esl_formal/e09_business_remote.md",
+      "label": "human",
+      "register": "business",
+      "group": "esl",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 207
+    },
+    {
+      "file": "esl_formal/e10_email_intro.md",
+      "label": "human",
+      "register": "email",
+      "group": "esl",
+      "score": 4.8,
+      "verdict": "clean",
+      "words": 208
     },
     {
       "file": "human/h01_technical_postmortem.md",
       "label": "human",
       "register": "technical",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 133
@@ -754,6 +1151,7 @@
       "file": "human/h02_marketing_landing.md",
       "label": "human",
       "register": "marketing",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 124
@@ -762,6 +1160,7 @@
       "file": "human/h03_casual_blog.md",
       "label": "human",
       "register": "casual",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 127
@@ -770,6 +1169,7 @@
       "file": "human/h04_academic_abstract.md",
       "label": "human",
       "register": "academic",
+      "group": "human",
       "score": 25.4,
       "verdict": "strong-tell",
       "words": 118
@@ -778,6 +1178,7 @@
       "file": "human/h05_email_update.md",
       "label": "human",
       "register": "email",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 121
@@ -786,6 +1187,7 @@
       "file": "human/h06_technical_readme.md",
       "label": "human",
       "register": "technical",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 137
@@ -794,6 +1196,7 @@
       "file": "human/h07_casual_review.md",
       "label": "human",
       "register": "casual",
+      "group": "human",
       "score": 7.6,
       "verdict": "watch",
       "words": 132
@@ -802,14 +1205,16 @@
       "file": "human/h08_academic_argument.md",
       "label": "human",
       "register": "academic",
-      "score": 0.0,
-      "verdict": "clean",
+      "group": "human",
+      "score": 7.1,
+      "verdict": "watch",
       "words": 141
     },
     {
       "file": "human/h09_email_pitch.md",
       "label": "human",
       "register": "email",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 144
@@ -818,6 +1223,7 @@
       "file": "human/h10_technical_decision.md",
       "label": "human",
       "register": "technical",
+      "group": "human",
       "score": 7.0,
       "verdict": "watch",
       "words": 143
@@ -826,6 +1232,7 @@
       "file": "human/h11_marketing_announcement.md",
       "label": "human",
       "register": "marketing",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 139
@@ -834,6 +1241,7 @@
       "file": "human/h12_casual_story.md",
       "label": "human",
       "register": "casual",
+      "group": "human",
       "score": 6.8,
       "verdict": "watch",
       "words": 148
@@ -842,6 +1250,7 @@
       "file": "human/h13_business_report.md",
       "label": "human",
       "register": "business",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 198
@@ -850,6 +1259,7 @@
       "file": "human/h14_business_proposal.md",
       "label": "human",
       "register": "business",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 210
@@ -858,6 +1268,7 @@
       "file": "human/h15_business_retro.md",
       "label": "human",
       "register": "business",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 168
@@ -866,6 +1277,7 @@
       "file": "human/h16_casual_blog.md",
       "label": "human",
       "register": "casual",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 194
@@ -874,6 +1286,7 @@
       "file": "human/h17_creative_fiction.md",
       "label": "human",
       "register": "creative",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 214
@@ -882,9 +1295,154 @@
       "file": "human/h18_creative_essay.md",
       "label": "human",
       "register": "creative",
+      "group": "human",
       "score": 0.0,
       "verdict": "clean",
       "words": 228
+    },
+    {
+      "file": "human/h19_technical_migration.md",
+      "label": "human",
+      "register": "technical",
+      "group": "human",
+      "score": 5.2,
+      "verdict": "watch",
+      "words": 192
+    },
+    {
+      "file": "human/h20_business_pricing.md",
+      "label": "human",
+      "register": "business",
+      "group": "human",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 181
+    },
+    {
+      "file": "human/h21_academic_methods.md",
+      "label": "human",
+      "register": "academic",
+      "group": "human",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 182
+    },
+    {
+      "file": "human/h22_marketing_product.md",
+      "label": "human",
+      "register": "marketing",
+      "group": "human",
+      "score": 11.6,
+      "verdict": "watch",
+      "words": 172
+    },
+    {
+      "file": "human/h23_casual_cooking.md",
+      "label": "human",
+      "register": "casual",
+      "group": "human",
+      "score": 7.6,
+      "verdict": "watch",
+      "words": 198
+    },
+    {
+      "file": "human/h24_creative_flash.md",
+      "label": "human",
+      "register": "creative",
+      "group": "human",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 190
+    },
+    {
+      "file": "over_corrected/o01_technical_caching.md",
+      "label": "over_corrected",
+      "register": "technical",
+      "group": "over_corrected",
+      "score": 63.5,
+      "verdict": "strong-tell",
+      "words": 126
+    },
+    {
+      "file": "over_corrected/o02_technical_migration.md",
+      "label": "over_corrected",
+      "register": "technical",
+      "group": "over_corrected",
+      "score": 45.5,
+      "verdict": "strong-tell",
+      "words": 132
+    },
+    {
+      "file": "over_corrected/o03_business_quarterly.md",
+      "label": "over_corrected",
+      "register": "business",
+      "group": "over_corrected",
+      "score": 59.3,
+      "verdict": "strong-tell",
+      "words": 118
+    },
+    {
+      "file": "over_corrected/o04_business_strategy.md",
+      "label": "over_corrected",
+      "register": "business",
+      "group": "over_corrected",
+      "score": 45.5,
+      "verdict": "strong-tell",
+      "words": 132
+    },
+    {
+      "file": "over_corrected/o05_academic_methods.md",
+      "label": "over_corrected",
+      "register": "academic",
+      "group": "over_corrected",
+      "score": 65.9,
+      "verdict": "strong-tell",
+      "words": 129
+    },
+    {
+      "file": "over_corrected/o06_academic_literature.md",
+      "label": "over_corrected",
+      "register": "academic",
+      "group": "over_corrected",
+      "score": 54.3,
+      "verdict": "strong-tell",
+      "words": 138
+    },
+    {
+      "file": "over_corrected/o07_email_outage.md",
+      "label": "over_corrected",
+      "register": "email",
+      "group": "over_corrected",
+      "score": 40.3,
+      "verdict": "strong-tell",
+      "words": 124
+    },
+    {
+      "file": "over_corrected/o08_email_proposal.md",
+      "label": "over_corrected",
+      "register": "email",
+      "group": "over_corrected",
+      "score": 50.4,
+      "verdict": "strong-tell",
+      "words": 139
+    },
+    {
+      "file": "over_corrected/o09_marketing_launch.md",
+      "label": "over_corrected",
+      "register": "marketing",
+      "group": "over_corrected",
+      "score": 60.2,
+      "verdict": "strong-tell",
+      "words": 133
+    },
+    {
+      "file": "over_corrected/o10_marketing_webinar.md",
+      "label": "over_corrected",
+      "register": "marketing",
+      "group": "over_corrected",
+      "score": 51.9,
+      "verdict": "strong-tell",
+      "words": 135
     }
   ],
   "_note": "Authored synthetic calibration corpus; measures internal separation/calibration, not real-world accuracy. Linter is a floor."

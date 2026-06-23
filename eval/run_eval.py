@@ -32,32 +32,44 @@ def build_report():
     records = lib.score_corpus(dap, patterns, labels)
     items = lib.read_corpus(labels)
 
-    n_human = sum(1 for r in records if r["label"] == "human")
-    n_ai = sum(1 for r in records if r["label"] == "ai")
-    default_m = lib.metrics(*lib.confusion(records, lib.DEFAULT_THRESHOLD))
-    best_th, best_m, sweep_rows = lib.sweep(records)
+    # The floor-score classifier is evaluated on the binary human/ai set only.
+    # ESL/formal negatives stay in (label "human") to stress FPR; the
+    # over-corrected costume class is held out and scored separately.
+    binary = lib.binary_records(records)
+    n_human = sum(1 for r in binary if r["label"] == "human")
+    n_ai = sum(1 for r in binary if r["label"] == "ai")
+    default_m = lib.metrics(*lib.confusion(binary, lib.DEFAULT_THRESHOLD))
+    best_th, best_m, sweep_rows = lib.sweep(binary)
 
     cat_points, total_points = lib.category_score_mass(dap, items, patterns)
     by_cat = {c: lib.round4(p / total_points) for c, p in cat_points.items()
               if total_points and p > 0}
 
+    esl_rate, esl_flagged, n_esl = lib.subset_fpr(binary, lib.DEFAULT_THRESHOLD, "esl")
+    costume = lib.costume_eval(dap, items, patterns, lib.DEFAULT_THRESHOLD)
+
     out = {
-        "corpus_size": len(records),
+        "corpus_size": len(binary),
         "n_human": n_human,
         "n_ai": n_ai,
-        "roc_auc": lib.round4(lib.auc(records)),
+        "roc_auc": lib.round4(lib.auc(binary)),
         "confidence_intervals": {
-            "roc_auc": lib.auc_ci(records),
-            "default_f1": lib.f1_ci(records),
-            "default_human_fpr": lib.fpr_ci(records),
+            "roc_auc": lib.auc_ci(binary),
+            "default_f1": lib.f1_ci(binary),
+            "default_human_fpr": lib.fpr_ci(binary),
         },
         "default_threshold": lib.DEFAULT_THRESHOLD,
         "default": default_m,
         "best_threshold": best_th,
         "best": best_m,
-        "by_register": lib.metrics_by_register(records, lib.DEFAULT_THRESHOLD),
+        "by_register": lib.metrics_by_register(binary, lib.DEFAULT_THRESHOLD),
         "by_category_ai_share": dict(sorted(by_cat.items(),
                                             key=lambda kv: -kv[1])),
+        "hard_negatives": {
+            "esl_formal": {"fpr": lib.round4(esl_rate), "flagged": esl_flagged,
+                           "n": n_esl, "threshold": lib.DEFAULT_THRESHOLD},
+            "over_corrected": costume,
+        },
         "sweep": [{"threshold": th, "f1": m["f1"], "precision": m["precision"],
                    "recall": m["recall"], "accuracy": m["accuracy"],
                    "human_fpr": m["human_subset_false_positive_rate"]}
@@ -128,6 +140,17 @@ def print_report(out):
     print("  human-FPR  %.3f  [%.3f, %.3f]" % (ci["default_human_fpr"]["point"],
           ci["default_human_fpr"]["lo"], ci["default_human_fpr"]["hi"]))
     print("  Note: intervals reflect resampling variance of an AUTHORED corpus.")
+    print()
+    hn = out["hard_negatives"]
+    esl = hn["esl_formal"]
+    oc = hn["over_corrected"]
+    print("Hard negatives (threshold %.1f):" % out["default_threshold"])
+    print("  ESL/formal-human FPR: %.3f  (%d of %d flagged)  [lower is better; these are humans]"
+          % (esl["fpr"], esl["flagged"], esl["n"]))
+    print("  Over-corrected 'anti-AI costume' recall: %.3f flagged, %.3f trip a costume category"
+          % (oc["flagged_rate"] or 0.0, oc["costume_category_rate"] or 0.0))
+    print("    (%d of %d caught by over_correction/internet_tells)  [higher is better]"
+          % (oc["costume_caught"], oc["n"]))
     print()
     print("Note: this corpus is small and authored to exhibit/avoid the exact")
     print("tells the linter scores. These numbers measure calibration, not")

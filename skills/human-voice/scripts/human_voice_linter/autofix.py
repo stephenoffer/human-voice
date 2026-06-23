@@ -21,7 +21,7 @@ def _match_case(original, replacement):
 
 # Only 1:1 lexical swaps with a concrete replacement are auto-fixable. "cut"
 # suggestions and structural tells need human judgment and are never auto-applied.
-SAFE_FIX_KEYS = ("filler", "jargon", "redundancy")
+SAFE_FIX_KEYS = ("filler", "soft_filler", "jargon", "redundancy")
 
 # Registers where decorative emoji can be legitimate (casual/social copy), so the
 # autofixer leaves them alone; everywhere else it strips them.

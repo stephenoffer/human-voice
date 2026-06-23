@@ -1,12 +1,14 @@
-<!-- Register: marketing. Linter: before 253.3 strong-tell -> after 0.0 clean. -->
+<!-- Register: marketing. Linter: before 253.3 strong-tell -> after clean. -->
 <!-- This is the AFTER: conversational, addresses "you", concrete, no hype. -->
+<!-- Also avoids the "second AI dialect": no ", and" splice rhythm, no stacked -->
+<!-- "X is Y" copulas, no triads, no "[thing] lives in [place]" locative. -->
 
 # Your team's work, in one place
 
-You've got a project living in five tools at once. The brief is in email, the files are in chat, the deadline is in someone's head. We built this so you can stop hunting.
+Your team runs one project through five tools at once. The brief went out by email last week. The files got buried in some chat thread nobody can dig up now, which is the whole problem with spreading work across apps that never talk to each other. So we built one place to end the hunting.
 
-Put your tasks and files on one board, with the conversation right beside them. When a teammate updates something, you see it. When a due date moves, the calendar moves with it. No more pinging three people to find the latest version.
+Put your tasks and files on one board. Keep the conversation right beside them. A teammate updates something? You see it. A due date moves? So does the calendar. No more pinging three people to find out which version is the latest.
 
-Connect the apps you already use. Slack, Google Drive, GitHub, and a few dozen others plug in, so you keep your workflow instead of relearning one.
+Already work in Slack, Drive, or GitHub? They plug in. You keep the workflow you have instead of learning ours.
 
-Start free with up to five people. Add the rest when you're ready.
+Start free with up to five people. Add the rest whenever you're ready.

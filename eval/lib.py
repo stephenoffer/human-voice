@@ -70,26 +70,88 @@ def load_labels():
         return json.load(fh)["labels"]
 
 
+# Labels carry an optional "group" tag for hard-negative subsets. It defaults to
+# the label, so the binary human/ai corpus is unchanged. "esl" marks careful
+# non-native / formal-human negatives (still label "human", tracked for a
+# dedicated FPR). "over_corrected" marks the anti-AI-costume class (its own label
+# and directory), excluded from the binary metrics and scored on its own.
+BINARY_LABELS = ("ai", "human")
+HARD_NEG_DIRS = ("esl_formal", "over_corrected")
+
+
+def _group_of(meta):
+    return meta.get("group", meta["label"])
+
+
 def read_corpus(labels):
-    """Return [{file, label, register, text}, ...] sorted by file."""
+    """Return [{file, label, register, group, text}, ...] sorted by file."""
     items = []
     for rel, meta in sorted(labels.items()):
         with open(os.path.join(CORPUS, rel), encoding="utf-8") as fh:
             items.append({"file": rel, "label": meta["label"],
-                          "register": meta["register"], "text": fh.read()})
+                          "register": meta["register"], "group": _group_of(meta),
+                          "text": fh.read()})
     return items
 
 
 def score_corpus(dap, patterns, labels):
-    """Per-file records: file, label, register, score, verdict, words."""
+    """Per-file records: file, label, register, group, score, verdict, words."""
     records = []
     for item in read_corpus(labels):
         res = dap.lint(item["text"], register=item["register"], dialect=None,
                        patterns=patterns)
         records.append({"file": item["file"], "label": item["label"],
-                        "register": item["register"], "score": res["score"],
-                        "verdict": res["verdict"], "words": res["words"]})
+                        "register": item["register"], "group": item["group"],
+                        "score": res["score"], "verdict": res["verdict"],
+                        "words": res["words"]})
     return records
+
+
+def binary_records(records):
+    """Just the human/ai records the floor-score classifier is evaluated on."""
+    return [r for r in records if r["label"] in BINARY_LABELS]
+
+
+def subset_fpr(records, threshold, group=None):
+    """False-positive rate over human records (optionally one group, e.g. esl).
+
+    Every record considered here is label 'human', so a score at/above the
+    threshold is a false positive. Returns (rate, flagged, n).
+    """
+    subset = [r for r in records if r["label"] == "human"
+              and (group is None or r["group"] == group)]
+    flagged = sum(1 for r in subset if r["score"] >= threshold)
+    n = len(subset)
+    return (flagged / n if n else 0.0), flagged, n
+
+
+def costume_eval(dap, items, patterns, threshold):
+    """Evaluate the over-corrected ('anti-AI costume') class.
+
+    These are human-authored but should be FLAGGED, so we report recall: the
+    fraction scoring at/above threshold, and the fraction that specifically
+    trips a costume category (over_correction or internet_tells). Excluded from
+    the binary AUC so they never pollute precision.
+    """
+    costume_cats = {"over_correction", "internet_tells"}
+    targets = [it for it in items if it["label"] == "over_corrected"]
+    n = len(targets)
+    flagged = caught = 0
+    for it in targets:
+        hits, _report, _words = dap.analyze(it["text"], it["register"], None, patterns)
+        sc = dap.score(hits, _words, dap.resolve_weights(patterns))
+        if sc >= threshold:
+            flagged += 1
+        if any(h.category in costume_cats for h in hits):
+            caught += 1
+    return {
+        "n": n,
+        "flagged_rate": round4(flagged / n) if n else None,
+        "costume_category_rate": round4(caught / n) if n else None,
+        "flagged": flagged,
+        "costume_caught": caught,
+        "threshold": threshold,
+    }
 
 
 def analyze_corpus(dap, items, patterns):
@@ -356,7 +418,7 @@ def validate_corpus(labels, dap):
     """Return a list of corpus-integrity problems (empty = OK)."""
     problems = []
     disk = set()
-    for sub in ("ai", "human"):
+    for sub in ("ai", "human") + HARD_NEG_DIRS:
         d = os.path.join(CORPUS, sub)
         if os.path.isdir(d):
             for fn in os.listdir(d):
@@ -369,8 +431,8 @@ def validate_corpus(labels, dap):
         problems.append("LABELS.json entry has no file: %s" % dangling)
     registers = set(getattr(dap, "REGISTERS", []))
     for rel, meta in sorted(labels.items()):
-        if meta.get("label") not in ("ai", "human"):
-            problems.append("%s: label must be 'ai' or 'human'" % rel)
+        if meta.get("label") not in ("ai", "human", "over_corrected"):
+            problems.append("%s: label must be 'ai', 'human', or 'over_corrected'" % rel)
         if registers and meta.get("register") not in registers:
             problems.append("%s: unknown register %r" % (rel, meta.get("register")))
     return problems
@@ -385,4 +447,6 @@ __all__ = [
     "candidate_thresholds", "sweep", "auc", "metrics_by_register",
     "category_score_mass", "patterns_with_zeroed", "bootstrap_ci", "auc_ci",
     "f1_ci", "fpr_ci", "compare_results", "compare_ablation", "validate_corpus",
+    "BINARY_LABELS", "HARD_NEG_DIRS", "binary_records", "subset_fpr",
+    "costume_eval",
 ]

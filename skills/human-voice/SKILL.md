@@ -1,6 +1,7 @@
 ---
 name: human-voice
-description: Use when generating or rewriting reports, documentation, or any prose so it does not read as AI-written — removes hedging, em-dash overuse, filler ("delve", "leverage", "seamless"), rule-of-three padding, bold-bullet listicles, meta-commentary, and vacuity, without altering facts, numbers, code, or citations. Accepts a file path or pasted text.
+description: Use when generating or rewriting reports, documentation, or any prose so it does not read as AI-written — removes hedging, em-dash overuse, filler ("delve", "leverage", "seamless"), rule-of-three padding, bold-bullet listicles, meta-commentary, sycophancy, and vacuity, without altering facts, numbers, code, or citations. Accepts a file path or pasted text.
+when_to_use: When prose "sounds like AI" or "sounds like ChatGPT", when humanizing or de-slopping a draft, when a report/email/README/landing-page reads robotic, or when drafting copy that should read human from the start. Not for: translation, summarization, or grammar-only fixes.
 user-invokable: true
 argument-hint: <file-path | pasted-text> [fix|generate] [register: technical|business|marketing|academic|casual|creative]
 license: MIT
@@ -57,6 +58,22 @@ Detectors are also demonstrably unreliable in ways that matter ethically: Liang
 et al. (2023) found they disproportionately misclassify non-native-English
 writing as AI. That is the strongest reason no detector is ground truth, and
 another reason the goal is genuinely better writing, not a passing score.
+
+## Weight by what readers catch, not what a scanner matches
+
+The tells readers actually *cite* and the tells a keyword scanner *matches*
+diverge sharply (a ~90k-post study of how people spot AI writing). Generic words
+— `however`, `thus`, `hence`, `nuanced`, `comprehensive`, `robust`, `when it
+comes to` — match constantly but are cited as a tell almost never; people just
+write that way, and flagging them is how detectors wrongly catch careful and
+non-native writers. So the linter parks them in `soft_filler`/`transitions` at a
+low weight. What readers *do* catch is structural: flat uniform rhythm, the "not
+just X, it's Y" antithesis, the five-paragraph "in conclusion" mold, **sycophancy**
+("great question!", reflexive "you're absolutely right"), and **saying nothing at
+length** (fluent, confident prose that makes no claim). The last two are the two
+highest tells no word list can see — only your read catches them. Fix structure
+and substance first; treat a generic-word hit as a whisper, not a verdict. Full
+rationale and the weight tiers: [`references/cited-vs-matched.md`](references/cited-vs-matched.md).
 
 ## Non-negotiable operating principles
 
@@ -117,7 +134,10 @@ anything that resolves to an existing path as the input file, not a mode.
   rewrite the supplied text to remove tells while preserving every invariant.
 - **`generate`** (when the input is a brief/spec, or the user says "write" /
   "draft"): produce new copy that reads human from the first draft, then run it
-  through the same self-critique loop before returning it.
+  through the same self-critique loop before returning it. Load
+  [`references/structural-craft.md`](references/structural-craft.md) for the
+  generative moves (vary length and density, don't follow the outline, get
+  specific) — the linter catches tells but can't teach voice.
 
 **Resolution decision tree:**
 
@@ -205,8 +225,14 @@ GOOD pairs for every category is in
   `--fix` autofixer rewrites em-dashes, `--`, spaced hyphens, and non-numeric
   en-dashes to commas automatically (skipped in `creative`). See category 9 in
   `references/ai-tells.md`.
-- **Rule of three everywhere** ("fast, reliable, and scalable") → vary to two or
-  four, or a sentence.
+- **Rule of three everywhere** ("fast, reliable, and scalable", and the
+  noun-phrase kind: "encryption at rest, row-level access control, and audit
+  logging") → vary to two or four, or a sentence.
+- **The "second dialect"** — what's left after the obvious slop is gone: a
+  uniform ", and" splice rhythm, stacked "[noun] is [noun]" copulas, and
+  "[thing] lives in [place]" locatives ("a project living in five tools"). Trade
+  the slop signature for a *voice*, not a tidier signature. See
+  [`references/structural-craft.md`](references/structural-craft.md).
 - **Bold-lead-in bullets** (`- **Term:** ...` on every item) → convert some to
   prose; drop ornamental bold.
 - **Meta-commentary** ("This report aims to / will explore") → state the finding.
@@ -240,10 +266,31 @@ GOOD pairs for every category is in
   the subject and name the thing.
 - **Fabricated specificity** ("up to 40%") with no source → cite or cut; never
   invent.
+- **Sycophancy** ("Great question!", "You're absolutely right", "Good catch",
+  "I'd be happy to help") → cut entirely; open on the content. One of the
+  highest-cited tells, and a word list barely catches it.
+- **Aidiolect phrases** ("a testament to", "speaks volumes", "the complex
+  interplay", "faced numerous challenges", "as a powerful reminder") → multi-word
+  tics the model overuses at thousands of times the human rate; rewrite the claim.
+- **Cliché metaphor** ("building blocks", "the foundation of", "landscape of",
+  "double-edged sword", "tip of the iceberg") → literal or domain-specific
+  language; if the metaphor fits any topic, it fits none.
+- **Significance inflation** ("opens new avenues", "paves the way", "cannot be
+  overstated", "now more than ever") → state the finding; match claim to evidence.
+- **Five-paragraph mold** (intro previews, three even body blocks, "In
+  conclusion…" recap) → let the structure follow the argument; end on the last
+  real point.
+- **Over-correction costume** (forced all-lowercase, sprinkled "lol/idk/honestly?",
+  staccato fragments, conspicuous dash-avoidance, "it's giving", "load-bearing")
+  → the anti-AI costume is its own tell; write a real voice, don't just delete
+  the old one. See [`references/over-correction.md`](references/over-correction.md).
 - **Puffery / hype** ("stands as a testament", "plays a vital role",
   "world-class", "rich tapestry") → a concrete claim, or cut.
 - **Tailing significance clause** ("…, highlighting its commitment to X") → cut
   the empty clause or give a real consequence.
+- **Cowardly passives** ("It can be seen that…", "The decision was made to…",
+  "Mistakes were made") → name the actor. (Actor-irrelevant passive — "deployed
+  at 3 AM" — is fine.)
 - **Vague attribution** ("studies suggest", "experts believe", "observers say")
   → name the real source or cut.
 - **Redundancy** ("end result", "close proximity", "new innovation") → cut the
@@ -379,6 +426,15 @@ vibe.
 - in `fix` mode, expect to cut 15–25% of the words;
 - no run of 3+ same-length sentences — read the length sequence aloud in your head.
 
+**Final self-check** (the rhythm is the tell your ear catches before your eye):
+read the rewrite aloud. If it sounds like a metronome, vary it. Then scan: (a)
+shortest vs longest sentence — under a ~15-word gap? add a short punch; (b) any
+three consecutive sentences sharing a shape (all Subject-Verb-Object)? break one;
+(c) did the register shift at least once between plain and precise? (d) em-dashes
+> 1 outside `creative`? replace the extras; (e) any sycophancy, "in conclusion"
+recap, or "not X, it's Y"? cut it; (f) one concrete detail a generic model
+wouldn't have written? If a Reddit commenter would call it slop, it isn't done.
+
 Then:
 
 1. **Run the hallucination pass.** Diff the rewrite's claim inventory against the
@@ -505,7 +561,12 @@ category for it ("synergy", "leverage", "circle back", "move the needle",
   like stop-slop reach for "kill all adverbs / no em dashes ever / always two not
   three"; those manufacture a fresh uniform signature, which is exactly principle
   2's failure mode.)
-- **Don't** add slang, jokes, typos, or forced first-person voice.
+- **Don't** add slang, jokes, typos, or forced first-person voice. Forced
+  all-lowercase, sprinkled "lol/honestly?", staccato fragments, and conspicuous
+  dash-avoidance are the **anti-AI costume** — a fresh uniform signature the
+  linter now flags as `over_correction`/`internet_tells` (muted only in
+  `casual`/`creative`). The fix is a real deliberate voice, not the absence of
+  the old tell. See [`references/over-correction.md`](references/over-correction.md).
 - **Don't** cut precision a technical doc needs in the name of "plain language".
 
 ## Workflow

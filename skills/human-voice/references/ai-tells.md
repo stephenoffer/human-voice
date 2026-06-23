@@ -1,8 +1,10 @@
 # AI Tells — Full Catalog
 
-The complete reference the skill loads during a rewrite. Eight categories,
-ordered by depth: substance first (what no linter catches), diction last (the
-shallowest). Each entry gives the tell and at least one `BAD →` / `GOOD →` pair.
+The complete reference the skill loads during a rewrite. Ordered by depth:
+substance first (what no linter catches), diction last (the shallowest), with the
+v0.4.0 cited-tell categories — cliché, naming, inflation, and rhetoric
+calibration — added as category 10. Each entry gives the tell and at least one
+`BAD →` / `GOOD →` pair.
 
 Treat lexical lists as a floor, never proof. Banned-word lists age — the PubMed
 excess-vocabulary study (arXiv 2406.07016) measured a roughly 25× jump in
@@ -482,6 +484,88 @@ repeating a sentence shape is the tell.
 
 ---
 
+## 10. Cliché, naming, and inflation
+
+The categories below were added in v0.4.0 from the cited-tell evidence
+(JCarterJohnson/vibecoded-design-tells, MIT; oberskills, MIT) and Pangram Labs'
+phrase-overuse measurements. They sit between diction and substance: each is a
+specific, high-frequency reflex a reader recognizes on sight.
+
+**Cliché metaphor** — the stock figurative phrase reached for instead of the
+literal fact. AI defaults to a small set: *foundation*, *landscape*, *journey*,
+*double-edged sword*, *tapestry*. The linter flags these as `cliche_metaphor`.
+
+- BAD → "Building on this foundation, we navigate the evolving landscape of our
+  data journey, a double-edged sword of opportunity and risk."
+- GOOD → "We added partitioning to the existing schema. It cut query time but
+  doubled the write path's complexity."
+
+**Name selection** — invented people skew hard to a few names. AI reaches for
+*Emily* and *Sarah* in 63-70% of generated examples and over-uses the *Dr.* title.
+A cast that is all Emilys and Doctors reads as synthetic. The linter flags this as
+`name_selection`.
+
+- BAD → "Dr. Emily Carter and Dr. Sarah Chen led the study."
+- GOOD → use varied, ordinary names, or — better — name the real person, or cut
+  the example. Never invent a person to add texture (see the anti-hallucination
+  protocol).
+
+**Significance inflation** — empty phrases that assert importance without earning
+it: *opens new avenues*, *paves the way*, *cannot be overstated*, *marks a turning
+point*. The linter flags these as `significance_inflation`.
+
+- BAD → "This opens new avenues and paves the way for progress whose importance
+  cannot be overstated."
+- GOOD → name the consequence: "This lets the next team skip the manual ETL step,
+  which was the slowest part of onboarding."
+
+**Superlative creep** — claims that outrun the evidence. *Best*, *most powerful*,
+*revolutionary*, *unprecedented* applied to ordinary results. Match the claim to
+what you measured.
+
+- BAD → "This is the most powerful, revolutionary approach to caching available."
+- GOOD → "This cache cut p99 read latency from 80ms to 30ms on our workload."
+
+**Sycophancy** — reflexive praise and agreement bleeding into prose: "Great
+question!", "You're absolutely right", "Excellent point". One of the top cited
+tells, and no word list catches all of it; read for the reflex. The linter flags
+the stock openers as part of `chatbot_scaffold`.
+
+- BAD → "Great question! You're absolutely right that caching matters here."
+- GOOD → "Caching matters here because reads outnumber writes ten to one."
+
+**Aidiolect phrases** — multi-word collocations AI over-produces by huge margins.
+Pangram Labs measured the overuse rate against a human baseline: *as a poignant*
+~49,000x, *as a powerful reminder* ~43,000x, *faced numerous challenges* ~30,000x,
+*the complex interplay* ~21,000x, *vibrant tapestry* ~17,000x, *in the
+ever-evolving* ~11,000x. Any of these is a near-certain tell. The linter flags
+them as `aidiolect`.
+
+- BAD → "In the ever-evolving landscape, the complex interplay of forces is a
+  powerful reminder of our vibrant tapestry."
+- GOOD → cut every phrase and state the actual point, or delete the sentence.
+
+**Rhetoric calibration** — the governing rule for this whole section: **claim
+strength must not exceed evidence strength.** Two-thirds of AI outputs are
+rhetorically stronger than the human original they replace; rhetoric intensity
+correlates with estimated LLM usage at r=0.904. So the safest default is to
+*understate*. If you measured a 40% drop, say 40%, not "dramatic." If you have one
+example, don't say "consistently." The linter's significance, superlative, and
+aidiolect checks all serve this one rule.
+
+- BAD → "This revolutionary result dramatically transforms how we think about
+  latency."
+- GOOD → "This cut median latency by a third in our one test; we haven't checked
+  it under sustained load."
+
+Two facts to keep in view. Detection from **grammar alone reaches 88.85% F1** — so
+structure and cadence matter more than any single word. And RLHF causes roughly
+**76.2% diversity loss**, which is *why* models converge on these same few
+metaphors, names, and intensifiers: the training that makes a model agreeable also
+makes it predictable.
+
+---
+
 ## Detector landscape (what we're up against, and the honest limits)
 
 We target the *causes* detectors latch onto, not the detectors themselves. None
@@ -519,6 +603,15 @@ is ground truth; all have real false-positive rates.
 - **Stylometry**: sentence/word length, type-token ratio, punctuation profile,
   function-word distribution. Addressed by burstiness, TTR, em-dash/punctuation
   profile, opener-entropy, and uniform-opener checks.
+- **Pangram Labs**: a trained classifier whose published work also gives us
+  hard frequency data on the *causes*. It measured the em dash at two to five
+  times the human rate (the single most-cited tell) and quantified phrase
+  overuse against a human baseline: *as a poignant* ~49,000x, *as a powerful
+  reminder* ~43,000x, *faced numerous challenges* ~30,000x, *the complex
+  interplay* ~21,000x, *vibrant tapestry* ~17,000x, *in the ever-evolving*
+  ~11,000x. These feed the `aidiolect`, `dash_style`, and significance checks
+  directly. As with every detector, treat the multipliers as a dated snapshot,
+  not a constant.
 
 Our local regex linter does **not** compute perplexity or curvature. It catches
 the surface features that *correlate* with what these systems measure. The real

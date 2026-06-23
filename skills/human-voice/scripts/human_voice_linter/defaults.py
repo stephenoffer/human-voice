@@ -16,7 +16,7 @@ DEFAULTS: dict = {
     # Numeric knobs read by the checks. Densities are per-1000-words; *_floor are
     # minimum acceptable values (firing below the floor); *_ratio are fractions.
     "thresholds": {
-        "em_dash_per_1k_words": 2.0,
+        "em_dash_per_1k_words": 1.5,
         "burstiness_cov_floor": 0.4,
         "ttr_floor": 0.38,
         "ngram_min_count": 4,
@@ -32,23 +32,39 @@ DEFAULTS: dict = {
         "list_item_cov_floor": 0.22,
         "wh_opener_ratio": 0.3,
         "wh_opener_run": 3,
+        "superlative_per_1k": 12.0,
     },
     # Category weights feed the single "floor" score (tells per 1000 words).
-    # Structure and substance-adjacent tells weigh more than lone diction hits.
+    # Weights are tiered by what readers actually *cite* as an AI tell, not by
+    # what a keyword scanner *matches* (the ~90k-post Reddit study found these
+    # diverge: generic words like "however/thus/nuanced/comprehensive" match
+    # often but are cited ~0% of the time, while structural tells dominate the
+    # cited ranking). See references/cited-vs-matched.md.
+    #   Tier A (>= 2.0): high-cited structural/artifact tells.
+    #   Tier B (1.5):    moderate.
+    #   Tier C (<= 0.5): high-match/low-cited generic diction (kept as a soft
+    #                    signal, never allowed to dominate the score).
     "category_weights": {
         "filler": 1.0,
+        "soft_filler": 0.5,
         "jargon": 1.0,
-        "transitions": 1.0,
+        "transitions": 0.5,
         "meta_commentary": 1.5,
         "chatbot_scaffold": 2.0,
+        "sycophancy": 2.0,
         "hedging": 1.0,
         "puffery": 1.5,
         "vague_attribution": 1.5,
         "redundancy": 1.0,
+        "cowardly_passive": 1.0,
         "self_identifying": 4.0,
-        "antithesis": 1.5,
+        "antithesis": 2.0,
+        "aidiolect": 2.0,
+        "cliche_metaphor": 1.5,
+        "internet_tells": 1.0,
+        "significance_inflation": 1.5,
         "em_dash": 2.0,
-        "bold_bullets": 1.5,
+        "bold_bullets": 2.0,
         "rule_of_three": 1.0,
         "uniform_openers": 1.0,
         "formatting": 1.0,
@@ -66,6 +82,12 @@ DEFAULTS: dict = {
         "list_uniformity": 1.0,
         "circular_conclusion": 1.5,
         "parallel_structure": 1.0,
+        "svo_monotony": 1.0,
+        "five_paragraph_shape": 2.0,
+        "hypophora": 1.0,
+        "superlative_creep": 1.0,
+        "name_selection": 0.5,
+        "over_correction": 1.0,
         "dash_style": 0.5,
         "doubled_word": 1.0,
         "mechanics": 0.5,
