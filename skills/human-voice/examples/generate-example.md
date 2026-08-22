@@ -29,7 +29,7 @@ placeholder, never an invented number.
 
 The brief gives the feature, the two platforms, and the failure it fixes, so all
 of that is stated plainly. The brief explicitly says there are no adoption
-numbers yet, so the draft makes **no** quantitative claim — no "thousands of
+numbers yet, so the draft makes **no** quantitative claim: no "thousands of
 users", no "99% sync success". If a reviewer wanted a metric, the honest move is
 a placeholder:
 

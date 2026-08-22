@@ -76,6 +76,16 @@ def parse_directives(text: str) -> dict:
             start = open_lines.pop()
             for ln in range(start, line + 1):
                 _merge(ignored, ln, start_cats)
+    # An unterminated ignore-start used to suppress nothing at all, which is the
+    # opposite of what the author asked for and gave no sign anything was wrong.
+    # Run it to the end of the document, the way a block comment behaves.
+    if open_cats:
+        last_line = text.count("\n") + 1
+        while open_cats:
+            cats = open_cats.pop()
+            start = open_lines.pop()
+            for ln in range(start, last_line + 1):
+                _merge(ignored, ln, cats)
     return ignored
 
 

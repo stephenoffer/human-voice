@@ -11,4 +11,4 @@ Buy the mat before you buy the desk. I'm serious. The standing part isn't what w
 
 Did it fix my back? Sort of. I move more now, shifting around instead of fossilizing in a chair, and that helps. But it didn't replace the actual problem, which was that I never went outside. The desk made me feel virtuous enough to skip the walk, which is exactly backwards.
 
-Would I do it again? Yeah. Not because it's magic, but because standing made the bad afternoons less foggy. That's a small thing, and it was enough.
+Would I do it again? Yeah. Standing made the bad afternoons less foggy. That's a small thing, and it was enough.

@@ -28,8 +28,15 @@ jobs:
         run: |
           python3 eval/run_eval.py --check
           python3 eval/ablation.py --check
+      # Independent negative set: human prose nobody wrote for this repository.
+      - name: False-positive sweep over stdlib docstrings
+        run: python3 eval/human_baseline.py --check
       - name: Detector harness smoke (offline, no network)
         run: python3 eval/detector_harness.py
+      # A skill that tells writers to drop the em-dash must not ship docs full of
+      # them. SKILL.md had 66 before v0.6. This gate keeps that from returning.
+      - name: Dogfood the linter on the project's own prose
+        run: make dogfood
 
   quality:
     runs-on: ubuntu-latest

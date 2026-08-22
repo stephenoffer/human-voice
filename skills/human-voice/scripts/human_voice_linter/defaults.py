@@ -33,8 +33,56 @@ DEFAULTS: dict = {
         "wh_opener_ratio": 0.3,
         "wh_opener_run": 3,
         "superlative_per_1k": 12.0,
+        # Modern instruction-tuned syntax. Every one of these constructions is
+        # ordinary English on its own, so the thresholds sit well above the rate a
+        # human writer hits by accident; the tell is the stacking, not the token.
+        "cleft_per_1k": 6.0,
+        "participial_tail_per_1k": 6.0,
+        "clause_splice_per_1k": 8.0,
+        # Over-correction guard. Above this semicolon rate WITH no dash anywhere,
+        # the document has had one mark substituted for another wholesale. The
+        # human maximum on this repo's corpus is 5.5.
+        "semicolon_per_1k_max": 7.0,
+        # Copula ("to be") as the main verb. The human maximum measured here is
+        # 67.8 per 1,000 words, so the floor sits above every observed human
+        # sample with margin and only catches genuinely glossary-shaped prose.
+        "copula_per_1k": 78.0,
+        # Assistant-shape thresholds. Detectors keyed to post-training artifacts
+        # respond to markdown scaffolding density more than to word choice
+        # (base models, which lack it, read as human >96% of the time), so these
+        # measure how much the document looks like a chat response rather than a
+        # written one. Ceilings, not floors: firing above the value.
+        "headings_per_1k_words": 14.0,
+        "bullet_line_ratio": 0.35,
+        "bold_spans_per_1k_words": 12.0,
+        # Sentence-length distribution shape. CoV alone is fooled by one long
+        # outlier; these measure whether the text has real short punches and real
+        # long sentences, or collapses into the 12-24 word band LLMs prefer.
+        "short_sentence_ratio_floor": 0.12,
+        "mid_band_ratio_max": 0.72,
+        "mid_band_low": 12,
+        "mid_band_high": 26,
+        "short_sentence_max_words": 8,
     },
-    # Category weights feed the single "floor" score (tells per 1000 words).
+    # How the floor score is assembled. See score.score for why document-level
+    # findings cannot share a per-1000-word denominator with instance findings.
+    "scoring": {
+        "doc_hit_points": 2.0,
+        "category_cap": 15.0,
+        # Runaway guard for document-level findings, mirroring category_cap for
+        # instance findings: at most this many line-0 hits per category count
+        # toward the score. Today no check emits more than four, so this changes
+        # nothing; it stops a future check from turning one finding into ten.
+        "doc_cap_per_category": 4,
+        # Minimum denominator for per-1000-word instance density. See score.score:
+        # a 150-word note with two hits is not "13 per 1000 words" in any sense a
+        # reader would recognize, and treating it that way made short documents
+        # score higher than long ones carrying the same defect more often.
+        "density_floor_words": 300,
+    },
+    # Category weights feed the single "floor" score. Document-level findings
+    # contribute weight * doc_hit_points; instance findings a per-1000-word
+    # density capped at category_cap. See score.score.
     # Weights are tiered by what readers actually *cite* as an AI tell, not by
     # what a keyword scanner *matches* (the ~90k-post Reddit study found these
     # diverge: generic words like "however/thus/nuanced/comprehensive" match
@@ -97,6 +145,19 @@ DEFAULTS: dict = {
         "vague_declarative": 1.5,
         "negative_listing": 1.0,
         "dramatic_fragmentation": 0.5,
+        # Tier A. The strongest evidenced detector signal is the shape of an
+        # assistant response, not its vocabulary; see references/what-detectors-see.md.
+        "assistant_shape": 2.5,
+        "sentence_shape": 2.0,
+        # Modern syntactic signature. Tier B: each is real English used well by
+        # humans, so the weights stay moderate and the checks stay count-gated.
+        "cleft": 1.5,
+        "participial_tail": 2.0,
+        "copula_density": 1.0,
+        "clause_splice": 0.5,
+        "paragraph_openers": 1.5,
+        "bullet_openers": 1.0,
+        "noun_chain": 0.5,
     },
     # Verdict bands (upper-exclusive): score < 5 reads clean, < 15 worth a look,
     # otherwise a strong floor signal. The top band is open-ended.

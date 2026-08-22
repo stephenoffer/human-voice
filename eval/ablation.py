@@ -44,6 +44,7 @@ def build_results():
     base_acc = base_best["accuracy"]
 
     cat_points, total_points = lib.category_score_mass(dap, items, patterns)
+    mod_points, mod_total = lib.category_score_mass(dap, items, patterns, label="ai_modern")
 
     rows = []
     for category in sorted(dap.CATEGORY_WEIGHTS):
@@ -60,8 +61,14 @@ def build_results():
             "best_f1_acc": best["accuracy"],
             "acc_drop": lib.round4(base_acc - best["accuracy"]),
             "ai_score_share": lib.round4(pts / total_points) if total_points else 0.0,
+            # Share of the REALISTIC modern-AI score mass. This is the column
+            # that says which categories reach text a current model actually
+            # writes, as opposed to the 2023-era caricature in ai/.
+            "modern_score_share": lib.round4(mod_points.get(category, 0.0) / mod_total)
+            if mod_total else 0.0,
         })
-    rows.sort(key=lambda r: ((r["auc_drop"] or 0.0), r["acc_drop"], r["ai_score_share"]),
+    rows.sort(key=lambda r: ((r["auc_drop"] or 0.0), r["acc_drop"],
+                             r["modern_score_share"], r["ai_score_share"]),
               reverse=True)
     return {"baseline_auc": lib.round4(base_auc),
             "baseline_best_f1_acc": base_acc, "rows": rows}
@@ -74,18 +81,27 @@ def print_report(out):
           % (out["baseline_auc"], out["baseline_best_f1_acc"]))
     print("=" * 78)
     print()
-    print("  %-22s %6s %8s %9s %8s %9s" % (
-        "category", "weight", "AUC", "AUCdrop", "accdrop", "AIshare"))
-    print("  " + "-" * 68)
+    print("  %-22s %6s %8s %9s %8s %9s %9s" % (
+        "category", "weight", "AUC", "AUCdrop", "accdrop", "AIshare", "MODshare"))
+    print("  " + "-" * 78)
     for r in out["rows"]:
-        print("  %-22s %6.1f %8.4f %9.4f %8.4f %8.1f%%" % (
+        print("  %-22s %6.1f %8.4f %9.4f %8.4f %8.1f%% %8.1f%%" % (
             r["category"], r["weight"], r["auc"], r["auc_drop"] or 0.0,
-            r["acc_drop"], 100 * r["ai_score_share"]))
+            r["acc_drop"], 100 * r["ai_score_share"],
+            100 * r["modern_score_share"]))
     print()
-    top_share = [r for r in out["rows"] if r["ai_score_share"] > 0][:6]
-    print("Top drivers of the AI scores (by score-mass share): %s"
+    top_share = sorted(out["rows"], key=lambda r: -r["ai_score_share"])
+    top_share = [r for r in top_share if r["ai_score_share"] > 0][:6]
+    print("Top drivers of the CARICATURE ai/ scores: %s"
           % ", ".join("%s %.0f%%" % (r["category"], 100 * r["ai_score_share"])
                       for r in top_share))
+    mod = sorted(out["rows"], key=lambda r: -r["modern_score_share"])
+    mod = [r for r in mod if r["modern_score_share"] > 0][:6]
+    print("Top drivers of the REALISTIC ai_modern/ scores: %s"
+          % ", ".join("%s %.0f%%" % (r["category"], 100 * r["modern_score_share"])
+                      for r in mod))
+    print("  The gap between those two lines is the audit finding: the categories")
+    print("  that catch caricature are largely not the ones that catch current output.")
     print()
     print("HONESTY NOTE: contribution is measured on this small authored corpus")
     print("only. A 0-drop category may still be decisive on real text. Floor, not truth.")

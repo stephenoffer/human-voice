@@ -10,14 +10,18 @@ with the right exit codes. Run: python3 tests/stress_test.py
 import importlib.util
 import json
 import os
+import random as _random
+import re
 import subprocess
 import sys
 import tempfile
+import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT = os.path.join(ROOT, "skills", "human-voice", "scripts", "detect_ai_prose.py")
 PATTERNS = os.path.join(ROOT, "skills", "human-voice", "scripts", "ai_prose_patterns.json")
 EXAMPLES = os.path.join(ROOT, "skills", "human-voice", "examples")
+SCRIPTS = os.path.join(ROOT, "skills", "human-voice", "scripts")
 
 spec = importlib.util.spec_from_file_location("dap", SCRIPT)
 dap = importlib.util.module_from_spec(spec)
@@ -27,6 +31,27 @@ PAT = dap.load_patterns(PATTERNS)
 passed = 0
 failed = 0
 failures = []
+
+
+def _raises(exc_type, fn):
+    """True when fn() raises exc_type. Used by the verification-gate checks."""
+    try:
+        fn()
+    except exc_type:
+        return True
+    except Exception:
+        return False
+    return False
+
+
+def _capture_stdout(fn):
+    """(return_value, captured_stdout) for a callable that prints."""
+    import contextlib
+    import io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rv = fn()
+    return rv, buf.getvalue()
 
 
 def check(name, cond, detail=""):
@@ -180,7 +205,9 @@ positive = {
     "redundancy": ("The end result of past history was a new innovation overall.", "redundancy"),
     "self_id": ("As an AI language model, I cannot browse the internet for you.", "self_identifying"),
     "antithesis": ("It's not just a tool, it's a complete robust solution today.", "antithesis"),
-    "rule_of_three": ("The system is fast, reliable, and scalable across loads.", "rule_of_three"),
+    "rule_of_three": ("The system is fast, reliable, and scalable across loads. "
+                      "The rollout was quick, painless, and cheap for the team.",
+                      "rule_of_three"),
     "jargon": ("We leverage synergies to operationalize best-in-class solutions.", "jargon"),
 }
 for name, (text, expect) in positive.items():
@@ -218,8 +245,16 @@ check("clean_low_score", sc_clean < 15.0, "clean text scored %.1f" % sc_clean)
 # proper-noun triad must NOT fire rule_of_three; adjective triad must
 h_pn, _, _, _ = run_analyze("fp_proper_noun_triad", "We shipped with Python, Django, and Flask in production this year here.")
 check("fp_proper_noun_no_rule3", "rule_of_three" not in cats(h_pn))
-h_adj, _, _, _ = run_analyze("tp_adjective_triad", "The system is fast, reliable, and scalable across every workload here.")
+# Two triads, because one tricolon is a rhetorical figure principle 2 allows.
+h_adj, _, _, _ = run_analyze(
+    "tp_adjective_triad",
+    "The system is fast, reliable, and scalable across every workload here. "
+    "The rollout was quick, painless, and cheap for everyone involved here.")
 check("tp_adjective_rule3", "rule_of_three" in cats(h_adj))
+h_one, _, _, _ = run_analyze(
+    "fp_single_triad", "It handles tuples, lists, and dicts without special cases.")
+check("fp_single_triad_does_not_fire", "rule_of_three" not in cats(h_one),
+      "one genuine enumeration of three is not the rule-of-three reflex")
 
 # noun-PHRASE triads: a lone one is a legitimate enumeration (no flag); two or
 # more is the reflexive triadic-prose tell (flag).
@@ -292,7 +327,9 @@ varied = ("Short. This sentence is considerably longer and carries far more clau
           "than the first one does here today. Tiny. Another long stretch of words "
           "that deliberately runs on for a while to vary the cadence quite a lot. "
           "Brief again. And one final long clause to push the sentence count well "
-          "past the five-sentence minimum the burstiness check needs to run here.")
+          "past the minimum the burstiness check needs to run here. Two more now. "
+          "The check wants eight sentences before it will trust a coefficient of "
+          "variation, because five is sampling noise rather than rhythm. Done.")
 h_thr, _, _ = dap.analyze(varied, "technical", None, pat_hi)
 check("threshold_sensitivity", "burstiness" in {h.category for h in h_thr})
 
@@ -357,7 +394,8 @@ check("tp_bare_attribution_fires", "vague_attribution" in cats(h_bare))
 
 # Oxford-comma-less triad still fires (HV-024)
 h_ox, _, _, _ = run_analyze("tp_oxfordless_triad",
-    "The platform is fast, reliable and scalable across all of the workloads here today.")
+    "The platform is fast, reliable and scalable across all of the workloads here today. "
+    "The rollout stayed quick, painless and cheap for every team involved here.")
 check("tp_oxfordless_triad_fires", "rule_of_three" in cats(h_ox))
 
 # wordiness padding flags as redundancy (HV-025)
@@ -365,10 +403,13 @@ h_word, _, _, _ = run_analyze("tp_wordiness",
     "In order to win, due to the fact that the majority of users wait, we act now.")
 check("tp_wordiness_fires", "redundancy" in cats(h_word))
 
-# spaced double-hyphen counts toward em-dash (HV-028)
+# A spaced double-hyphen is `dash_style`, not `em_dash`. Counting it in both made
+# one double-hyphen worth two hits in two categories.
 h_sdh, _, _, _ = run_analyze("tp_spaced_double_hyphen",
     "We shipped it -- finally -- after review and it held -- surprisingly -- up well here.")
-check("tp_spaced_double_hyphen", "em_dash" in cats(h_sdh))
+check("tp_spaced_double_hyphen", "dash_style" in cats(h_sdh))
+check("ascii_dash_not_double_counted", "em_dash" not in cats(h_sdh),
+      "ASCII `--` was counted as an em-dash as well as a dash-style error")
 
 # dash_style: ASCII "--" as a dash fires; spaced hyphen as a dash fires (HV-030)
 h_ds, _, _, _ = run_analyze("tp_dash_style",
@@ -435,10 +476,16 @@ h_fa_ok, _, _, _ = run_analyze("fp_false_agency_named",
     "The on-call engineer shipped the fix that week. We read the logs and found the drop-off here.")
 check("fp_false_agency_named_quiet", "false_agency" not in cats(h_fa_ok))
 
-# narrator-from-a-distance: lecturer voice fires (casual); muted academic
+# narrator-from-a-distance: lecturer voice fires (technical); muted academic and
+# casual, where a first-person writer saying "nobody tells you" is stating their own
+# stance rather than lecturing from above.
 h_nd, _, _, _ = run_analyze("tp_narrator_distance",
     "Nobody designed this. People tend to follow the path of least resistance, and humans are wired to coast.",
+    register="technical")
+h_nd_cas, _, _, _ = run_analyze("fp_narrator_distance_casual",
+    "Nobody designed this. People tend to follow the path of least resistance, and humans are wired to coast.",
     register="casual")
+check("fp_narrator_distance_muted_casual", "narrator_distance" not in cats(h_nd_cas))
 check("tp_narrator_distance_fires", "narrator_distance" in cats(h_nd))
 h_nd_ac, _, _, _ = run_analyze("fp_narrator_distance_academic",
     "Nobody designed this. People tend to follow the path of least resistance, and humans are wired to coast.",
@@ -590,10 +637,19 @@ check("golden_after_clean_band", ja.get("verdict") == "clean",
       "after verdict %s" % ja.get("verdict"))
 check("golden_before_margin", jb["score"] >= 50.0, "before %.1f" % jb["score"])
 
-# strict JSON schema: exact key set + value types (HV-130)
+# strict JSON schema: exact key set + value types (HV-130). `inferred_register` is
+# additive and optional -- it appears ONLY when --register auto ran, so a consumer
+# that never asks for inference keeps a byte-identical payload.
 expected_keys = {"schema_version", "input", "register", "dialect", "words",
                  "score", "verdict", "metrics", "hits"}
 check("json_strict_keys", set(jb) == expected_keys, "got %s" % sorted(set(jb)))
+_ja_auto = json.loads(run_cli(["--register", "auto", "--json", before]).stdout.decode())
+check("json_auto_adds_only_inferred_register",
+      set(_ja_auto) == expected_keys | {"inferred_register"},
+      "auto payload keys: %s" % sorted(set(_ja_auto)))
+check("json_auto_inferred_shape",
+      set(_ja_auto["inferred_register"]) == {"register", "confidence", "reasons"},
+      "inferred_register shape: %s" % sorted(_ja_auto["inferred_register"]))
 check("json_schema_version", jb.get("schema_version") == 1)
 check("json_value_types",
       isinstance(jb["score"], (int, float)) and isinstance(jb["verdict"], str)
@@ -685,13 +741,23 @@ _dfile = os.path.join(tempfile.gettempdir(), "hv_dash_test.md")
 with open(_dfile, "w", encoding="utf-8") as fh:
     fh.write("We won — again — here. ✨\n")
 _pf = run_cli(["--fix-dry-run", _dfile]).stdout.decode()
-check("cli_fix_strips_dash_emoji", "—" not in _pf and "✨" not in _pf and "won, again, here" in _pf)
+# A paired dashed aside becomes parentheses, not two commas: varying the
+# replacement is the point (principle 2), and parentheses are what a person writes.
+check("cli_fix_strips_dash_emoji", "—" not in _pf and "✨" not in _pf and "won (again) here" in _pf,
+      "autofix output was %r" % _pf)
 os.remove(_dfile)
 
-# lowered em-dash threshold: just two em-dashes in technical prose now flags em_dash
-h_lowdash, _, _, _ = run_analyze("tp_two_em_dashes",
-    "The result surprised us — it held — and we shipped it the next morning here.")
-check("low_threshold_flags_two_em_dashes", "em_dash" in cats(h_lowdash))
+# Em-dash density needs THREE. Two is what a person who likes em-dashes writes in
+# a short note, and firing at two made a 220-word human email score "strong-tell".
+h_lowdash, _, _, _ = run_analyze("tp_three_em_dashes",
+    "The result surprised us — it held — and we shipped it — the next morning here.")
+check("low_threshold_flags_three_em_dashes", "em_dash" in cats(h_lowdash))
+# The paired aside is a distinct tic, so it still fires at two even below the rate.
+h_paired, _, _, _ = run_analyze("tp_paired_asides",
+    "The result — surprisingly — held. " + ("Plain filler sentence to dilute it. " * 30)
+    + "We shipped it — eventually — the next morning.")
+check("paired_dash_asides_fire_at_two", "em_dash" in cats(h_paired),
+      "two paired dashed asides should fire regardless of density")
 
 # ---------------------------------------------------------------------------
 # 7c. B4 project config + protected terms (HV-166/167)
@@ -788,7 +854,7 @@ check("patterns_mute_cats_known", not unknown, "unknown: %s" % unknown)
 # drift guard (Phase 2): the shipped JSON must stay consistent with DEFAULTS so
 # the code fallbacks and the user-editable file can never silently diverge.
 _D = dap.DEFAULTS
-for _sect in ("thresholds", "category_weights", "score_bands"):
+for _sect in ("thresholds", "category_weights", "score_bands", "scoring"):
     _json_sect = PAT.get(_sect, {})
     _drift = {k: (v, _json_sect.get(k)) for k, v in _D[_sect].items()
               if _json_sect.get(k) != v}
@@ -862,6 +928,22 @@ check("version_drift_guard",
       "plugin.json=%s marketplace=%s" % (plug_manifest.get("version"),
                                          mkt_versions.get(plug_manifest.get("name"))))
 
+# The pattern file carries its own version string. It ships inside the plugin and
+# is the thing a user edits, so a stale value there is a real signal about which
+# tell lists they have. Keep it in step with the plugin manifest.
+with open(os.path.join(ROOT, "skills/human-voice/scripts/ai_prose_patterns.json"),
+          encoding="utf-8") as fh:
+    _pat_manifest = json.load(fh)
+check("patterns_version_matches_plugin",
+      _pat_manifest.get("version") == plug_manifest.get("version"),
+      "ai_prose_patterns.json says %r, plugin.json says %r"
+      % (_pat_manifest.get("version"), plug_manifest.get("version")))
+check("changelog_documents_current_version",
+      ("## [%s]" % plug_manifest.get("version")) in
+      open(os.path.join(ROOT, "CHANGELOG.md"), encoding="utf-8").read(),
+      "CHANGELOG.md has no section for version %r" % plug_manifest.get("version"))
+
+
 # ---------------------------------------------------------------------------
 # 10. Metric golden values, determinism, examples-in-sync (HV-128/134/135)
 # ---------------------------------------------------------------------------
@@ -884,7 +966,8 @@ check("determinism_json_identical", d1 == d2, "JSON output not reproducible")
 # Examples in sync: every shipped before/after pair still separates, and each
 # "after" stays in the clean band under its register.
 REGISTER_BY_PREFIX = {"marketing": "marketing", "casual": "casual",
-                      "academic": "academic", "email": "email"}
+                      "academic": "academic", "email": "email",
+                      "modern-ai": "technical"}
 for prefix, reg in REGISTER_BY_PREFIX.items():
     bpath = os.path.join(EXAMPLES, "%s-before.md" % prefix)
     apath = os.path.join(EXAMPLES, "%s-after.md" % prefix)
@@ -896,6 +979,1022 @@ for prefix, reg in REGISTER_BY_PREFIX.items():
           "%s before %.1f after %.1f" % (prefix, jb_ex["score"], ja_ex["score"]))
     check("example_after_clean_%s" % prefix, ja_ex["verdict"] == "clean",
           "%s-after verdict %s (%.1f)" % (prefix, ja_ex["verdict"], ja_ex["score"]))
+    # Every shipped "after" must also clear the rhythm targets the skill sets, so
+    # an example can never demonstrate a clean score with metronome prose.
+    _am = ja_ex.get("metrics", {})
+    _short, _mid = _am.get("short_sentence_ratio"), _am.get("mid_band_ratio")
+    if _short is not None:
+        check("example_after_short_ratio_%s" % prefix, _short >= 0.12,
+              "%s-after short-sentence ratio %.2f < 0.12" % (prefix, _short))
+    if _mid is not None:
+        check("example_after_mid_band_%s" % prefix, _mid <= 0.72,
+              "%s-after mid-band ratio %.2f > 0.72" % (prefix, _mid))
+
+# ---------------------------------------------------------------------------
+# 10b. Autofix must never damage code or splice guidance in as a replacement
+# ---------------------------------------------------------------------------
+# Both of these were real bugs found by running --fix on this repo's own EVAL.md.
+_pat_fix = dap.load_patterns()
+
+# Data loss: code was masked to SPACES, and the dash pattern pads itself with
+# `[ \t]*`, so the masked span read as whitespace, the match extended across it,
+# and splicing the replacement back deleted the code.
+for _src, _must_keep in (
+        ("The set is 24 labeled `ai` \u2014 balanced across registers.", "`ai`"),
+        ("It misses `m12_casual_review.md` \u2014 all casual or creative.",
+         "`m12_casual_review.md`"),
+        ("Use `foo` \u2014 then `bar` \u2014 and done.", "`bar`"),
+        ("Call `f(x, y)` \u2014 twice.", "`f(x, y)`")):
+    _out, _sw, _em, _da = dap.autofix(_src, _pat_fix, "technical")
+    check("autofix_preserves_inline_code_%d" % len(_must_keep),
+          _must_keep in _out,
+          "autofix dropped %s: %r -> %r" % (_must_keep, _src, _out))
+    check("autofix_still_fixed_dash_%d" % len(_must_keep), "\u2014" not in _out,
+          "the dash should still have been normalized: %r" % _out)
+
+# Fenced code is untouched even when it contains a dash.
+_fenced = "```\ncode \u2014 here\n```\nprose \u2014 here\n"
+_out_f, _, _, _ = dap.autofix(_fenced, _pat_fix, "technical")
+check("autofix_leaves_fenced_code", "code \u2014 here" in _out_f,
+      "fenced code was modified: %r" % _out_f)
+check("autofix_fixes_prose_after_fence", "prose, here" in _out_f,
+      "prose after the fence was not fixed: %r" % _out_f)
+check("autofix_code_mask_char_absent", dap.CODE_MASK_CHAR not in _out_f,
+      "the code mask character leaked into the output")
+
+# A lone dash in a table cell is a conventional "not applicable" marker, not a
+# dash-as-pause. Rewriting it produced `|, |` cells in this repo's own README.
+_tbl = ("| metric | before | after |\n|---|---|---|\n"
+        "| perplexity | \u2014 | 2.46 |\n\nProse after it \u2014 with a real dash.\n")
+_out_t, _, _, _dash_t = dap.autofix(_tbl, _pat_fix, "technical")
+check("autofix_spares_table_placeholder_dash",
+      "| perplexity | \u2014 | 2.46 |" in _out_t,
+      "a table-cell dash was rewritten: %r" % _out_t)
+check("autofix_spares_table_alignment_row", "|---|---|---|" in _out_t,
+      "the alignment row was damaged: %r" % _out_t)
+check("autofix_still_fixes_prose_dash_outside_table",
+      "Prose after it, with a real dash." in _out_t,
+      "the prose dash outside the table should still be fixed: %r" % _out_t)
+check("autofix_table_dash_not_counted", _dash_t == 1,
+      "only the prose dash should be counted, got %d" % _dash_t)
+
+# A dash that opens a wrapped line must not leave the comma stranded at the start of
+# that line. Found by running --fix on this repo's own README, which produced
+# "...rewritten text\n, a figure about...".
+for _src in ("vendor at ~97% on rewritten text\n\u2014 a figure about other tools.\n",
+             "It works well\n\u2014 mostly.\n",
+             "trailing dash at end \u2014\nnext line.\n"):
+    _out, _, _, _ = dap.autofix(_src, _pat_fix, "technical")
+    check("autofix_no_stranded_mark_%d" % len(_src),
+          not any(ln.lstrip().startswith((",", ";", ":"))
+                  for ln in _out.split("\n")),
+          "stranded mark at a line start: %r -> %r" % (_src, _out))
+    check("autofix_line_open_dash_fixed_%d" % len(_src), "\u2014" not in _out,
+          "the dash should still have been replaced: %r" % _out)
+_inline, _, _, _ = dap.autofix("inline dash \u2014 here stays inline.\n",
+                               _pat_fix, "technical")
+check("autofix_inline_dash_unchanged_geometry",
+      _inline == "inline dash, here stays inline.\n",
+      "an inline dash should not gain a newline: %r" % _inline)
+
+# Guidance-shaped suggestions must not be spliced in literally. This turned
+# "evaluation harness" into "evaluation use" before the fix.
+_out_h, _sw_h, _, _ = dap.autofix("an offline evaluation harness for the linter",
+                                  _pat_fix, "technical")
+check("autofix_skips_guidance_suggestion", _out_h == "an offline evaluation harness for the linter",
+      "a guidance suggestion was applied literally: %r" % _out_h)
+check("autofix_still_applies_real_swaps",
+      dap.autofix("We should leverage the cache.", _pat_fix, "technical")[0]
+      == "We should use the cache.",
+      "a genuine 1:1 swap stopped working")
+check("is_substitution_classifies",
+      dap.is_substitution("use") and dap.is_substitution("if")
+      and not dap.is_substitution("cut")
+      and not dap.is_substitution("use (verb only)")
+      and not dap.is_substitution("x or y"),
+      "is_substitution misclassified a suggestion")
+# And no shipped suggestion in an auto-fixable category is guidance-shaped
+# *without* being skipped, which would silently reintroduce the bug.
+for _key in dap.SAFE_FIX_KEYS:
+    for _phrase, _sug in dap.as_phrase_list(_pat_fix.get(_key)):
+        if _sug and _sug != "cut" and not dap.is_substitution(_sug):
+            check("autofix_guidance_entry_skipped_%s_%s" % (_key, _phrase.replace(" ", "_")),
+                  _phrase not in dap.autofix(_phrase, _pat_fix, "technical")[0]
+                  or dap.autofix(_phrase, _pat_fix, "technical")[1] == 0,
+                  "%r/%r is guidance but was applied" % (_key, _phrase))
+
+# ---------------------------------------------------------------------------
+# 11. Length-stable scoring and the detector-aligned shape checks (v0.5)
+# ---------------------------------------------------------------------------
+# The bug this locks: document-level findings used to be divided by word count,
+# so the SAME defect scored ~13 points in a 150-word note and ~1 point in a
+# 2000-word report. Build two documents with identical document-level defects at
+# very different lengths and assert the scores stay close.
+_MONO = ("The service reads the queue and writes the result to the store. "
+         "The worker polls the queue and updates the record in the table. "
+         "The handler parses the payload and returns the response to the client. "
+         "The client retries the request and logs the failure to the file. ")
+_short_doc = _MONO * 2      # ~ 110 words
+_long_doc = _MONO * 20      # ~1100 words
+_h_s, _r_s, _w_s, _ = run_analyze("len_stable_short", _short_doc)
+_h_l, _r_l, _w_l, _ = run_analyze("len_stable_long", _long_doc)
+_sc_s = dap.score(_h_s, _w_s, dap.CATEGORY_WEIGHTS)
+_sc_l = dap.score(_h_l, _w_l, dap.CATEGORY_WEIGHTS)
+check("len_stable_word_counts_differ", _w_l > 8 * _w_s,
+      "long doc should be ~10x the short one (%d vs %d)" % (_w_l, _w_s))
+check("len_stable_same_band",
+      dap.verdict_band(_sc_s, dap.DEFAULT_BANDS) == dap.verdict_band(_sc_l, dap.DEFAULT_BANDS),
+      "same defects, different lengths landed in different bands: %.1f vs %.1f"
+      % (_sc_s, _sc_l))
+# Numeric stability of the part that was broken. The long fixture legitimately
+# repeats more n-grams than the short one, so the totals may differ; what must
+# NOT differ is the document-scope contribution, which used to scale as 1/words
+# and made an identical defect worth ~13x more in a short file.
+def _doc_points(hits):
+    return dap.score([h for h in hits if h.line == 0], 1000, dap.CATEGORY_WEIGHTS)
+
+
+_dp_s, _dp_l = _doc_points(_h_s), _doc_points(_h_l)
+check("len_stable_doc_points_identical", abs(_dp_s - _dp_l) < 1e-9,
+      "document-scope points moved with length: %.1f vs %.1f" % (_dp_s, _dp_l))
+check("len_stable_doc_points_nonzero", _dp_s > 0,
+      "the fixture should trip document-level checks, else this proves nothing")
+# And the old formula, computed on the same hits, must show the drift the new one
+# removes -- so this test fails loudly if someone reverts the fix.
+_old_s = sum(dap.CATEGORY_WEIGHTS.get(h.category, 1.0) for h in _h_s) / _w_s * 1000
+_old_l = sum(dap.CATEGORY_WEIGHTS.get(h.category, 1.0) for h in _h_l) / _w_l * 1000
+check("len_stable_beats_old_formula",
+      abs(_dp_s - _dp_l) < abs(_old_s - _old_l),
+      "the new scoring is no more length-stable than the old one it replaced")
+# No document-scope category may emit an unbounded number of findings, or it
+# silently reverts to length-dependent scoring.
+_doc_s = {}
+for _h in _h_s:
+    if _h.line == 0:
+        _doc_s[_h.category] = _doc_s.get(_h.category, 0) + 1
+_doc_l = {}
+for _h in _h_l:
+    if _h.line == 0:
+        _doc_l[_h.category] = _doc_l.get(_h.category, 0) + 1
+check("doc_scope_hits_bounded", _doc_s == _doc_l,
+      "document-scope hit counts changed with length: %s vs %s" % (_doc_s, _doc_l))
+check("doc_scope_hits_small", all(v <= 4 for v in _doc_l.values()),
+      "a document-scope category emitted more than 4 findings: %s" % _doc_l)
+# ngram_repetition is an instance check now: it must carry a real line and stay
+# capped rather than emitting one positionless hit per repeated gram.
+_ng_l = [h for h in _h_l if h.category == "ngram_repetition"]
+check("ngram_hits_capped", len(_ng_l) <= 8,
+      "ngram_repetition emitted %d hits; expected <= 8" % len(_ng_l))
+check("ngram_hits_located", all(h.line > 0 for h in _ng_l),
+      "ngram_repetition findings must carry a line number")
+# Article-plus-defined-term bigrams are the terminology consistency principle 6
+# tells you to HOLD, so the check must not flag them and push you toward rotating
+# synonyms. Repeated content phrases still fire.
+_terms = ("The skill reads the draft. " * 6) + "The skill scores the draft. "
+_h_terms, _, _, _ = run_analyze("ngram_keeps_terminology", _terms)
+_ng_terms = [h.text for h in _h_terms if h.category == "ngram_repetition"]
+_ng_bigrams = [t for t in _ng_terms if len(t.split('"')[1].split()) == 2]
+check("ngram_skips_article_term_bigrams",
+      not any(t.split('"')[1].split()[0] in dap.STOPWORDS for t in _ng_bigrams),
+      "flagged an article+term bigram: %s" % _ng_bigrams)
+check("ngram_still_catches_content_phrases",
+      any("reads the draft" in t or "skill reads" in t for t in _ng_terms),
+      "a repeated content phrase should still fire: %s" % _ng_terms)
+
+# A single category can no longer swamp the score: the per-category density is
+# capped, so a pathologically repetitive document stays bounded.
+_repetitive = "Alpha beta gamma delta epsilon zeta. " * 200
+_h_rep, _, _w_rep, _ = run_analyze("category_cap", _repetitive)
+_by_cat = {}
+for _h in _h_rep:
+    if _h.line != 0:
+        _by_cat[_h.category] = _by_cat.get(_h.category, 0.0) + dap.CATEGORY_WEIGHTS.get(_h.category, 1.0)
+_cap = dap.DEFAULTS["scoring"]["category_cap"]
+_uncapped = sum(v / _w_rep * 1000 for v in _by_cat.values()) if _w_rep else 0.0
+_capped = sum(min(v / _w_rep * 1000, _cap) for v in _by_cat.values()) if _w_rep else 0.0
+check("category_cap_bounds_runaway", _capped <= _uncapped + 1e-9,
+      "capped density must not exceed the uncapped sum")
+check("category_cap_respected",
+      all(min(v / _w_rep * 1000, _cap) <= _cap + 1e-9 for v in _by_cat.values()),
+      "a category exceeded the cap")
+
+# resolve_scoring honors JSON overrides and falls back per key.
+check("resolve_scoring_defaults",
+      dap.resolve_scoring({}) == (dap.DEFAULTS["scoring"]["doc_hit_points"],
+                                  dap.DEFAULTS["scoring"]["category_cap"],
+                                  dap.DEFAULTS["scoring"]["doc_cap_per_category"]))
+check("resolve_scoring_doc_cap_override",
+      dap.resolve_scoring({"scoring": {"doc_cap_per_category": 2}})[2] == 2.0)
+# A check that emits one line-0 hit per example must not be worth N findings.
+_many_doc = [dap.Hit("superlative_creep", 0, "x") for _ in range(9)]
+check("score_doc_cap_per_category",
+      dap.score(_many_doc, 500) == dap.score(
+          _many_doc[:int(dap.DEFAULTS["scoring"]["doc_cap_per_category"])], 500),
+      "document findings beyond the cap still scored")
+check("resolve_scoring_override",
+      dap.resolve_scoring({"scoring": {"doc_hit_points": 3.5}})[0] == 3.5)
+check("resolve_scoring_bad_value_falls_back",
+      dap.resolve_scoring({"scoring": {"category_cap": "lots"}})[1]
+      == dap.DEFAULTS["scoring"]["category_cap"])
+
+# assistant_shape: a bulleted, heading-dense, bold-heavy answer fires; ordinary
+# prose with a couple of real section headings does not.
+_chatty = "\n".join(
+    ["# Overview", "", "Some framing text about the topic that runs on for a while so the",
+     "word count clears the minimum threshold for the density checks to apply.", ""] +
+    sum(([("## Section %d" % i), "",
+          "- **Point one:** a claim about the section that adds detail here.",
+          "- **Point two:** another claim about the section with more detail.",
+          "- **Point three:** a third claim rounding out the section nicely.", ""]
+         for i in range(1, 6)), []) +
+    ["## Key Takeaways", "", "The material above covered several important areas of concern."])
+_h_chat, _r_chat, _, _ = run_analyze("assistant_shape_fires", _chatty)
+check("assistant_shape_fires", "assistant_shape" in cats(_h_chat),
+      "heading/bullet/bold-dense answer should fire assistant_shape; got %s" % cats(_h_chat))
+check("assistant_shape_summary_section",
+      any("Key Takeaways" in h.text for h in _h_chat if h.category == "assistant_shape"),
+      "the recap section should be called out")
+check("assistant_shape_metrics_reported",
+      _r_chat.get("headings_per_1k") is not None
+      and _r_chat.get("bullet_line_ratio") is not None
+      and _r_chat.get("bold_spans_per_1k") is not None,
+      "assistant-shape metrics missing from the report")
+
+_plain = ("# Why the retry loop broke\n\n" + _MONO * 3 +
+          "\n\nThe fix took three lines. We only retry on 5xx now, and the graph "
+          "screams before the queue does. That is the whole change.\n")
+_h_plain, _, _, _ = run_analyze("assistant_shape_quiet", _plain)
+check("assistant_shape_quiet_on_prose", "assistant_shape" not in cats(_h_plain),
+      "prose with one heading must not fire assistant_shape; got %s" % cats(_h_plain))
+check("assistant_shape_muted_in_release_notes",
+      "assistant_shape" not in cats(run_analyze("as_rn", _chatty, register="release_notes")[0]),
+      "release_notes should mute assistant_shape")
+
+# sentence_shape: flat mid-band prose fires both sub-checks; prose that reaches
+# past both ends fires neither.
+_flat = " ".join(
+    "The %s service reads the queue and writes each result to the primary store." % w
+    for w in "alpha bravo charlie delta echo foxtrot golf hotel india juliet".split())
+_h_flat, _r_flat, _, _ = run_analyze("sentence_shape_fires", _flat)
+check("sentence_shape_fires", "sentence_shape" in cats(_h_flat),
+      "uniform mid-band sentences should fire sentence_shape; got %s" % cats(_h_flat))
+check("sentence_shape_no_short", _r_flat.get("short_sentence_ratio") == 0.0,
+      "no short sentences expected, got %s" % _r_flat.get("short_sentence_ratio"))
+
+_bursty = ("It broke. At 14:07 the payments worker stopped draining its queue and "
+           "nobody noticed for eleven minutes, because the dashboard averages over "
+           "a five-minute window and the spike looked like ordinary jitter until it "
+           "very much did not. The cause was dumb. We had shipped a retry loop that "
+           "retried on a 4xx, and Stripe returns 402 when a card is declined, so "
+           "every decline became sixteen doomed attempts spaced two seconds apart. "
+           "Three lines fixed it. Retry on 5xx and 429, nothing else. "
+           "I added a metric for retries per request. Next time the graph screams "
+           "first.")
+_h_bursty, _r_bursty, _, _ = run_analyze("sentence_shape_quiet", _bursty)
+check("sentence_shape_quiet_on_bursty", "sentence_shape" not in cats(_h_bursty),
+      "varied prose must not fire sentence_shape; got %s (short=%s mid=%s)"
+      % (cats(_h_bursty), _r_bursty.get("short_sentence_ratio"),
+         _r_bursty.get("mid_band_ratio")))
+
+# Rhythm checks are deliberately universal: no register mute may silence them,
+# because they fire only on LOW variance and no genre is served by a metronome.
+_pat_all = dap.load_patterns()
+for _tok, _cats in (_pat_all.get("muted_checks") or {}).items():
+    check("rhythm_never_muted_%s" % _tok,
+          not ({"burstiness", "sentence_shape"} & set(_cats or [])),
+          "mute token %r silences a rhythm check: %s" % (_tok, _cats))
+
+# "harness" is filler as a verb and ordinary technical English as a noun. The noun
+# compounds are exempted; the verb sense must still fire, or the exception is too wide.
+for _txt, _want in (("an offline evaluation harness for the linter", False),
+                    ("the detector harness runs offline", False),
+                    ("a test harness covers it", False),
+                    ("we harness the power of data", True),
+                    ("harness this capability today", True)):
+    _h_hn, _, _, _ = run_analyze("harness_sense_%d" % len(_txt), _txt)
+    _fired = "filler" in cats(_h_hn)
+    check("harness_%s_%d" % ("verb_fires" if _want else "noun_exempt", len(_txt)),
+          _fired == _want,
+          "%r: filler fired=%s, expected %s" % (_txt, _fired, _want))
+
+# ---------------------------------------------------------------------------
+# 10c. --register auto
+# ---------------------------------------------------------------------------
+# Before this, every document was scored with the `technical` mute set regardless of
+# what it was, so a novelist's em-dashes and a marketer's "you" were both tells.
+_mk = os.path.join(EXAMPLES, "marketing-after.md")
+_em_ex = os.path.join(EXAMPLES, "email-after.md")
+
+_auto_mk = json.loads(run_cli(["--register", "auto", "--json", _mk]).stdout.decode())
+check("auto_infers_marketing", _auto_mk["register"] == "marketing",
+      "expected marketing, got %r" % _auto_mk["register"])
+check("auto_reports_its_reasoning",
+      bool((_auto_mk.get("inferred_register") or {}).get("reasons")),
+      "the payload must record why the register was chosen")
+check("auto_reports_confidence",
+      0.0 <= (_auto_mk.get("inferred_register") or {}).get("confidence", -1) <= 1.0,
+      "confidence must be a fraction")
+
+_auto_em = json.loads(run_cli(["--register", "auto", "--json", _em_ex]).stdout.decode())
+check("auto_infers_email", _auto_em["register"] == "email",
+      "expected email, got %r" % _auto_em["register"])
+
+# An explicit register always wins, and the payload records no inference.
+_explicit = json.loads(run_cli(["--register", "creative", "--json", _mk]).stdout.decode())
+check("explicit_register_wins", _explicit["register"] == "creative")
+check("explicit_register_records_no_inference",
+      _explicit.get("inferred_register") is None,
+      "an explicit register must not be reported as inferred")
+
+# The reasoning goes to stderr, so --json stays parseable and --quiet stays a table.
+_res_auto = run_cli(["--register", "auto", "--json", _mk])
+check("auto_json_stays_clean_on_stdout",
+      _res_auto.stdout.decode().lstrip().startswith(("{", "[")),
+      "stdout must stay valid JSON with --register auto")
+_res_quiet = run_cli(["--register", "auto", "--quiet", _mk])
+check("auto_quiet_stays_one_line",
+      len([ln for ln in _res_quiet.stdout.decode().strip().split("\n") if ln]) == 1,
+      "--quiet must stay one line per file: %r" % _res_quiet.stdout.decode())
+
+# Inference must be deterministic and must fail safe on short or empty input.
+_t1 = dap.infer_register(open(_mk, encoding="utf-8").read())
+_t2 = dap.infer_register(open(_mk, encoding="utf-8").read())
+check("auto_deterministic", _t1 == _t2, "inference is not deterministic")
+for _tiny in ("", "   \n", "Hello.", "Hi there, thanks!"):
+    _reg, _c, _why = dap.infer_register(_tiny)
+    check("auto_tiny_falls_back_%d" % len(_tiny), _reg == "technical",
+          "%r inferred %r; short input has no register signal" % (_tiny, _reg))
+    check("auto_tiny_explains_%d" % len(_tiny), bool(_why),
+          "a fallback must still say why")
+
+# Every cue must name a real register, or the vote can never be applied. The
+# tuple carries an optional fifth element (min_hits), so unpack defensively.
+for _ci, _cue in enumerate(dap.CUES):
+    _reg, _w, _pat, _why = _cue[:4]
+    _min_hits = _cue[4] if len(_cue) > 4 else 1
+    check("auto_cue_register_valid_%d_%s" % (_ci, _reg), _reg in dap.REGISTERS,
+          "cue names unknown register %r" % _reg)
+    check("auto_cue_weight_positive_%d_%s" % (_ci, _reg), _w > 0)
+    check("auto_cue_min_hits_valid_%d_%s" % (_ci, _reg),
+          isinstance(_min_hits, int) and _min_hits >= 1,
+          "cue %r has a bad min_hits %r" % (_why, _min_hits))
+    check("auto_cue_reason_present_%d_%s" % (_ci, _reg), bool(_why and _why.strip()),
+          "every cue must carry a human-readable reason")
+
+# ---------------------------------------------------------------------------
+# 11a. The mute table may not contradict the skill's own doctrine
+# ---------------------------------------------------------------------------
+# SKILL.md principle 5 names a "universal core" of tells that are wrong in EVERY
+# genre. If a register mutes one of them, the config contradicts the documentation
+# and a whole class of tells goes unchecked in that genre -- which is exactly how
+# `casual` and `creative` ended up with no rhythm check at all until v0.5.
+UNIVERSAL_CORE = {
+    "rule-of-three": ("rule_of_three",),
+    "bold-bullet listicles": ("bold_bullets",),
+    "puffery": ("puffery",),
+    "vague attribution": ("vague_attribution",),
+    "low burstiness": ("burstiness", "sentence_shape"),
+    "restatement": ("circular_conclusion", "ngram_repetition"),
+    "not-X-but-Y": ("antithesis",),
+    "consistency drift": ("dialect", "heading_case"),
+}
+_pat_mutes = dap.load_patterns()
+for _reg in dap.REGISTERS:
+    _muted = dap.muted_categories(_reg, _pat_mutes)
+    for _name, _cats in UNIVERSAL_CORE.items():
+        _hit = sorted(set(_cats) & _muted)
+        check("universal_core_%s_not_muted_in_%s" % (_name.replace(" ", "_"), _reg),
+              not _hit,
+              "register %r mutes %s, which principle 5 calls universal" % (_reg, _hit))
+
+# The mute table itself must be internally consistent: no token naming a category
+# that does not exist, no dead tokens, no token used without a definition.
+_mc = _pat_mutes.get("muted_checks") or {}
+for _tok, _cats in _mc.items():
+    _bogus = [c for c in (_cats or []) if c not in dap.KNOWN_CATEGORIES]
+    check("mute_token_categories_exist_%s" % _tok, not _bogus,
+          "mute token %r names unknown categories %s" % (_tok, _bogus))
+_used = set()
+for _reg in dap.REGISTERS:
+    _used |= set((_pat_mutes.get("register_mutes") or {}).get(_reg, []))
+check("mute_tokens_all_defined", not (_used - set(_mc)),
+      "register_mutes uses undefined tokens: %s" % sorted(_used - set(_mc)))
+check("mute_tokens_none_dead", not (set(_mc) - _used),
+      "muted_checks defines tokens no register uses: %s" % sorted(set(_mc) - _used))
+
+# Specificity is REPORTED, never scored: it fires on legitimate human writing that
+# happens to contain no number or proper noun (fiction, most obviously), and scoring
+# it would penalize exactly the writers detectors already mistreat.
+check("specificity_is_not_a_category",
+      "specificity" not in dap.KNOWN_CATEGORIES
+      and "specifics" not in dap.KNOWN_CATEGORIES,
+      "specificity became a scored category; it must stay a diagnostic")
+_h_spec, _rep_spec, _, _ = run_analyze(
+    "specificity_metric",
+    "At 14:07 the Stripe webhook failed 16 times. Priya shipped the fix on Tuesday. "
+    * 4)
+check("specificity_counts_numbers", (_rep_spec.get("numbers") or 0) >= 4,
+      "expected numbers to be counted, got %s" % _rep_spec.get("numbers"))
+check("specificity_counts_proper_nouns", (_rep_spec.get("proper_nouns") or 0) >= 4,
+      "expected proper nouns to be counted, got %s" % _rep_spec.get("proper_nouns"))
+check("specificity_not_thin_when_detailed", _rep_spec.get("specifics_thin") is False,
+      "a document full of names and numbers must not read as thin")
+_h_vague, _rep_vague, _, _ = run_analyze(
+    "specificity_thin",
+    ("The implications are significant and the underlying reasons are structural. "
+     "Organizations must consider the broader context of their operational posture. ")
+    * 8)
+check("specificity_thin_when_vacuous", _rep_vague.get("specifics_thin") is True,
+      "abstract prose with nothing checkable should read as thin: %s per 100w over %s words"
+      % (_rep_vague.get("specifics_per_100"), _rep_vague.get("word_count")))
+# Short inputs are never judged thin: a two-line note legitimately has no numbers.
+_h_short, _rep_short, _, _ = run_analyze(
+    "specificity_short_not_judged", "The reasons are structural. Consider the context.")
+check("specificity_short_not_judged", _rep_short.get("specifics_thin") is False,
+      "a very short input must not be called thin")
+
+# ---------------------------------------------------------------------------
+# 11b. Hit line numbers must point at the SOURCE line
+# ---------------------------------------------------------------------------
+# prose_for_metrics joins soft-wrapped lines, so a 75-line document collapses to 12.
+# Before MappedLineMap, every check located against that text reported a line from
+# the reduced text -- a finding on source line 42 was reported as line 8, which sent
+# readers to the wrong place and made inline ignore directives unable to match.
+_doc_lines = [
+    "# A heading",
+    "",
+    "First paragraph, soft-wrapped across",
+    "two source lines with nothing to flag.",
+    "",
+    "## Another heading",
+    "",
+    "Some more filler text here that carries no tell at all,",
+    "also wrapped, still nothing.",
+    "",
+    "This line has a real tell \u2014 an em-dash sitting right here.",
+    "",
+    "And a second one \u2014 because one dash alone is not a tell.",
+    "",
+    "And a third \u2014 which is what the density gate now requires.",
+    "",
+    "- a list item with fast, cheap, and good in it",
+    "- another item with quick, cheap, and simple in it",
+]
+_doc = "\n".join(_doc_lines) + "\n"
+_h_loc, _, _, _ = run_analyze("line_map_source_lines", _doc)
+_em = [h for h in _h_loc if h.category == "em_dash"]
+_r3 = [h for h in _h_loc if h.category == "rule_of_three"]
+check("line_map_em_dash_found", bool(_em), "the em-dash fixture should fire")
+if _em:
+    _em_lines = sorted(h.line for h in _em)
+    check("line_map_em_dash_exact_lines", _em_lines == [11, 13, 15],
+          "em-dashes are on source lines 11, 13 and 15, reported %s" % _em_lines)
+check("line_map_triad_found", bool(_r3), "the triad fixture should fire")
+if _r3:
+    check("line_map_triad_exact_line", _r3[0].line == 17,
+          "triad is on source line 17, reported %d" % _r3[0].line)
+_max_line = len(_doc_lines)
+check("line_map_no_line_beyond_source",
+      all(h.line <= _max_line for h in _h_loc),
+      "a hit reported a line past the end of a %d-line document: %s"
+      % (_max_line, [(h.category, h.line) for h in _h_loc if h.line > _max_line]))
+
+# Because the lines are right, an inline directive can now suppress those hits.
+_doc_ignored = _doc.replace(
+    "This line has a real tell \u2014 an em-dash sitting right here.",
+    "This line has a real tell \u2014 an em-dash sitting right here."
+    "  <!-- human-voice: ignore em_dash -->")
+_h_ign, _, _, _ = run_analyze("line_map_directive_matches", _doc_ignored)
+_ign_em = sorted(h.line for h in _h_ign if h.category == "em_dash")
+# Line 11 carries the directive and must go; line 13 has no directive and must stay.
+# That the OTHER one survives is the point: it proves the directive matched by exact
+# source line rather than blanket-suppressing the category.
+check("line_map_directive_suppresses_its_line", 11 not in _ign_em,
+      "the directive on line 11 did not suppress that hit: %s" % _ign_em)
+check("line_map_directive_spares_other_lines", 13 in _ign_em,
+      "the undirected hit on line 13 should survive: %s" % _ign_em)
+
+# The segment table itself: offsets ascending, every line within range.
+_txt, _segs = dap.prose_for_metrics(dap.strip_code(_doc), with_line_map=True)
+check("line_map_segments_sorted",
+      all(_segs[i][0] <= _segs[i + 1][0] for i in range(len(_segs) - 1)),
+      "segment offsets must be ascending: %s" % _segs)
+check("line_map_segments_in_range",
+      all(1 <= ln <= _max_line for _off, ln in _segs),
+      "a segment points outside the document: %s" % _segs)
+check("line_map_backward_compatible",
+      isinstance(dap.prose_for_metrics(dap.strip_code(_doc)), str),
+      "prose_for_metrics must still return a bare string by default")
+
+# ---------------------------------------------------------------------------
+# 12. The verification gate must never report a pass it did not earn
+# ---------------------------------------------------------------------------
+sys.path.insert(0, SCRIPTS)
+import verify_detector as _V  # noqa: E402
+from human_voice_linter import detector as _D  # noqa: E402
+
+_target = os.path.join(EXAMPLES, "modern-ai-after.md")
+
+# Every registered detector declares a usable request shape.
+for _var, _spec in _D.DETECTORS.items():
+    check("detector_shape_https_%s" % _var, _spec["url"].startswith("https://"))
+    check("detector_shape_headers_%s" % _var, isinstance(_spec["headers"]("k"), dict))
+    check("detector_shape_body_%s" % _var, isinstance(_spec["body"]("t"), dict))
+    check("detector_shape_path_%s" % _var, bool(_spec["path"]))
+
+# No key configured => exit 2 (unavailable), never 0. A gate that could not run
+# must not be reportable as a pass.
+_saved_keys = {v: os.environ.pop(v) for v in _D.KEY_ENV_VARS if v in os.environ}
+try:
+    check("detector_no_key_raises",
+          _raises(_D.DetectorUnavailable, lambda: _D.probe("x")),
+          "probe should raise DetectorUnavailable with no key")
+    _out = _capture_stdout(lambda: _V.main([_target]))
+    check("gate_no_key_exit_2", _out[0] == 2,
+          "no-key gate returned %r, expected 2" % (_out[0],))
+    check("gate_no_key_says_unavailable", "UNAVAILABLE" in _out[1],
+          "no-key gate must say UNAVAILABLE: %r" % _out[1][:80])
+    check("gate_no_key_disclaims_pass", "not run" in _out[1],
+          "no-key gate must say the gate was not run")
+finally:
+    os.environ.update(_saved_keys)
+
+# Probability plumbing, including the 0-100 human-scale inversion.
+_p = _D.probe("t", "k", "GPTZERO_API_KEY",
+              opener=lambda u, d, h, t: {"documents": [{"completely_generated_prob": 0.87}]})
+check("detector_probe_reads_probability", abs(_p - 0.87) < 1e-9, "got %r" % _p)
+_pw = _D.probe("t", "k", "WINSTON_API_KEY", opener=lambda u, d, h, t: {"score": 96})
+check("detector_probe_inverts_human_scale", abs(_pw - 0.04) < 1e-9,
+      "a 0-100 human score should invert to p(AI); got %r" % _pw)
+check("detector_probe_rejects_non_probability",
+      _raises(ValueError, lambda: _D.probe(
+          "t", "k", "GPTZERO_API_KEY",
+          opener=lambda u, d, h, t: {"documents": [{"completely_generated_prob": 7}]})),
+      "a value outside [0,1] must be rejected, not returned")
+check("detector_probe_names_stale_field",
+      _raises(KeyError, lambda: _D.probe("t", "k", "GPTZERO_API_KEY",
+                                         opener=lambda u, d, h, t: {"nope": 1})),
+      "a stale response shape must raise, naming the missing field")
+check("detector_verdict_thresholds",
+      _D.verdict(0.02)[1] and not _D.verdict(0.93)[1]
+      and not _D.verdict(0.06, max_p_ai=0.05)[1],
+      "verdict() mis-thresholded")
+
+# The CLI's exit code is the stopping condition, so it must track the verdict.
+_orig_probe = _V.D.probe
+try:
+    os.environ["GPTZERO_API_KEY"] = "test-key"
+    for _pv, _want_rc, _want_word in ((0.93, 1, "FLAGGED"), (0.02, 0, "CLEAR")):
+        _V.D.probe = (lambda text, k, kv, timeout=30, _x=_pv: _x)
+        _rc, _txt = _capture_stdout(lambda: _V.main([_target]))
+        check("gate_exit_%s" % _want_word.lower(), _rc == _want_rc,
+              "p=%.2f gave exit %r, expected %d" % (_pv, _rc, _want_rc))
+        check("gate_says_%s" % _want_word.lower(), _want_word in _txt,
+              "expected %s in output: %r" % (_want_word, _txt[:90]))
+    # A flagged verdict must point at shape/rhythm and must refuse the tricks.
+    _V.D.probe = (lambda text, k, kv, timeout=30: 0.93)
+    _, _txt = _capture_stdout(lambda: _V.main([_target]))
+    check("gate_flagged_gives_priority_order",
+          "shape first" in _txt and "distribution" in _txt,
+          "a flagged gate should name the fix order")
+    check("gate_flagged_refuses_tricks",
+          "Unicode" in _txt and "typos" in _txt,
+          "a flagged gate must warn off the evasion tricks")
+    # A detector error is not a pass either.
+    def _boom(*a, **k):
+        raise RuntimeError("connection reset")
+    _V.D.probe = _boom
+    _rc, _txt = _capture_stdout(lambda: _V.main([_target]))
+    check("gate_error_is_not_a_pass", _rc == 2 and "NOT verified" in _txt,
+          "a detector error gave exit %r: %r" % (_rc, _txt[:90]))
+    # --json stays machine-readable and carries the floor score alongside.
+    _V.D.probe = (lambda text, k, kv, timeout=30: 0.4)
+    _rc, _txt = _capture_stdout(lambda: _V.main(["--json", _target]))
+    _payload = json.loads(_txt)
+    check("gate_json_shape",
+          _payload["status"] == "flagged" and _payload["p_ai"] == 0.4
+          and "floor_score" in _payload and "detector" in _payload,
+          "unexpected --json payload: %r" % _payload)
+finally:
+    _V.D.probe = _orig_probe
+    os.environ.pop("GPTZERO_API_KEY", None)
+    os.environ.update(_saved_keys)
+
+# ---------------------------------------------------------------------------
+# v0.6: the modern syntactic signature, and the false positives it must not have
+# ---------------------------------------------------------------------------
+
+_PAD = ("The team shipped the change on Tuesday and watched the graphs. "
+        "Nothing moved for an hour. Then the queue drained. " * 6)
+
+# Clefts: stacked, they fire; one on its own does not.
+_cleft_text = (
+    "What actually consumed the time was the reconciliation step. "
+    "The reason the migration was hard is that the tuning had drifted. "
+    "What we would do differently is start with the differ. " + _PAD)
+_h_cleft, _r_cleft, _, _ = run_analyze("cleft_stacked", _cleft_text)
+check("cleft_stacking_fires", "cleft" in cats(_h_cleft),
+      "three clefts in one document should fire; got %s" % sorted(cats(_h_cleft)))
+check("cleft_count_reported", (_r_cleft.get("cleft_count") or 0) >= 3,
+      "cleft_count was %s" % _r_cleft.get("cleft_count"))
+_h_cleft1, _, _, _ = run_analyze(
+    "cleft_single", "What matters here is the p99 latency. " + _PAD)
+check("cleft_single_does_not_fire", "cleft" not in cats(_h_cleft1),
+      "one cleft is ordinary English and must not fire")
+# Mid-sentence noun phrases that merely contain a cleft head word are not clefts.
+_h_cleft_fp, _, _, _ = run_analyze(
+    "cleft_false_positive",
+    "We fixed the problem and the answer was obvious to everyone. "
+    "She solved the question of whether the pipeline could scale. "
+    "The difference between the two teams showed up in the retro. " + _PAD)
+check("cleft_no_false_positive", "cleft" not in cats(_h_cleft_fp),
+      "non-cleft uses of problem/question/answer fired: %s" % sorted(cats(_h_cleft_fp)))
+# Creative narration keeps the wh-cleft; casual does not.
+_h_cleft_cre, _, _, _ = run_analyze("cleft_creative", _cleft_text, register="creative")
+check("cleft_muted_in_creative", "cleft" not in cats(_h_cleft_cre))
+_h_cleft_cas, _, _, _ = run_analyze("cleft_casual", _cleft_text, register="casual")
+check("cleft_fires_in_casual", "cleft" in cats(_h_cleft_cas),
+      "casual prose stacks clefts the same way an assistant answer does")
+
+# Resultative participial tails.
+_tail_text = (
+    "The cluster reindexes nightly, allowing the team to treat staleness as fine. "
+    "The new path streams updates, ensuring that a document is searchable fast. "
+    "We wrote a differ, giving us a concrete list of disagreements. " + _PAD)
+_h_tail, _r_tail, _, _ = run_analyze("participial_tail", _tail_text)
+check("participial_tail_fires", "participial_tail" in cats(_h_tail),
+      "got %s" % sorted(cats(_h_tail)))
+check("participial_tail_counted", (_r_tail.get("participial_tail_count") or 0) >= 3)
+_h_tail1, _, _, _ = run_analyze(
+    "participial_tail_single", "We shipped the differ, giving us a list. " + _PAD)
+check("participial_tail_single_ok", "participial_tail" not in cats(_h_tail1))
+
+# Copula density and clause welding are reported even when they do not fire.
+_h_cop, _r_cop, _, _ = run_analyze("copula_metric", _PAD)
+check("copula_metric_reported", _r_cop.get("copula_per_1k") is not None)
+check("clause_splice_metric_reported", _r_cop.get("clause_splice_count") is not None)
+
+# Paragraph openers key on the first TWO words, so three paragraphs starting
+# "The" with different second words is not a finding.
+_paras_ok = "\n\n".join([
+    "The math is simple enough to check by hand in a minute.",
+    "The real win is not the money, though the money helps a little.",
+    "The warehouse lease runs about seven thousand dollars a month.",
+    "Last Black Friday the dock was slammed and we ate the refunds.",
+    "We break even somewhere around month five on current volume.",
+])
+_h_po_ok, _, _, _ = run_analyze("paragraph_openers_ok", _paras_ok)
+check("paragraph_openers_no_article_fp", "paragraph_openers" not in cats(_h_po_ok),
+      "three paragraphs starting with 'The' is not a templated opening")
+_paras_bad = "\n\n".join(["The system handles the write path and the read path."] * 3
+                         + ["A different opening sentence entirely here.",
+                            "Another different opening sentence here too."])
+_h_po_bad, _, _, _ = run_analyze("paragraph_openers_bad", _paras_bad)
+check("paragraph_openers_fires", "paragraph_openers" in cats(_h_po_bad),
+      "got %s" % sorted(cats(_h_po_bad)))
+
+# Bullet openers.
+_bullets = "\n".join(["- Improve the ingestion throughput on the hot path",
+                      "- Improve the retry budget for the write path",
+                      "- Improve the alerting on queue depth",
+                      "- Reduce the reindex window to under an hour"])
+_h_bo, _, _, _ = run_analyze("bullet_openers", _bullets)
+check("bullet_openers_fires", "bullet_openers" in cats(_h_bo),
+      "got %s" % sorted(cats(_h_bo)))
+
+# Noun chains.
+# Three links, not two: "a copy of the report in the archive" is ordinary English.
+_h_nc, _, _, _ = run_analyze(
+    "noun_chains",
+    "The reduction of the complexity of the design of the interface mattered. "
+    "The evaluation of the quality of the output of the model came later. " + _PAD)
+check("noun_chain_fires", "noun_chain" in cats(_h_nc), "got %s" % sorted(cats(_h_nc)))
+
+# --- Code fences must not contribute markdown shape ---------------------------
+_fenced = (
+    "# A readme\n\nSome real prose lives out here in the document body.\n\n"
+    "```bash\n# Install The Dependencies\npip install foo\n```\n\n"
+    "```markdown\n- **Performance**: fast\n- **Reliability**: up\n- **Security**: safe\n"
+    "\n---\n\nSome \U0001F680 emoji copy.\n```\n\n"
+    "More prose after the fence, enough of it to make the document measurable.\n")
+_h_fence, _r_fence, _, _ = run_analyze("code_fence_shape", _fenced)
+for _cat in ("heading_case", "bold_bullets", "formatting"):
+    check("fence_no_%s" % _cat, _cat not in cats(_h_fence),
+          "%s fired on content inside a code fence" % _cat)
+check("fence_bold_spans_zero", (_r_fence.get("bold_spans") or 0) == 0,
+      "bold spans inside a fence were counted: %s" % _r_fence.get("bold_spans"))
+
+# --- Dialect: a word ending a sentence is not an identifier -------------------
+_h_dia_end, _, _, _ = run_analyze(
+    "dialect_sentence_final", "We had to optimise. The colour was wrong.",
+    dialect="american")
+check("dialect_catches_sentence_final",
+      sorted(h.text.lower() for h in _h_dia_end if h.category == "dialect")
+      == ["colour", "optimise"],
+      "sentence-final 'optimise.' was skipped as an identifier")
+_h_dia_attr, _, _, _ = run_analyze(
+    "dialect_attribute_access", "Call theme.colour and Palette.colour here.",
+    dialect="american")
+check("dialect_skips_attribute_access",
+      not [h for h in _h_dia_attr if h.category == "dialect"],
+      "attribute access should still be skipped")
+
+# --- superlative_creep is ONE document finding, not one per example -----------
+_sup = ("The best tool. The fastest path. The most complete answer. "
+        "The ultimate guide. A perfect fit. The greatest win. ") * 4 + _PAD
+_h_sup, _, _, _ = run_analyze("superlative_one_finding", _sup)
+_sups = [h for h in _h_sup if h.category == "superlative_creep"]
+check("superlative_single_document_finding", len(_sups) <= 1,
+      "superlative_creep emitted %d findings for one density signal" % len(_sups))
+
+# --- Underscored identifiers survive markup stripping -------------------------
+check("underscore_identifier_survives",
+      dap.strip_inline_markup("Call get_user_by_id and MAX_RETRY_COUNT.")
+      == "Call get_user_by_id and MAX_RETRY_COUNT.")
+check("underscore_emphasis_still_stripped",
+      dap.strip_inline_markup("A _word_ and __bold__ here.") == "A word and bold here.")
+
+# --- Instance checks are not silently capped at their display limit -----------
+_many_dashes = " ".join("Clause %d — with an aside attached to it." % i
+                        for i in range(30))
+_h_many, _r_many, _, _ = run_analyze("uncapped_instance_hits", _many_dashes)
+check("instance_hits_not_capped_at_eight",
+      len([h for h in _h_many if h.category == "em_dash"]) > 8,
+      "em_dash hits were capped at the old display limit")
+
+# --- Short documents are not amplified by the density denominator -------------
+_two_hits = dap.score([dap.Hit("em_dash", 3, "x"), dap.Hit("em_dash", 5, "x")], 220)
+check("density_floor_bounds_short_docs", _two_hits < 15.0,
+      "two hits in a 220-word note scored %.1f, the category cap" % _two_hits)
+
+# --- collect_targets dedupes and prunes ---------------------------------------
+_ct = dap.collect_targets(["eval/corpus/human", "eval/corpus/human/h01_technical_postmortem.md"],
+                          recursive=False)
+check("collect_targets_dedupes", len(_ct) == len(set(os.path.normpath(p) for p in _ct)),
+      "collect_targets returned duplicates")
+
+# --- A soft-wrapped list item is ONE sentence -------------------------------
+_wrapped = ("- **Deployment tooling**: A new pipeline reduced deploy time from 40 minutes to\n"
+            "  6, allowing engineers to ship changes the same day they write them.\n"
+            "- Second item that is short\n"
+            "- Third item ends with a period.\n\n"
+            "Ordinary paragraph that wraps\nacross two lines here.\n")
+_wrapped_sents = dap.sentences(dap.prose_for_metrics(dap.strip_code(_wrapped)))
+check("wrapped_list_item_is_one_sentence", len(_wrapped_sents) == 4,
+      "expected 4 sentences, got %d: %s" % (len(_wrapped_sents), _wrapped_sents))
+check("wrapped_list_item_not_split_mid_clause",
+      not any(s.rstrip().endswith("to.") for s in _wrapped_sents),
+      "a wrapped bullet was cut mid-clause: %s" % _wrapped_sents)
+check("list_items_still_terminated",
+      all(s.rstrip()[-1] in ".!?" for s in _wrapped_sents),
+      "every emitted block should end in terminal punctuation: %s" % _wrapped_sents)
+# The source-line map must survive the join.
+_wrapped_text, _wrapped_segs = dap.prose_for_metrics(
+    dap.strip_code(_wrapped), with_line_map=True)
+check("wrapped_list_segments_in_range",
+      all(1 <= ln <= _wrapped.count("\n") + 1 for _off, ln in _wrapped_segs),
+      "a segment pointed outside the document: %s" % _wrapped_segs)
+
+# --- The humanizer's own fingerprint: one mark substituted for every dash ------
+_SEMI_SWAPPED = (
+    "The migration took three weeks; the surprise was how little of it was the "
+    "migration. Reconciliation ate the time; nobody had characterized the corpus. "
+    "We ran a single cluster with nightly reindexing; staleness was acceptable. "
+    "The new path streams updates; a document is searchable in seconds. "
+    "Relevance tuning had drifted; a recency boost from 2022 was undocumented. "
+    "We built a differ and replayed a week of queries; eleven disagreed. ") * 4
+_h_semi, _r_semi, _, _ = run_analyze("punctuation_substitution", _SEMI_SWAPPED)
+check("punctuation_substitution_fires",
+      any(h.category == "over_correction" and "semicolon" in h.text for h in _h_semi),
+      "a document with 88 semicolons per 1k words and no dash at all should fire")
+check("semicolon_metric_reported", _r_semi.get("semicolon_per_1k") is not None)
+# A writer who uses a few semicolons AND dashes is just punctuating.
+_h_mix, _, _, _ = run_analyze(
+    "mixed_punctuation_ok",
+    "The migration took three weeks; reconciliation ate most of it. "
+    "We ran one cluster — nightly reindexing, acceptable staleness — until March. "
+    "Relevance tuning had drifted. A recency boost from 2022 was undocumented. "
+    + "Some further prose to carry the document past the length floor. " * 20)
+check("mixed_punctuation_not_over_correction",
+      not [h for h in _h_mix if h.category == "over_correction" and "semicolon" in h.text],
+      "a document that uses both marks is not a mechanical substitution")
+# Two semicolons in a short note is not a signature.
+_h_few, _, _, _ = run_analyze(
+    "few_semicolons_ok",
+    "We shipped it; the graphs held. Nothing else changed; nobody paged. "
+    + "Ordinary prose continues here without further punctuation games. " * 20)
+check("few_semicolons_not_flagged",
+      not [h for h in _h_few if h.category == "over_correction" and "semicolon" in h.text])
+
+# --- Autofix never edits inside a URL -----------------------------------------
+_url_src = "See [docs](https://example.com/delve-into-it?a--b) and https://x.io/leverage-guide now."
+_url_fixed, _, _, _ = dap.autofix(_url_src, PAT, "technical")
+check("autofix_preserves_link_destination",
+      "https://example.com/delve-into-it?a--b" in _url_fixed
+      and "https://x.io/leverage-guide" in _url_fixed,
+      "autofix rewrote a URL: %r" % _url_fixed)
+
+# --- Autofix varies the replacement mark --------------------------------------
+_varied, _, _, _ = dap.autofix(
+    "The result — surprisingly — held. We shipped three things — speed, cost, and risk.",
+    PAT, "technical")
+check("autofix_paired_aside_to_parens", "(surprisingly)" in _varied,
+      "paired aside should become parentheses: %r" % _varied)
+check("autofix_enumeration_to_colon", "three things: speed" in _varied,
+      "an enumeration should take a colon: %r" % _varied)
+
+# --- An unterminated ignore-start runs to end of document ---------------------
+_unterminated = ("<!-- human-voice: ignore-start filler -->\n"
+                 "We delve into the topic here.\n\nWe delve again down here.\n")
+_h_unterm, _, _, _ = run_analyze("unterminated_ignore_start", _unterminated)
+check("unterminated_ignore_start_applies",
+      "filler" not in cats(_h_unterm),
+      "an unterminated ignore-start suppressed nothing: %s" % sorted(cats(_h_unterm)))
+
+# --- CRLF input scores the same as LF -----------------------------------------
+_lf = "---\ntitle: x\n---\n\nSome prose here that reads fine.\n"
+_h_lf, _, _w_lf = dap.analyze(_lf, "technical", None, PAT)
+_h_crlf, _, _w_crlf = dap.analyze(_lf.replace("\n", "\r\n"), "technical", None, PAT)
+check("crlf_matches_lf", _w_lf == _w_crlf,
+      "CRLF gave %d words, LF gave %d" % (_w_crlf, _w_lf))
+
+# --- Clause lists are not noun triads -----------------------------------------
+_h_clause_triad, _, _, _ = run_analyze(
+    "clause_list_not_triad",
+    "You paste code into a notebook, the kernel dies, and the last save is gone. "
+    "Install the extension, restart once, and it starts snapshotting for you.")
+check("clause_list_not_flagged_as_triad",
+      "rule_of_three" not in cats(_h_clause_triad),
+      "a list of clauses was flagged as a noun triad")
+_h_real_triad, _, _, _ = run_analyze(
+    "real_noun_triad",
+    "We ship encryption at rest, row-level access control, and audit logging. "
+    "The platform offers automated backups, point-in-time recovery, and cross-region replication.")
+check("real_noun_triad_still_flagged", "rule_of_three" in cats(_h_real_triad),
+      "a genuine noun triad stopped firing")
+
+
+# A recap heading is a tell only when the document is wrapping ITSELF up, so it
+# has to be the last heading. "Next steps" in the middle of a plan is a section.
+_pad = "Some real prose here that carries the argument along for a while. " * 20
+_h_mid, _, _, _ = run_analyze(
+    "recap_heading_mid_document",
+    "# Plan\n\n" + _pad + "\n\n## Next steps\n\n" + _pad + "\n\n## Risks\n\n" + _pad)
+check("recap_heading_mid_document_quiet",
+      not [h for h in _h_mid if h.category == "assistant_shape" and "closes with" in h.text],
+      "a mid-document 'Next steps' section was read as a sign-off")
+_h_end, _, _, _ = run_analyze(
+    "recap_heading_at_end",
+    "# Plan\n\n" + _pad + "\n\n## Risks\n\n" + _pad + "\n\n## Key takeaways\n\n" + _pad)
+check("recap_heading_at_end_fires",
+      any(h.category == "assistant_shape" and "closes with" in h.text for h in _h_end))
+
+# A setext heading underline is not a horizontal rule between sections.
+_h_setext, _r_setext, _, _ = run_analyze(
+    "setext_underline_not_a_rule",
+    "Title One\n=========\n\nProse here.\n\nTitle Two\n---------\n\nMore prose.\n\n"
+    "Title Three\n-----------\n\nAnd more.\n\nTitle Four\n----------\n\nAnd more still.\n")
+check("setext_underline_not_a_rule", (_r_setext.get("section_rules") or 0) == 0,
+      "setext underlines were counted as %s horizontal rules"
+      % _r_setext.get("section_rules"))
+_h_rules, _r_rules, _, _ = run_analyze(
+    "real_rules_still_counted",
+    "Prose.\n\n---\n\nProse.\n\n---\n\nProse.\n\n---\n\nProse.\n\n---\n\nProse.\n")
+check("real_rules_still_counted", (_r_rules.get("section_rules") or 0) >= 4,
+      "real horizontal rules stopped being counted: %s" % _r_rules.get("section_rules"))
+
+# Column alignment is not a doubled word.
+_h_col, _, _, _ = run_analyze(
+    "aligned_columns_not_doubled",
+    "match     Match a regular expression at the start of the string.\n"
+    "search    Search the string for a match anywhere inside it.\n")
+check("aligned_columns_not_doubled", "doubled_word" not in cats(_h_col),
+      "an aligned two-column table was read as a doubled word")
+_h_dbl, _, _, _ = run_analyze("real_doubled_word", "We shipped the the fix on Tuesday.")
+check("real_doubled_word_still_fires", "doubled_word" in cats(_h_dbl))
+
+# An emoticon is not a space before punctuation.
+_h_emo, _, _, _ = run_analyze("emoticon_not_mechanics", "It worked, plus one :-) and we shipped.")
+check("emoticon_not_flagged_as_mechanics", "mechanics" not in cats(_h_emo),
+      "a smiley was read as a space before a colon")
+_h_sbp, _, _, _ = run_analyze("real_space_before_punct", "We shipped it , then reverted.")
+check("real_space_before_punct_fires", "mechanics" in cats(_h_sbp))
+
+# Repeated n-grams are a rate: the floor scales with document length, so
+# terminology consistency in a long reference is not a finding.
+# Filler built from distinct all-letter tokens (WORD_RE drops digits, so
+# "word1 word2" would tokenize to the same word twice). No bigram in it repeats,
+# so the only repeated phrase in the document is the one under test.
+def _tok(i):
+    return chr(97 + (i // 676) % 26) + chr(97 + (i // 26) % 26) + chr(97 + i % 26)
+
+
+_filler = " ".join(
+    "%s %s %s %s." % (_tok(i * 4), _tok(i * 4 + 1), _tok(i * 4 + 2), _tok(i * 4 + 3))
+    for i in range(330))
+# Four repeats trip the old fixed floor of 4 and must not trip the scaled one in
+# a ~1300-word document; eight must still trip it. Terminology consistency in a
+# long reference is what principle 6 asks for, and the fixed floor punished it.
+_h_ng_lo, _, _, _ = run_analyze(
+    "ngram_floor_scales_low", "The scheduler retries the job. " * 4 + _filler)
+check("ngram_floor_scales_with_length", "ngram_repetition" not in cats(_h_ng_lo),
+      "four repeats in a long document tripped the scaled n-gram floor")
+_h_ng_hi, _, _, _ = run_analyze(
+    "ngram_floor_scales_high", "The scheduler retries the job. " * 9 + _filler)
+check("ngram_floor_still_fires_when_earned", "ngram_repetition" in cats(_h_ng_hi),
+      "nine verbatim repeats should still be a finding")
+# The floor is still the configured minimum on a short document.
+_h_ng_short, _, _, _ = run_analyze(
+    "ngram_floor_short_doc",
+    "The scheduler retries the job. " * 5 + "A little other prose here. " * 6)
+check("ngram_floor_holds_on_short_docs", "ngram_repetition" in cats(_h_ng_short),
+      "five verbatim repeats in a short note should fire")
+
+# "e.g." tokenizes to ("e", "g"); single letters are not content words.
+_eg = "Use it, e.g. here. " * 8 + "Some other prose to pad this out a little. " * 8
+_h_eg, _, _, _ = run_analyze("eg_not_an_ngram", _eg)
+check("single_letters_are_not_content_words",
+      not [h for h in _h_eg if h.category == "ngram_repetition" and '"e g"' in h.text],
+      "'e.g.' was counted as a repeated content n-gram")
+
+# One dash convention used many times is one finding, not one per occurrence.
+_many_ascii = "\n".join("name%d -- description of the thing at index %d." % (i, i)
+                        for i in range(30))
+_h_ascii, _, _, _ = run_analyze("dash_convention_collapsed", _many_ascii)
+_ds = [h for h in _h_ascii if h.category == "dash_style"]
+check("dash_convention_reported_once", len(_ds) <= 2,
+      "30 occurrences of one dash convention produced %d findings" % len(_ds))
+check("dash_convention_reports_the_count",
+      any("30 occurrences" in h.text for h in _ds),
+      "the collapsed finding should carry the real count: %s" % [h.text for h in _ds])
+
+
+# ---------------------------------------------------------------------------
+# Property tests: invariants that must hold on ANY input, not just the fixtures
+# ---------------------------------------------------------------------------
+
+_random.seed(20260822)
+_FUZZ_ALPHA = list("abcdefgh IJK.,;:!?\n\t*_`#->|[]()—–\"'\\/{}$%^&~=+0123456789é")
+
+_fuzz_fail = None
+for _i in range(200):
+    _t = "".join(_random.choice(_FUZZ_ALPHA) for _ in range(_random.randint(0, 600)))
+    for _reg in ("technical", "creative", "casual", "marketing"):
+        try:
+            dap.lint(_t, register=_reg, dialect="american", patterns=PAT)
+            dap.autofix(_t, PAT, _reg)
+        except Exception as _exc:            # noqa: BLE001 - that is the point
+            _fuzz_fail = "%s on %r (register %s)" % (type(_exc).__name__, _t[:120], _reg)
+            break
+    if _fuzz_fail:
+        break
+check("fuzz_never_crashes", _fuzz_fail is None,
+      "adversarial markdown crashed the linter: %s" % _fuzz_fail)
+
+# Autofix is a text transform on prose. Numbers, code spans, and URLs are
+# invariants: rewriting one produces a wrong figure, broken code, or a 404.
+_INV_FRAGMENTS = [
+    "We should leverage the API — quickly.", "`code — here`",
+    "https://x.io/a--b", "```\nfoo — bar\n```", "| a | — | b |",
+    "10–20 items", "See [x](http://y/z--w).",
+    "The result — surprisingly — held.", "delve into it",
+    "a — b — c — d", "MAX_RETRY_COUNT and get_user_by_id",
+    "value: 3.14159", "footnote[^1]",
+]
+_NUM_RE = re.compile(r"\d+(?:[.,]\d+)*%?")
+_CODE_RE = re.compile(r"`[^`\n]*`|```[\s\S]*?```")
+_URL_RE = re.compile(r"https?://\S+?(?=[\s)\]]|$)")
+_inv_fail = None
+for _i in range(200):
+    _t = " ".join(_random.choice(_INV_FRAGMENTS)
+                  for _ in range(_random.randint(1, 8)))
+    for _reg in ("technical", "creative", "casual"):
+        _out = dap.autofix(_t, PAT, _reg)[0]
+        for _name, _rx in (("numbers", _NUM_RE), ("code", _CODE_RE), ("urls", _URL_RE)):
+            if sorted(_rx.findall(_t)) != sorted(_rx.findall(_out)):
+                _inv_fail = "%s changed: %r -> %r" % (_name, _t, _out)
+                break
+        if _inv_fail:
+            break
+    if _inv_fail:
+        break
+check("autofix_preserves_invariants", _inv_fail is None,
+      "autofix violated an invariant: %s" % _inv_fail)
+
+# Analysis stays roughly linear. The lexical lists are alternated into a handful
+# of combined regexes rather than one scan per phrase; before that, a document
+# ten times longer with a thousand-entry pattern file took far more than ten times
+# as long. A generous ceiling, because CI machines vary.
+_perf_unit = ("The system processes requests and returns responses to the caller. "
+              "Some sentences are short. Others run considerably longer than this "
+              "one does, carrying several clauses and a good deal of detail. ")
+_t0 = time.time()
+dap.analyze(_perf_unit * 400, "technical", "american", PAT)
+_elapsed = time.time() - _t0
+check("analysis_is_not_quadratic", _elapsed < 10.0,
+      "analyzing ~13k words took %.1fs; the lexical pass has probably regressed to "
+      "one regex per phrase" % _elapsed)
+
 
 # ---------------------------------------------------------------------------
 # Summary

@@ -1,6 +1,6 @@
 {
-  "corpus_size": 58,
-  "n_human": 34,
+  "corpus_size": 63,
+  "n_human": 39,
   "n_ai": 24,
   "roc_auc": 1.0,
   "confidence_intervals": {
@@ -14,18 +14,18 @@
       "caveat": "n is small and the corpus is authored; this interval reflects resampling variance within the fixed set, not sampling from real-world text."
     },
     "default_f1": {
-      "point": 0.8136,
-      "lo": 0.75,
-      "hi": 0.8889,
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
       "iters": 2000,
       "seed": 1729,
       "method": "stratified percentile bootstrap",
       "caveat": "n is small and the corpus is authored; this interval reflects resampling variance within the fixed set, not sampling from real-world text."
     },
     "default_human_fpr": {
-      "point": 0.3235,
-      "lo": 0.1765,
-      "hi": 0.4706,
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
       "iters": 2000,
       "seed": 1729,
       "method": "stratified percentile bootstrap",
@@ -34,19 +34,19 @@
   },
   "default_threshold": 5.0,
   "default": {
-    "precision": 0.6857,
+    "precision": 1.0,
     "recall": 1.0,
-    "f1": 0.8136,
-    "accuracy": 0.8103,
-    "human_subset_false_positive_rate": 0.3235,
+    "f1": 1.0,
+    "accuracy": 1.0,
+    "human_subset_false_positive_rate": 0.0,
     "confusion": {
       "tp": 24,
-      "fp": 11,
-      "tn": 23,
+      "fp": 0,
+      "tn": 39,
       "fn": 0
     }
   },
-  "best_threshold": 67.0,
+  "best_threshold": 10.65,
   "best": {
     "precision": 1.0,
     "recall": 1.0,
@@ -56,66 +56,66 @@
     "confusion": {
       "tp": 24,
       "fp": 0,
-      "tn": 34,
+      "tn": 39,
       "fn": 0
     }
   },
   "by_register": {
     "academic": {
-      "n": 8,
-      "n_human": 5,
+      "n": 9,
+      "n_human": 6,
       "n_ai": 3,
       "auc": 1.0,
       "metrics": {
-        "precision": 0.6,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.75,
-        "accuracy": 0.75,
-        "human_subset_false_positive_rate": 0.4,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
         "confusion": {
           "tp": 3,
-          "fp": 2,
-          "tn": 3,
+          "fp": 0,
+          "tn": 6,
           "fn": 0
         }
       },
       "single_class": false
     },
     "business": {
-      "n": 10,
-      "n_human": 6,
+      "n": 11,
+      "n_human": 7,
       "n_ai": 4,
       "auc": 1.0,
       "metrics": {
-        "precision": 0.8,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.8889,
-        "accuracy": 0.9,
-        "human_subset_false_positive_rate": 0.1667,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
         "confusion": {
           "tp": 4,
-          "fp": 1,
-          "tn": 5,
+          "fp": 0,
+          "tn": 7,
           "fn": 0
         }
       },
       "single_class": false
     },
     "casual": {
-      "n": 10,
-      "n_human": 6,
+      "n": 11,
+      "n_human": 7,
       "n_ai": 4,
       "auc": 1.0,
       "metrics": {
-        "precision": 0.5714,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.7273,
-        "accuracy": 0.7,
-        "human_subset_false_positive_rate": 0.5,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
         "confusion": {
           "tp": 4,
-          "fp": 3,
-          "tn": 3,
+          "fp": 0,
+          "tn": 7,
           "fn": 0
         }
       },
@@ -142,8 +142,8 @@
       "single_class": false
     },
     "email": {
-      "n": 6,
-      "n_human": 4,
+      "n": 7,
+      "n_human": 5,
       "n_ai": 2,
       "auc": 1.0,
       "metrics": {
@@ -155,7 +155,7 @@
         "confusion": {
           "tp": 2,
           "fp": 0,
-          "tn": 4,
+          "tn": 5,
           "fn": 0
         }
       },
@@ -167,35 +167,35 @@
       "n_ai": 3,
       "auc": 1.0,
       "metrics": {
-        "precision": 0.6,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.75,
-        "accuracy": 0.7143,
-        "human_subset_false_positive_rate": 0.5,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
         "confusion": {
           "tp": 3,
-          "fp": 2,
-          "tn": 2,
+          "fp": 0,
+          "tn": 4,
           "fn": 0
         }
       },
       "single_class": false
     },
     "technical": {
-      "n": 10,
-      "n_human": 6,
+      "n": 11,
+      "n_human": 7,
       "n_ai": 4,
       "auc": 1.0,
       "metrics": {
-        "precision": 0.5714,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.7273,
-        "accuracy": 0.7,
-        "human_subset_false_positive_rate": 0.5,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "human_subset_false_positive_rate": 0.0,
         "confusion": {
           "tp": 4,
-          "fp": 3,
-          "tn": 3,
+          "fp": 0,
+          "tn": 7,
           "fn": 0
         }
       },
@@ -203,44 +203,44 @@
     }
   },
   "by_category_ai_share": {
-    "filler": 0.1818,
-    "rule_of_three": 0.1381,
-    "bold_bullets": 0.1292,
-    "meta_commentary": 0.0971,
-    "aidiolect": 0.0707,
-    "puffery": 0.0555,
-    "jargon": 0.0499,
-    "soft_filler": 0.0347,
-    "significance_inflation": 0.0299,
-    "vague_attribution": 0.0277,
-    "false_agency": 0.0236,
-    "burstiness": 0.022,
-    "antithesis": 0.019,
-    "paragraph_uniformity": 0.0182,
-    "em_dash": 0.0178,
-    "vague_declarative": 0.0158,
-    "cliche_metaphor": 0.0076,
-    "transitions": 0.0074,
-    "sycophancy": 0.0068,
-    "five_paragraph_shape": 0.0068,
-    "uniform_openers": 0.0053,
-    "negative_listing": 0.0053,
-    "narrator_distance": 0.005,
-    "chatbot_scaffold": 0.0045,
-    "parallel_structure": 0.0037,
-    "svo_monotony": 0.0035,
-    "superlative_creep": 0.0034,
-    "ngram_repetition": 0.0028,
-    "nominalization": 0.0025,
-    "redundancy": 0.0016,
-    "list_uniformity": 0.0014,
-    "wh_opener": 0.0008,
-    "heading_case": 0.0006
+    "filler": 0.1231,
+    "meta_commentary": 0.1173,
+    "bold_bullets": 0.0938,
+    "rule_of_three": 0.0889,
+    "puffery": 0.086,
+    "aidiolect": 0.0654,
+    "soft_filler": 0.0634,
+    "jargon": 0.0572,
+    "vague_attribution": 0.0469,
+    "significance_inflation": 0.0456,
+    "antithesis": 0.0371,
+    "burstiness": 0.0233,
+    "negative_listing": 0.0196,
+    "assistant_shape": 0.0167,
+    "cliche_metaphor": 0.0145,
+    "transitions": 0.0144,
+    "sycophancy": 0.0132,
+    "paragraph_uniformity": 0.0125,
+    "vague_declarative": 0.0125,
+    "sentence_shape": 0.01,
+    "chatbot_scaffold": 0.0088,
+    "false_agency": 0.0063,
+    "redundancy": 0.0058,
+    "five_paragraph_shape": 0.005,
+    "ngram_repetition": 0.0029,
+    "parallel_structure": 0.0025,
+    "nominalization": 0.0017,
+    "svo_monotony": 0.0017,
+    "heading_case": 0.0011,
+    "uniform_openers": 0.0008,
+    "list_uniformity": 0.0008,
+    "superlative_creep": 0.0008,
+    "wh_opener": 0.0004
   },
   "hard_negatives": {
     "esl_formal": {
-      "fpr": 0.3,
-      "flagged": 3,
+      "fpr": 0.0,
+      "flagged": 0,
       "n": 10,
       "threshold": 5.0
     },
@@ -253,193 +253,257 @@
       "threshold": 5.0
     }
   },
+  "modern_ai": {
+    "n": 20,
+    "threshold": 5.0,
+    "recall": 0.85,
+    "flagged": 17,
+    "auc_vs_human": 0.9371794871794872,
+    "precision": 1.0,
+    "f1": 0.9189,
+    "score_min": 0.0,
+    "score_median": 15.0,
+    "score_max": 41.1,
+    "missed": [
+      "ai_modern/m09_creative_scene.md",
+      "ai_modern/m17_email_project.md",
+      "ai_modern/m20_creative_arrival.md"
+    ]
+  },
+  "modern_ai_rewritten": {
+    "n": 20,
+    "threshold": 5.0,
+    "unpaired": [],
+    "mean_before": 16.065,
+    "mean_after": 1.3,
+    "clean_before": 3,
+    "clean_after": 20,
+    "flagged_before": 17,
+    "flagged_after": 0,
+    "improved": 18,
+    "regressed": [],
+    "rows": [
+      {
+        "file": "m01_technical_tradeoff.md",
+        "before": 15.0,
+        "after": 0.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "technical"
+      },
+      {
+        "file": "m02_business_review.md",
+        "before": 12.7,
+        "after": 3.0,
+        "before_verdict": "watch",
+        "after_verdict": "clean",
+        "register": "business"
+      },
+      {
+        "file": "m03_technical_scaffolded.md",
+        "before": 8.0,
+        "after": 0.0,
+        "before_verdict": "watch",
+        "after_verdict": "clean",
+        "register": "technical"
+      },
+      {
+        "file": "m04_academic_abstract.md",
+        "before": 11.3,
+        "after": 0.0,
+        "before_verdict": "watch",
+        "after_verdict": "clean",
+        "register": "academic"
+      },
+      {
+        "file": "m05_marketing_page.md",
+        "before": 17.0,
+        "after": 4.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "marketing"
+      },
+      {
+        "file": "m06_email_update.md",
+        "before": 7.3,
+        "after": 0.0,
+        "before_verdict": "watch",
+        "after_verdict": "clean",
+        "register": "email"
+      },
+      {
+        "file": "m07_casual_blog.md",
+        "before": 18.3,
+        "after": 0.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "casual"
+      },
+      {
+        "file": "m08_technical_bulleted.md",
+        "before": 28.3,
+        "after": 4.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "technical"
+      },
+      {
+        "file": "m09_creative_scene.md",
+        "before": 0.0,
+        "after": 0.0,
+        "before_verdict": "clean",
+        "after_verdict": "clean",
+        "register": "creative"
+      },
+      {
+        "file": "m10_business_proposal.md",
+        "before": 15.0,
+        "after": 0.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "business"
+      },
+      {
+        "file": "m11_tutorial_steps.md",
+        "before": 15.0,
+        "after": 3.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "tutorial"
+      },
+      {
+        "file": "m12_casual_review.md",
+        "before": 9.7,
+        "after": 0.0,
+        "before_verdict": "watch",
+        "after_verdict": "clean",
+        "register": "casual"
+      },
+      {
+        "file": "m13_technical_postmortem.md",
+        "before": 41.1,
+        "after": 3.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "technical"
+      },
+      {
+        "file": "m14_business_strategy.md",
+        "before": 27.6,
+        "after": 0.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "business"
+      },
+      {
+        "file": "m15_academic_discussion.md",
+        "before": 18.0,
+        "after": 3.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "academic"
+      },
+      {
+        "file": "m16_marketing_feature.md",
+        "before": 24.0,
+        "after": 3.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "marketing"
+      },
+      {
+        "file": "m17_email_project.md",
+        "before": 0.0,
+        "after": 0.0,
+        "before_verdict": "clean",
+        "after_verdict": "clean",
+        "register": "email"
+      },
+      {
+        "file": "m18_tutorial_deploy.md",
+        "before": 30.0,
+        "after": 3.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "tutorial"
+      },
+      {
+        "file": "m19_casual_habit.md",
+        "before": 19.7,
+        "after": 0.0,
+        "before_verdict": "strong-tell",
+        "after_verdict": "clean",
+        "register": "casual"
+      },
+      {
+        "file": "m20_creative_arrival.md",
+        "before": 3.3,
+        "after": 0.0,
+        "before_verdict": "clean",
+        "after_verdict": "clean",
+        "register": "creative"
+      }
+    ]
+  },
   "sweep": [
     {
       "threshold": 0.0,
-      "f1": 0.5854,
-      "precision": 0.4138,
+      "f1": 0.5517,
+      "precision": 0.381,
       "recall": 1.0,
-      "accuracy": 0.4138,
+      "accuracy": 0.381,
       "human_fpr": 1.0
     },
     {
-      "threshold": 2.4,
-      "f1": 0.8,
-      "precision": 0.6667,
-      "recall": 1.0,
-      "accuracy": 0.7931,
-      "human_fpr": 0.3529
-    },
-    {
-      "threshold": 4.8,
-      "f1": 0.8,
-      "precision": 0.6667,
-      "recall": 1.0,
-      "accuracy": 0.7931,
-      "human_fpr": 0.3529
-    },
-    {
-      "threshold": 5.0,
-      "f1": 0.8136,
-      "precision": 0.6857,
-      "recall": 1.0,
-      "accuracy": 0.8103,
-      "human_fpr": 0.3235
-    },
-    {
-      "threshold": 5.2,
-      "f1": 0.8136,
-      "precision": 0.6857,
-      "recall": 1.0,
-      "accuracy": 0.8103,
-      "human_fpr": 0.3235
-    },
-    {
-      "threshold": 6.0,
-      "f1": 0.8276,
-      "precision": 0.7059,
-      "recall": 1.0,
-      "accuracy": 0.8276,
-      "human_fpr": 0.2941
-    },
-    {
-      "threshold": 6.8,
-      "f1": 0.8276,
-      "precision": 0.7059,
-      "recall": 1.0,
-      "accuracy": 0.8276,
-      "human_fpr": 0.2941
-    },
-    {
-      "threshold": 6.9,
+      "threshold": 1.0,
       "f1": 0.8421,
       "precision": 0.7273,
       "recall": 1.0,
-      "accuracy": 0.8448,
-      "human_fpr": 0.2647
+      "accuracy": 0.8571,
+      "human_fpr": 0.2308
     },
     {
-      "threshold": 7.0,
+      "threshold": 2.0,
       "f1": 0.8421,
       "precision": 0.7273,
       "recall": 1.0,
-      "accuracy": 0.8448,
-      "human_fpr": 0.2647
+      "accuracy": 0.8571,
+      "human_fpr": 0.2308
     },
     {
-      "threshold": 7.05,
-      "f1": 0.8571,
-      "precision": 0.75,
-      "recall": 1.0,
-      "accuracy": 0.8621,
-      "human_fpr": 0.2353
-    },
-    {
-      "threshold": 7.1,
-      "f1": 0.8571,
-      "precision": 0.75,
-      "recall": 1.0,
-      "accuracy": 0.8621,
-      "human_fpr": 0.2353
-    },
-    {
-      "threshold": 7.25,
+      "threshold": 2.5,
       "f1": 0.8727,
       "precision": 0.7742,
       "recall": 1.0,
-      "accuracy": 0.8793,
-      "human_fpr": 0.2059
+      "accuracy": 0.8889,
+      "human_fpr": 0.1795
     },
     {
-      "threshold": 7.4,
+      "threshold": 3.0,
       "f1": 0.8727,
       "precision": 0.7742,
       "recall": 1.0,
-      "accuracy": 0.8793,
-      "human_fpr": 0.2059
+      "accuracy": 0.8889,
+      "human_fpr": 0.1795
     },
     {
-      "threshold": 7.5,
-      "f1": 0.8889,
-      "precision": 0.8,
-      "recall": 1.0,
-      "accuracy": 0.8966,
-      "human_fpr": 0.1765
-    },
-    {
-      "threshold": 7.6,
-      "f1": 0.8889,
-      "precision": 0.8,
-      "recall": 1.0,
-      "accuracy": 0.8966,
-      "human_fpr": 0.1765
-    },
-    {
-      "threshold": 7.7,
-      "f1": 0.9231,
-      "precision": 0.8571,
-      "recall": 1.0,
-      "accuracy": 0.931,
-      "human_fpr": 0.1176
-    },
-    {
-      "threshold": 7.8,
-      "f1": 0.9231,
-      "precision": 0.8571,
-      "recall": 1.0,
-      "accuracy": 0.931,
-      "human_fpr": 0.1176
-    },
-    {
-      "threshold": 7.9,
-      "f1": 0.9412,
-      "precision": 0.8889,
-      "recall": 1.0,
-      "accuracy": 0.9483,
-      "human_fpr": 0.0882
-    },
-    {
-      "threshold": 8.0,
-      "f1": 0.9412,
-      "precision": 0.8889,
-      "recall": 1.0,
-      "accuracy": 0.9483,
-      "human_fpr": 0.0882
-    },
-    {
-      "threshold": 9.8,
+      "threshold": 3.15,
       "f1": 0.96,
       "precision": 0.9231,
       "recall": 1.0,
-      "accuracy": 0.9655,
-      "human_fpr": 0.0588
+      "accuracy": 0.9683,
+      "human_fpr": 0.0513
     },
     {
-      "threshold": 11.6,
+      "threshold": 3.3,
       "f1": 0.96,
       "precision": 0.9231,
       "recall": 1.0,
-      "accuracy": 0.9655,
-      "human_fpr": 0.0588
+      "accuracy": 0.9683,
+      "human_fpr": 0.0513
     },
     {
-      "threshold": 18.5,
-      "f1": 0.9796,
-      "precision": 0.96,
-      "recall": 1.0,
-      "accuracy": 0.9828,
-      "human_fpr": 0.0294
-    },
-    {
-      "threshold": 25.4,
-      "f1": 0.9796,
-      "precision": 0.96,
-      "recall": 1.0,
-      "accuracy": 0.9828,
-      "human_fpr": 0.0294
-    },
-    {
-      "threshold": 67.0,
+      "threshold": 10.65,
       "f1": 1.0,
       "precision": 1.0,
       "recall": 1.0,
@@ -447,7 +511,7 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 108.6,
+      "threshold": 18.0,
       "f1": 1.0,
       "precision": 1.0,
       "recall": 1.0,
@@ -455,379 +519,363 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 109.65,
+      "threshold": 32.35,
       "f1": 0.9787,
       "precision": 1.0,
       "recall": 0.9583,
-      "accuracy": 0.9828,
+      "accuracy": 0.9841,
       "human_fpr": 0.0
     },
     {
-      "threshold": 110.7,
+      "threshold": 46.7,
       "f1": 0.9787,
       "precision": 1.0,
       "recall": 0.9583,
-      "accuracy": 0.9828,
+      "accuracy": 0.9841,
       "human_fpr": 0.0
     },
     {
-      "threshold": 111.25,
+      "threshold": 46.85,
       "f1": 0.9565,
       "precision": 1.0,
       "recall": 0.9167,
-      "accuracy": 0.9655,
+      "accuracy": 0.9683,
       "human_fpr": 0.0
     },
     {
-      "threshold": 111.8,
+      "threshold": 47.0,
       "f1": 0.9565,
       "precision": 1.0,
       "recall": 0.9167,
-      "accuracy": 0.9655,
+      "accuracy": 0.9683,
       "human_fpr": 0.0
     },
     {
-      "threshold": 116.75,
+      "threshold": 47.65,
       "f1": 0.9333,
       "precision": 1.0,
       "recall": 0.875,
-      "accuracy": 0.9483,
+      "accuracy": 0.9524,
       "human_fpr": 0.0
     },
     {
-      "threshold": 121.7,
+      "threshold": 48.3,
       "f1": 0.9333,
       "precision": 1.0,
       "recall": 0.875,
-      "accuracy": 0.9483,
+      "accuracy": 0.9524,
       "human_fpr": 0.0
     },
     {
-      "threshold": 125.3,
+      "threshold": 50.65,
       "f1": 0.9091,
       "precision": 1.0,
       "recall": 0.8333,
-      "accuracy": 0.931,
+      "accuracy": 0.9365,
       "human_fpr": 0.0
     },
     {
-      "threshold": 128.9,
+      "threshold": 53.0,
       "f1": 0.9091,
       "precision": 1.0,
       "recall": 0.8333,
-      "accuracy": 0.931,
+      "accuracy": 0.9365,
       "human_fpr": 0.0
     },
     {
-      "threshold": 133.4,
+      "threshold": 53.15,
       "f1": 0.8837,
       "precision": 1.0,
       "recall": 0.7917,
-      "accuracy": 0.9138,
+      "accuracy": 0.9206,
       "human_fpr": 0.0
     },
     {
-      "threshold": 137.9,
+      "threshold": 53.3,
       "f1": 0.8837,
       "precision": 1.0,
       "recall": 0.7917,
-      "accuracy": 0.9138,
+      "accuracy": 0.9206,
       "human_fpr": 0.0
     },
     {
-      "threshold": 138.4,
-      "f1": 0.8571,
-      "precision": 1.0,
-      "recall": 0.75,
-      "accuracy": 0.8966,
-      "human_fpr": 0.0
-    },
-    {
-      "threshold": 138.9,
-      "f1": 0.8571,
-      "precision": 1.0,
-      "recall": 0.75,
-      "accuracy": 0.8966,
-      "human_fpr": 0.0
-    },
-    {
-      "threshold": 140.4,
+      "threshold": 54.15,
       "f1": 0.8293,
       "precision": 1.0,
       "recall": 0.7083,
-      "accuracy": 0.8793,
+      "accuracy": 0.8889,
       "human_fpr": 0.0
     },
     {
-      "threshold": 141.9,
+      "threshold": 55.0,
       "f1": 0.8293,
       "precision": 1.0,
       "recall": 0.7083,
-      "accuracy": 0.8793,
+      "accuracy": 0.8889,
       "human_fpr": 0.0
     },
     {
-      "threshold": 144.85,
+      "threshold": 56.0,
       "f1": 0.8,
       "precision": 1.0,
       "recall": 0.6667,
-      "accuracy": 0.8621,
+      "accuracy": 0.873,
       "human_fpr": 0.0
     },
     {
-      "threshold": 147.8,
+      "threshold": 57.0,
       "f1": 0.8,
       "precision": 1.0,
       "recall": 0.6667,
-      "accuracy": 0.8621,
+      "accuracy": 0.873,
       "human_fpr": 0.0
     },
     {
-      "threshold": 149.65,
+      "threshold": 58.85,
       "f1": 0.7692,
       "precision": 1.0,
       "recall": 0.625,
-      "accuracy": 0.8448,
+      "accuracy": 0.8571,
       "human_fpr": 0.0
     },
     {
-      "threshold": 151.5,
+      "threshold": 60.7,
       "f1": 0.7692,
       "precision": 1.0,
       "recall": 0.625,
-      "accuracy": 0.8448,
+      "accuracy": 0.8571,
       "human_fpr": 0.0
     },
     {
-      "threshold": 152.0,
+      "threshold": 61.2,
       "f1": 0.7368,
       "precision": 1.0,
       "recall": 0.5833,
-      "accuracy": 0.8276,
+      "accuracy": 0.8413,
       "human_fpr": 0.0
     },
     {
-      "threshold": 152.5,
+      "threshold": 61.7,
       "f1": 0.7368,
       "precision": 1.0,
       "recall": 0.5833,
-      "accuracy": 0.8276,
+      "accuracy": 0.8413,
       "human_fpr": 0.0
     },
     {
-      "threshold": 155.15,
+      "threshold": 62.35,
       "f1": 0.7027,
       "precision": 1.0,
       "recall": 0.5417,
-      "accuracy": 0.8103,
+      "accuracy": 0.8254,
       "human_fpr": 0.0
     },
     {
-      "threshold": 157.8,
+      "threshold": 63.0,
       "f1": 0.7027,
       "precision": 1.0,
       "recall": 0.5417,
-      "accuracy": 0.8103,
+      "accuracy": 0.8254,
       "human_fpr": 0.0
     },
     {
-      "threshold": 158.35,
+      "threshold": 64.15,
       "f1": 0.6667,
       "precision": 1.0,
       "recall": 0.5,
-      "accuracy": 0.7931,
+      "accuracy": 0.8095,
       "human_fpr": 0.0
     },
     {
-      "threshold": 158.9,
+      "threshold": 65.3,
       "f1": 0.6667,
       "precision": 1.0,
       "recall": 0.5,
-      "accuracy": 0.7931,
+      "accuracy": 0.8095,
       "human_fpr": 0.0
     },
     {
-      "threshold": 161.65,
+      "threshold": 67.15,
       "f1": 0.6286,
       "precision": 1.0,
       "recall": 0.4583,
-      "accuracy": 0.7759,
+      "accuracy": 0.7937,
       "human_fpr": 0.0
     },
     {
-      "threshold": 164.4,
+      "threshold": 69.0,
       "f1": 0.6286,
       "precision": 1.0,
       "recall": 0.4583,
-      "accuracy": 0.7759,
+      "accuracy": 0.7937,
       "human_fpr": 0.0
     },
     {
-      "threshold": 170.55,
+      "threshold": 70.15,
       "f1": 0.5882,
       "precision": 1.0,
       "recall": 0.4167,
-      "accuracy": 0.7586,
+      "accuracy": 0.7778,
       "human_fpr": 0.0
     },
     {
-      "threshold": 176.7,
+      "threshold": 71.3,
       "f1": 0.5882,
       "precision": 1.0,
       "recall": 0.4167,
-      "accuracy": 0.7586,
+      "accuracy": 0.7778,
       "human_fpr": 0.0
     },
     {
-      "threshold": 184.2,
+      "threshold": 71.8,
       "f1": 0.5455,
       "precision": 1.0,
       "recall": 0.375,
-      "accuracy": 0.7414,
+      "accuracy": 0.7619,
       "human_fpr": 0.0
     },
     {
-      "threshold": 191.7,
+      "threshold": 72.3,
       "f1": 0.5455,
       "precision": 1.0,
       "recall": 0.375,
-      "accuracy": 0.7414,
+      "accuracy": 0.7619,
       "human_fpr": 0.0
     },
     {
-      "threshold": 192.85,
+      "threshold": 79.8,
       "f1": 0.5,
       "precision": 1.0,
       "recall": 0.3333,
-      "accuracy": 0.7241,
+      "accuracy": 0.746,
       "human_fpr": 0.0
     },
     {
-      "threshold": 194.0,
+      "threshold": 87.3,
       "f1": 0.5,
       "precision": 1.0,
       "recall": 0.3333,
-      "accuracy": 0.7241,
+      "accuracy": 0.746,
       "human_fpr": 0.0
     },
     {
-      "threshold": 203.95,
+      "threshold": 87.8,
       "f1": 0.4516,
       "precision": 1.0,
       "recall": 0.2917,
-      "accuracy": 0.7069,
+      "accuracy": 0.7302,
       "human_fpr": 0.0
     },
     {
-      "threshold": 213.9,
+      "threshold": 88.3,
       "f1": 0.4516,
       "precision": 1.0,
       "recall": 0.2917,
-      "accuracy": 0.7069,
+      "accuracy": 0.7302,
       "human_fpr": 0.0
     },
     {
-      "threshold": 235.05,
+      "threshold": 95.0,
       "f1": 0.4,
       "precision": 1.0,
       "recall": 0.25,
-      "accuracy": 0.6897,
+      "accuracy": 0.7143,
       "human_fpr": 0.0
     },
     {
-      "threshold": 256.2,
+      "threshold": 101.7,
       "f1": 0.4,
       "precision": 1.0,
       "recall": 0.25,
-      "accuracy": 0.6897,
+      "accuracy": 0.7143,
       "human_fpr": 0.0
     },
     {
-      "threshold": 261.1,
+      "threshold": 102.85,
       "f1": 0.3448,
       "precision": 1.0,
       "recall": 0.2083,
-      "accuracy": 0.6724,
+      "accuracy": 0.6984,
       "human_fpr": 0.0
     },
     {
-      "threshold": 266.0,
+      "threshold": 104.0,
       "f1": 0.3448,
       "precision": 1.0,
       "recall": 0.2083,
-      "accuracy": 0.6724,
+      "accuracy": 0.6984,
       "human_fpr": 0.0
     },
     {
-      "threshold": 295.4,
+      "threshold": 113.35,
       "f1": 0.2857,
       "precision": 1.0,
       "recall": 0.1667,
-      "accuracy": 0.6552,
+      "accuracy": 0.6825,
       "human_fpr": 0.0
     },
     {
-      "threshold": 324.8,
+      "threshold": 122.7,
       "f1": 0.2857,
       "precision": 1.0,
       "recall": 0.1667,
-      "accuracy": 0.6552,
+      "accuracy": 0.6825,
       "human_fpr": 0.0
     },
     {
-      "threshold": 344.95,
+      "threshold": 141.5,
       "f1": 0.2222,
       "precision": 1.0,
       "recall": 0.125,
-      "accuracy": 0.6379,
+      "accuracy": 0.6667,
       "human_fpr": 0.0
     },
     {
-      "threshold": 365.1,
+      "threshold": 160.3,
       "f1": 0.2222,
       "precision": 1.0,
       "recall": 0.125,
-      "accuracy": 0.6379,
+      "accuracy": 0.6667,
       "human_fpr": 0.0
     },
     {
-      "threshold": 367.45,
+      "threshold": 163.65,
       "f1": 0.1538,
       "precision": 1.0,
       "recall": 0.0833,
-      "accuracy": 0.6207,
+      "accuracy": 0.6508,
       "human_fpr": 0.0
     },
     {
-      "threshold": 369.8,
+      "threshold": 167.0,
       "f1": 0.1538,
       "precision": 1.0,
       "recall": 0.0833,
-      "accuracy": 0.6207,
+      "accuracy": 0.6508,
       "human_fpr": 0.0
     },
     {
-      "threshold": 375.05,
+      "threshold": 168.5,
       "f1": 0.08,
       "precision": 1.0,
       "recall": 0.0417,
-      "accuracy": 0.6034,
+      "accuracy": 0.6349,
       "human_fpr": 0.0
     },
     {
-      "threshold": 380.3,
+      "threshold": 170.0,
       "f1": 0.08,
       "precision": 1.0,
       "recall": 0.0417,
-      "accuracy": 0.6034,
+      "accuracy": 0.6349,
       "human_fpr": 0.0
     },
     {
-      "threshold": 380.40000000000003,
+      "threshold": 170.1,
       "f1": 0.0,
       "precision": 0.0,
       "recall": 0.0,
-      "accuracy": 0.5862,
+      "accuracy": 0.619,
       "human_fpr": 0.0
     }
   ],
@@ -837,7 +885,7 @@
       "label": "ai",
       "register": "marketing",
       "group": "ai",
-      "score": 324.8,
+      "score": 104.0,
       "verdict": "strong-tell",
       "words": 137
     },
@@ -846,7 +894,7 @@
       "label": "ai",
       "register": "technical",
       "group": "ai",
-      "score": 164.4,
+      "score": 72.3,
       "verdict": "strong-tell",
       "words": 149
     },
@@ -855,7 +903,7 @@
       "label": "ai",
       "register": "casual",
       "group": "ai",
-      "score": 121.7,
+      "score": 57.0,
       "verdict": "strong-tell",
       "words": 152
     },
@@ -864,7 +912,7 @@
       "label": "ai",
       "register": "email",
       "group": "ai",
-      "score": 141.9,
+      "score": 53.3,
       "verdict": "strong-tell",
       "words": 148
     },
@@ -873,7 +921,7 @@
       "label": "ai",
       "register": "academic",
       "group": "ai",
-      "score": 152.5,
+      "score": 63.0,
       "verdict": "strong-tell",
       "words": 141
     },
@@ -882,7 +930,7 @@
       "label": "ai",
       "register": "casual",
       "group": "ai",
-      "score": 158.9,
+      "score": 55.0,
       "verdict": "strong-tell",
       "words": 151
     },
@@ -891,7 +939,7 @@
       "label": "ai",
       "register": "business",
       "group": "ai",
-      "score": 194.0,
+      "score": 71.3,
       "verdict": "strong-tell",
       "words": 134
     },
@@ -900,7 +948,7 @@
       "label": "ai",
       "register": "technical",
       "group": "ai",
-      "score": 110.7,
+      "score": 46.7,
       "verdict": "strong-tell",
       "words": 149
     },
@@ -909,7 +957,7 @@
       "label": "ai",
       "register": "marketing",
       "group": "ai",
-      "score": 137.9,
+      "score": 48.3,
       "verdict": "strong-tell",
       "words": 145
     },
@@ -918,7 +966,7 @@
       "label": "ai",
       "register": "academic",
       "group": "ai",
-      "score": 138.9,
+      "score": 47.0,
       "verdict": "strong-tell",
       "words": 144
     },
@@ -927,7 +975,7 @@
       "label": "ai",
       "register": "business",
       "group": "ai",
-      "score": 111.8,
+      "score": 53.3,
       "verdict": "strong-tell",
       "words": 152
     },
@@ -936,7 +984,7 @@
       "label": "ai",
       "register": "casual",
       "group": "ai",
-      "score": 108.6,
+      "score": 53.0,
       "verdict": "strong-tell",
       "words": 152
     },
@@ -945,7 +993,7 @@
       "label": "ai",
       "register": "casual",
       "group": "ai",
-      "score": 128.9,
+      "score": 18.0,
       "verdict": "strong-tell",
       "words": 128
     },
@@ -954,7 +1002,7 @@
       "label": "ai",
       "register": "business",
       "group": "ai",
-      "score": 176.7,
+      "score": 65.3,
       "verdict": "strong-tell",
       "words": 116
     },
@@ -963,7 +1011,7 @@
       "label": "ai",
       "register": "creative",
       "group": "ai",
-      "score": 147.8,
+      "score": 60.7,
       "verdict": "strong-tell",
       "words": 159
     },
@@ -972,7 +1020,7 @@
       "label": "ai",
       "register": "creative",
       "group": "ai",
-      "score": 151.5,
+      "score": 61.7,
       "verdict": "strong-tell",
       "words": 165
     },
@@ -981,7 +1029,7 @@
       "label": "ai",
       "register": "email",
       "group": "ai",
-      "score": 213.9,
+      "score": 88.3,
       "verdict": "strong-tell",
       "words": 166
     },
@@ -990,7 +1038,7 @@
       "label": "ai",
       "register": "technical",
       "group": "ai",
-      "score": 256.2,
+      "score": 101.7,
       "verdict": "strong-tell",
       "words": 162
     },
@@ -999,7 +1047,7 @@
       "label": "ai",
       "register": "technical",
       "group": "ai",
-      "score": 365.1,
+      "score": 167.0,
       "verdict": "strong-tell",
       "words": 189
     },
@@ -1008,7 +1056,7 @@
       "label": "ai",
       "register": "business",
       "group": "ai",
-      "score": 380.3,
+      "score": 170.0,
       "verdict": "strong-tell",
       "words": 188
     },
@@ -1017,7 +1065,7 @@
       "label": "ai",
       "register": "academic",
       "group": "ai",
-      "score": 266.0,
+      "score": 122.7,
       "verdict": "strong-tell",
       "words": 203
     },
@@ -1026,7 +1074,7 @@
       "label": "ai",
       "register": "marketing",
       "group": "ai",
-      "score": 369.8,
+      "score": 160.3,
       "verdict": "strong-tell",
       "words": 192
     },
@@ -1035,7 +1083,7 @@
       "label": "ai",
       "register": "creative",
       "group": "ai",
-      "score": 157.8,
+      "score": 69.0,
       "verdict": "strong-tell",
       "words": 206
     },
@@ -1044,9 +1092,369 @@
       "label": "ai",
       "register": "creative",
       "group": "ai",
-      "score": 191.7,
+      "score": 87.3,
       "verdict": "strong-tell",
       "words": 206
+    },
+    {
+      "file": "ai_modern/m01_technical_tradeoff.md",
+      "label": "ai_modern",
+      "register": "technical",
+      "group": "ai_modern",
+      "score": 15.0,
+      "verdict": "strong-tell",
+      "words": 206
+    },
+    {
+      "file": "ai_modern/m02_business_review.md",
+      "label": "ai_modern",
+      "register": "business",
+      "group": "ai_modern",
+      "score": 12.7,
+      "verdict": "watch",
+      "words": 212
+    },
+    {
+      "file": "ai_modern/m03_technical_scaffolded.md",
+      "label": "ai_modern",
+      "register": "technical",
+      "group": "ai_modern",
+      "score": 8.0,
+      "verdict": "watch",
+      "words": 228
+    },
+    {
+      "file": "ai_modern/m04_academic_abstract.md",
+      "label": "ai_modern",
+      "register": "academic",
+      "group": "ai_modern",
+      "score": 11.3,
+      "verdict": "watch",
+      "words": 178
+    },
+    {
+      "file": "ai_modern/m05_marketing_page.md",
+      "label": "ai_modern",
+      "register": "marketing",
+      "group": "ai_modern",
+      "score": 17.0,
+      "verdict": "strong-tell",
+      "words": 150
+    },
+    {
+      "file": "ai_modern/m06_email_update.md",
+      "label": "ai_modern",
+      "register": "email",
+      "group": "ai_modern",
+      "score": 7.3,
+      "verdict": "watch",
+      "words": 188
+    },
+    {
+      "file": "ai_modern/m07_casual_blog.md",
+      "label": "ai_modern",
+      "register": "casual",
+      "group": "ai_modern",
+      "score": 18.3,
+      "verdict": "strong-tell",
+      "words": 174
+    },
+    {
+      "file": "ai_modern/m08_technical_bulleted.md",
+      "label": "ai_modern",
+      "register": "technical",
+      "group": "ai_modern",
+      "score": 28.3,
+      "verdict": "strong-tell",
+      "words": 200
+    },
+    {
+      "file": "ai_modern/m09_creative_scene.md",
+      "label": "ai_modern",
+      "register": "creative",
+      "group": "ai_modern",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 183
+    },
+    {
+      "file": "ai_modern/m10_business_proposal.md",
+      "label": "ai_modern",
+      "register": "business",
+      "group": "ai_modern",
+      "score": 15.0,
+      "verdict": "strong-tell",
+      "words": 206
+    },
+    {
+      "file": "ai_modern/m11_tutorial_steps.md",
+      "label": "ai_modern",
+      "register": "tutorial",
+      "group": "ai_modern",
+      "score": 15.0,
+      "verdict": "strong-tell",
+      "words": 197
+    },
+    {
+      "file": "ai_modern/m12_casual_review.md",
+      "label": "ai_modern",
+      "register": "casual",
+      "group": "ai_modern",
+      "score": 9.7,
+      "verdict": "watch",
+      "words": 185
+    },
+    {
+      "file": "ai_modern/m13_technical_postmortem.md",
+      "label": "ai_modern",
+      "register": "technical",
+      "group": "ai_modern",
+      "score": 41.1,
+      "verdict": "strong-tell",
+      "words": 326
+    },
+    {
+      "file": "ai_modern/m14_business_strategy.md",
+      "label": "ai_modern",
+      "register": "business",
+      "group": "ai_modern",
+      "score": 27.6,
+      "verdict": "strong-tell",
+      "words": 308
+    },
+    {
+      "file": "ai_modern/m15_academic_discussion.md",
+      "label": "ai_modern",
+      "register": "academic",
+      "group": "ai_modern",
+      "score": 18.0,
+      "verdict": "strong-tell",
+      "words": 291
+    },
+    {
+      "file": "ai_modern/m16_marketing_feature.md",
+      "label": "ai_modern",
+      "register": "marketing",
+      "group": "ai_modern",
+      "score": 24.0,
+      "verdict": "strong-tell",
+      "words": 266
+    },
+    {
+      "file": "ai_modern/m17_email_project.md",
+      "label": "ai_modern",
+      "register": "email",
+      "group": "ai_modern",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 242
+    },
+    {
+      "file": "ai_modern/m18_tutorial_deploy.md",
+      "label": "ai_modern",
+      "register": "tutorial",
+      "group": "ai_modern",
+      "score": 30.0,
+      "verdict": "strong-tell",
+      "words": 263
+    },
+    {
+      "file": "ai_modern/m19_casual_habit.md",
+      "label": "ai_modern",
+      "register": "casual",
+      "group": "ai_modern",
+      "score": 19.7,
+      "verdict": "strong-tell",
+      "words": 297
+    },
+    {
+      "file": "ai_modern/m20_creative_arrival.md",
+      "label": "ai_modern",
+      "register": "creative",
+      "group": "ai_modern",
+      "score": 3.3,
+      "verdict": "clean",
+      "words": 286
+    },
+    {
+      "file": "ai_modern_rewritten/m01_technical_tradeoff.md",
+      "label": "ai_modern_rewritten",
+      "register": "technical",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 173
+    },
+    {
+      "file": "ai_modern_rewritten/m02_business_review.md",
+      "label": "ai_modern_rewritten",
+      "register": "business",
+      "group": "ai_modern_rewritten",
+      "score": 3.0,
+      "verdict": "clean",
+      "words": 155
+    },
+    {
+      "file": "ai_modern_rewritten/m03_technical_scaffolded.md",
+      "label": "ai_modern_rewritten",
+      "register": "technical",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 204
+    },
+    {
+      "file": "ai_modern_rewritten/m04_academic_abstract.md",
+      "label": "ai_modern_rewritten",
+      "register": "academic",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 164
+    },
+    {
+      "file": "ai_modern_rewritten/m05_marketing_page.md",
+      "label": "ai_modern_rewritten",
+      "register": "marketing",
+      "group": "ai_modern_rewritten",
+      "score": 4.0,
+      "verdict": "clean",
+      "words": 114
+    },
+    {
+      "file": "ai_modern_rewritten/m06_email_update.md",
+      "label": "ai_modern_rewritten",
+      "register": "email",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 156
+    },
+    {
+      "file": "ai_modern_rewritten/m07_casual_blog.md",
+      "label": "ai_modern_rewritten",
+      "register": "casual",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 140
+    },
+    {
+      "file": "ai_modern_rewritten/m08_technical_bulleted.md",
+      "label": "ai_modern_rewritten",
+      "register": "technical",
+      "group": "ai_modern_rewritten",
+      "score": 4.0,
+      "verdict": "clean",
+      "words": 171
+    },
+    {
+      "file": "ai_modern_rewritten/m09_creative_scene.md",
+      "label": "ai_modern_rewritten",
+      "register": "creative",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 149
+    },
+    {
+      "file": "ai_modern_rewritten/m10_business_proposal.md",
+      "label": "ai_modern_rewritten",
+      "register": "business",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 183
+    },
+    {
+      "file": "ai_modern_rewritten/m11_tutorial_steps.md",
+      "label": "ai_modern_rewritten",
+      "register": "tutorial",
+      "group": "ai_modern_rewritten",
+      "score": 3.0,
+      "verdict": "clean",
+      "words": 192
+    },
+    {
+      "file": "ai_modern_rewritten/m12_casual_review.md",
+      "label": "ai_modern_rewritten",
+      "register": "casual",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 161
+    },
+    {
+      "file": "ai_modern_rewritten/m13_technical_postmortem.md",
+      "label": "ai_modern_rewritten",
+      "register": "technical",
+      "group": "ai_modern_rewritten",
+      "score": 3.0,
+      "verdict": "clean",
+      "words": 227
+    },
+    {
+      "file": "ai_modern_rewritten/m14_business_strategy.md",
+      "label": "ai_modern_rewritten",
+      "register": "business",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 265
+    },
+    {
+      "file": "ai_modern_rewritten/m15_academic_discussion.md",
+      "label": "ai_modern_rewritten",
+      "register": "academic",
+      "group": "ai_modern_rewritten",
+      "score": 3.0,
+      "verdict": "clean",
+      "words": 230
+    },
+    {
+      "file": "ai_modern_rewritten/m16_marketing_feature.md",
+      "label": "ai_modern_rewritten",
+      "register": "marketing",
+      "group": "ai_modern_rewritten",
+      "score": 3.0,
+      "verdict": "clean",
+      "words": 206
+    },
+    {
+      "file": "ai_modern_rewritten/m17_email_project.md",
+      "label": "ai_modern_rewritten",
+      "register": "email",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 197
+    },
+    {
+      "file": "ai_modern_rewritten/m18_tutorial_deploy.md",
+      "label": "ai_modern_rewritten",
+      "register": "tutorial",
+      "group": "ai_modern_rewritten",
+      "score": 3.0,
+      "verdict": "clean",
+      "words": 207
+    },
+    {
+      "file": "ai_modern_rewritten/m19_casual_habit.md",
+      "label": "ai_modern_rewritten",
+      "register": "casual",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 241
+    },
+    {
+      "file": "ai_modern_rewritten/m20_creative_arrival.md",
+      "label": "ai_modern_rewritten",
+      "register": "creative",
+      "group": "ai_modern_rewritten",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 255
     },
     {
       "file": "esl_formal/e01_technical_postgres.md",
@@ -1062,8 +1470,8 @@
       "label": "human",
       "register": "business",
       "group": "esl",
-      "score": 8.0,
-      "verdict": "watch",
+      "score": 3.0,
+      "verdict": "clean",
       "words": 188
     },
     {
@@ -1098,8 +1506,8 @@
       "label": "human",
       "register": "marketing",
       "group": "esl",
-      "score": 7.8,
-      "verdict": "watch",
+      "score": 3.0,
+      "verdict": "clean",
       "words": 193
     },
     {
@@ -1107,8 +1515,8 @@
       "label": "human",
       "register": "technical",
       "group": "esl",
-      "score": 7.4,
-      "verdict": "watch",
+      "score": 3.0,
+      "verdict": "clean",
       "words": 202
     },
     {
@@ -1134,7 +1542,7 @@
       "label": "human",
       "register": "email",
       "group": "esl",
-      "score": 4.8,
+      "score": 0.0,
       "verdict": "clean",
       "words": 208
     },
@@ -1170,8 +1578,8 @@
       "label": "human",
       "register": "academic",
       "group": "human",
-      "score": 25.4,
-      "verdict": "strong-tell",
+      "score": 0.0,
+      "verdict": "clean",
       "words": 118
     },
     {
@@ -1197,8 +1605,8 @@
       "label": "human",
       "register": "casual",
       "group": "human",
-      "score": 7.6,
-      "verdict": "watch",
+      "score": 0.0,
+      "verdict": "clean",
       "words": 132
     },
     {
@@ -1206,8 +1614,8 @@
       "label": "human",
       "register": "academic",
       "group": "human",
-      "score": 7.1,
-      "verdict": "watch",
+      "score": 3.3,
+      "verdict": "clean",
       "words": 141
     },
     {
@@ -1224,8 +1632,8 @@
       "label": "human",
       "register": "technical",
       "group": "human",
-      "score": 7.0,
-      "verdict": "watch",
+      "score": 0.0,
+      "verdict": "clean",
       "words": 143
     },
     {
@@ -1242,8 +1650,8 @@
       "label": "human",
       "register": "casual",
       "group": "human",
-      "score": 6.8,
-      "verdict": "watch",
+      "score": 0.0,
+      "verdict": "clean",
       "words": 148
     },
     {
@@ -1305,8 +1713,8 @@
       "label": "human",
       "register": "technical",
       "group": "human",
-      "score": 5.2,
-      "verdict": "watch",
+      "score": 2.0,
+      "verdict": "clean",
       "words": 192
     },
     {
@@ -1332,8 +1740,8 @@
       "label": "human",
       "register": "marketing",
       "group": "human",
-      "score": 11.6,
-      "verdict": "watch",
+      "score": 0.0,
+      "verdict": "clean",
       "words": 172
     },
     {
@@ -1341,8 +1749,8 @@
       "label": "human",
       "register": "casual",
       "group": "human",
-      "score": 7.6,
-      "verdict": "watch",
+      "score": 3.0,
+      "verdict": "clean",
       "words": 198
     },
     {
@@ -1355,11 +1763,56 @@
       "words": 190
     },
     {
+      "file": "human/h25_technical_longform.md",
+      "label": "human",
+      "register": "technical",
+      "group": "human",
+      "score": 3.0,
+      "verdict": "clean",
+      "words": 345
+    },
+    {
+      "file": "human/h26_business_hiring.md",
+      "label": "human",
+      "register": "business",
+      "group": "human",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 273
+    },
+    {
+      "file": "human/h27_academic_review.md",
+      "label": "human",
+      "register": "academic",
+      "group": "human",
+      "score": 2.0,
+      "verdict": "clean",
+      "words": 283
+    },
+    {
+      "file": "human/h28_casual_repair.md",
+      "label": "human",
+      "register": "casual",
+      "group": "human",
+      "score": 3.3,
+      "verdict": "clean",
+      "words": 249
+    },
+    {
+      "file": "human/h29_email_decline.md",
+      "label": "human",
+      "register": "email",
+      "group": "human",
+      "score": 0.0,
+      "verdict": "clean",
+      "words": 188
+    },
+    {
       "file": "over_corrected/o01_technical_caching.md",
       "label": "over_corrected",
       "register": "technical",
       "group": "over_corrected",
-      "score": 63.5,
+      "score": 22.3,
       "verdict": "strong-tell",
       "words": 126
     },
@@ -1368,16 +1821,16 @@
       "label": "over_corrected",
       "register": "technical",
       "group": "over_corrected",
-      "score": 45.5,
+      "score": 17.3,
       "verdict": "strong-tell",
-      "words": 132
+      "words": 133
     },
     {
       "file": "over_corrected/o03_business_quarterly.md",
       "label": "over_corrected",
       "register": "business",
       "group": "over_corrected",
-      "score": 59.3,
+      "score": 19.0,
       "verdict": "strong-tell",
       "words": 118
     },
@@ -1386,7 +1839,7 @@
       "label": "over_corrected",
       "register": "business",
       "group": "over_corrected",
-      "score": 45.5,
+      "score": 17.3,
       "verdict": "strong-tell",
       "words": 132
     },
@@ -1395,7 +1848,7 @@
       "label": "over_corrected",
       "register": "academic",
       "group": "over_corrected",
-      "score": 65.9,
+      "score": 22.0,
       "verdict": "strong-tell",
       "words": 129
     },
@@ -1404,7 +1857,7 @@
       "label": "over_corrected",
       "register": "academic",
       "group": "over_corrected",
-      "score": 54.3,
+      "score": 20.3,
       "verdict": "strong-tell",
       "words": 138
     },
@@ -1413,8 +1866,8 @@
       "label": "over_corrected",
       "register": "email",
       "group": "over_corrected",
-      "score": 40.3,
-      "verdict": "strong-tell",
+      "score": 14.0,
+      "verdict": "watch",
       "words": 124
     },
     {
@@ -1422,7 +1875,7 @@
       "label": "over_corrected",
       "register": "email",
       "group": "over_corrected",
-      "score": 50.4,
+      "score": 19.0,
       "verdict": "strong-tell",
       "words": 139
     },
@@ -1431,7 +1884,7 @@
       "label": "over_corrected",
       "register": "marketing",
       "group": "over_corrected",
-      "score": 60.2,
+      "score": 19.0,
       "verdict": "strong-tell",
       "words": 133
     },
@@ -1440,7 +1893,7 @@
       "label": "over_corrected",
       "register": "marketing",
       "group": "over_corrected",
-      "score": 51.9,
+      "score": 19.0,
       "verdict": "strong-tell",
       "words": 135
     }

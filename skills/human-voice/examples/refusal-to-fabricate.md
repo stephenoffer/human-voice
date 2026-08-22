@@ -10,7 +10,7 @@ invented statistic is a hallucination no matter how human it reads.
 > faster for users.
 
 It's vague and a little limp. It clearly needs a figure to land. The source
-material — the brief, the data, the original draft — does **not** contain one.
+material (the brief, the data, the original draft) does **not** contain one.
 
 ## Wrong: invent a number to make it sing
 
@@ -28,9 +28,9 @@ or a detector's human reviewer who checks the claim finds nothing behind it.
 
 Or, if no measurement exists and the sentence can't earn its keep, cut it. A
 visible `[SOURCE NEEDED]` is honest: it tells the author exactly what to supply.
-The sharpening that *is* allowed here is narrow — "performance" became "latency
+The sharpening that *is* allowed here is narrow: "performance" became "latency
 on repeat reads" only because caching repeat reads is what the layer does, which
 is entailed by the source. The magnitude is not, so it stays a placeholder.
 
 The rule in one line: sharpen the *wording*, never the *facts*. When the prose
-needs a fact you don't have, mark it — don't make it up.
+needs a fact you don't have, mark it. Don't make it up.

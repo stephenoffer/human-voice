@@ -16,32 +16,32 @@ straight exposition, where they read as a costume.
 
 ## The catalog
 
-**Forced all-lowercase** — dropping capitals to signal nonchalance in prose that
+**Forced all-lowercase.** Dropping capitals to signal nonchalance in prose that
 otherwise carries weight. It reads as a pose, not a voice.
 
 - BAD → "the migration was risky so we staged it over three nights. worked fine."
 - GOOD → "The migration was risky, so we staged it over three nights. It worked."
 
-**Fake typos** — deliberate misspellings or "oops" corrections inserted to look
+**Fake typos.** Deliberate misspellings or "oops" corrections inserted to look
 human. A real draft has accidental typos; a manufactured one announces itself.
 
 - BAD → "the latency dropped (well, dropepd lol) by half."
 - GOOD → "Latency dropped by half."
 
-**Staccato fragmentation** — chopping every thought into fragments for effect.
+**Staccato fragmentation.** Chopping every thought into fragments for effect.
 This is the AI dramatic-fragmentation tell wearing the opposite mask: still a
 machine cadence, just a jittery one.
 
 - BAD → "Shipped it. Friday. No tests. Bold move. We paid for it."
 - GOOD → "We shipped it Friday with no tests, and we paid for that on Monday."
 
-**Conspicuous dash-avoidance** — bending sentences into awkward shapes to prove
+**Conspicuous dash-avoidance.** Bending sentences into awkward shapes to prove
 you would never use an em dash. The contortion is as visible as the dash was.
 
 - BAD → "The result, which surprised us, and this is the part that matters, held."
 - GOOD → "The result surprised us, and it held."
 
-**Sprinkled slang** — "lol", "honestly", "it's giving", "load-bearing" dropped in
+**Sprinkled slang.** "lol", "honestly", "it's giving", "load-bearing" dropped in
 to season otherwise formal prose. One borrowed word does not buy a casual voice;
 it just clashes with the register around it.
 
@@ -50,7 +50,7 @@ it just clashes with the register around it.
 - GOOD → "The cache layer carries the read path; the eviction policy is the part
   that breaks under load."
 
-**Performed relatability** — the rhetorical tics that stage authenticity:
+**Performed relatability.** The rhetorical tics that stage authenticity:
 "honestly?", "that's growth", "it's giving", "load-bearing" used as a verbal wink.
 They perform a human reaction instead of stating the point.
 
@@ -61,5 +61,5 @@ They perform a human reaction instead of stating the point.
 
 Every item above shares one root: it *signals* humanity instead of *being*
 specific. Real voice comes from judgment, concrete detail, and a consistent
-register — not from typographic disguises. When you catch yourself adding a tic to
+register, not from typographic disguises. When you catch yourself adding a tic to
 seem human, ask what the sentence actually says, and say that instead.

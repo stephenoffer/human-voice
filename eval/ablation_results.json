@@ -1,474 +1,616 @@
 {
   "baseline_auc": 1.0,
-  "baseline_best_f1_acc": 1.0,
+  "baseline_best_f1_acc": 0.9912,
   "rows": [
     {
-      "category": "filler",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "category": "vague_declarative",
+      "weight": 1.5,
+      "auc": 0.9952,
+      "auc_drop": 0.0048,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.1818
-    },
-    {
-      "category": "rule_of_three",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.1381
+      "ai_score_share": 0.0125,
+      "modern_score_share": 0.0
     },
     {
       "category": "bold_bullets",
       "weight": 2.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.1292
+      "best_f1_acc": 0.9823,
+      "acc_drop": 0.0089,
+      "ai_score_share": 0.0938,
+      "modern_score_share": 0.0435
     },
     {
-      "category": "meta_commentary",
-      "weight": 1.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0971
-    },
-    {
-      "category": "aidiolect",
-      "weight": 2.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0707
-    },
-    {
-      "category": "puffery",
-      "weight": 1.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0555
-    },
-    {
-      "category": "jargon",
+      "category": "rule_of_three",
       "weight": 1.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0499
-    },
-    {
-      "category": "soft_filler",
-      "weight": 0.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0347
-    },
-    {
-      "category": "significance_inflation",
-      "weight": 1.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0299
-    },
-    {
-      "category": "vague_attribution",
-      "weight": 1.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0277
-    },
-    {
-      "category": "false_agency",
-      "weight": 1.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0236
-    },
-    {
-      "category": "burstiness",
-      "weight": 2.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.022
+      "best_f1_acc": 0.9823,
+      "acc_drop": 0.0089,
+      "ai_score_share": 0.0889,
+      "modern_score_share": 0.0387
     },
     {
       "category": "antithesis",
       "weight": 2.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9823,
+      "acc_drop": 0.0089,
+      "ai_score_share": 0.0371,
+      "modern_score_share": 0.0314
+    },
+    {
+      "category": "filler",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9823,
+      "acc_drop": 0.0089,
+      "ai_score_share": 0.1231,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "meta_commentary",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9823,
+      "acc_drop": 0.0089,
+      "ai_score_share": 0.1173,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "participial_tail",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.019
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.2176
+    },
+    {
+      "category": "sentence_shape",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.01,
+      "modern_score_share": 0.1741
     },
     {
       "category": "paragraph_uniformity",
       "weight": 1.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0182
+      "ai_score_share": 0.0125,
+      "modern_score_share": 0.1044
     },
     {
-      "category": "em_dash",
+      "category": "burstiness",
       "weight": 2.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0178
+      "ai_score_share": 0.0233,
+      "modern_score_share": 0.0928
     },
     {
-      "category": "vague_declarative",
+      "category": "cleft",
       "weight": 1.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0158
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.087
     },
     {
-      "category": "cliche_metaphor",
-      "weight": 1.5,
+      "category": "assistant_shape",
+      "weight": 2.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0076
-    },
-    {
-      "category": "transitions",
-      "weight": 0.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0074
-    },
-    {
-      "category": "five_paragraph_shape",
-      "weight": 2.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0068
-    },
-    {
-      "category": "sycophancy",
-      "weight": 2.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0068
+      "ai_score_share": 0.0167,
+      "modern_score_share": 0.058
     },
     {
       "category": "negative_listing",
       "weight": 1.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0053
+      "ai_score_share": 0.0196,
+      "modern_score_share": 0.0462
     },
     {
-      "category": "uniform_openers",
+      "category": "jargon",
       "weight": 1.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0053
+      "ai_score_share": 0.0572,
+      "modern_score_share": 0.0317
     },
     {
-      "category": "narrator_distance",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.005
-    },
-    {
-      "category": "chatbot_scaffold",
-      "weight": 2.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0045
-    },
-    {
-      "category": "parallel_structure",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0037
-    },
-    {
-      "category": "svo_monotony",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0035
-    },
-    {
-      "category": "superlative_creep",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0034
-    },
-    {
-      "category": "ngram_repetition",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0028
-    },
-    {
-      "category": "nominalization",
+      "category": "soft_filler",
       "weight": 0.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0025
-    },
-    {
-      "category": "redundancy",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0016
-    },
-    {
-      "category": "list_uniformity",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0014
-    },
-    {
-      "category": "wh_opener",
-      "weight": 0.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0008
-    },
-    {
-      "category": "heading_case",
-      "weight": 0.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0006
-    },
-    {
-      "category": "adverbs",
-      "weight": 0.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "circular_conclusion",
-      "weight": 1.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "colon_summary",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "cowardly_passive",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "dash_style",
-      "weight": 0.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "dialect",
-      "weight": 0.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "doubled_word",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "dramatic_fragmentation",
-      "weight": 0.5,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
-    },
-    {
-      "category": "formatting",
-      "weight": 1.0,
-      "auc": 1.0,
-      "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
-      "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0634,
+      "modern_score_share": 0.0164
     },
     {
       "category": "hedging",
       "weight": 1.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0145
+    },
+    {
+      "category": "svo_monotony",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0017,
+      "modern_score_share": 0.0116
+    },
+    {
+      "category": "ngram_repetition",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0029,
+      "modern_score_share": 0.0089
+    },
+    {
+      "category": "nominalization",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0017,
+      "modern_score_share": 0.0058
+    },
+    {
+      "category": "list_uniformity",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0008,
+      "modern_score_share": 0.0058
+    },
+    {
+      "category": "superlative_creep",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0008,
+      "modern_score_share": 0.0058
+    },
+    {
+      "category": "uniform_openers",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0008,
+      "modern_score_share": 0.0058
+    },
+    {
+      "category": "puffery",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.086,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "aidiolect",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0654,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "vague_attribution",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0469,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "significance_inflation",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0456,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "cliche_metaphor",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0145,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "transitions",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0144,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "sycophancy",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0132,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "chatbot_scaffold",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0088,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "false_agency",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0063,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "redundancy",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0058,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "five_paragraph_shape",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.005,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "parallel_structure",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0025,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "heading_case",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0011,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "wh_opener",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0004,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "adverbs",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "bullet_openers",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "circular_conclusion",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "clause_splice",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "colon_summary",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "copula_density",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "cowardly_passive",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "dash_style",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "dialect",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "doubled_word",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "dramatic_fragmentation",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "em_dash",
+      "weight": 2.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "formatting",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "hypophora",
       "weight": 1.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "internet_tells",
       "weight": 1.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "lexical_diversity",
       "weight": 1.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "mechanics",
       "weight": 0.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "name_selection",
       "weight": 0.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "narrator_distance",
+      "weight": 1.0,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "noun_chain",
+      "weight": 0.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "over_correction",
       "weight": 1.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
+    },
+    {
+      "category": "paragraph_openers",
+      "weight": 1.5,
+      "auc": 1.0,
+      "auc_drop": 0.0,
+      "best_f1_acc": 0.9912,
+      "acc_drop": 0.0,
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "passive_voice",
       "weight": 0.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "rhetorical",
       "weight": 0.5,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     },
     {
       "category": "self_identifying",
       "weight": 4.0,
       "auc": 1.0,
       "auc_drop": 0.0,
-      "best_f1_acc": 1.0,
+      "best_f1_acc": 0.9912,
       "acc_drop": 0.0,
-      "ai_score_share": 0.0
+      "ai_score_share": 0.0,
+      "modern_score_share": 0.0
     }
   ]
 }

@@ -1,12 +1,12 @@
 # Discourse and Structure
 
 Structure is the highest-value, hardest-to-fake AI signal. Discourse-level
-organization is about **34% of the detection signal** — the single largest
+organization is about **34% of the detection signal**, the single largest
 category, ahead of syntax (28%), lexical choice (24%), and morphology (14%). You
 can swap every flagged word and still get caught on shape.
 
 It is hard to fake because the shape is unconscious. A model defaults to the same
-arc across prompts, and RLHF narrows it further — roughly **76.2% diversity loss**
+arc across prompts, and RLHF narrows it further, roughly **76.2% diversity loss**
 in the training that makes models agreeable. The result is convergence: GPT,
 Claude, and Gemini structurally resemble *each other* more than any of them
 resembles a human. Detection from grammar alone reaches **88.85% F1**, no
@@ -76,17 +76,17 @@ Uniform paragraph shape is what `paragraph_uniformity` catches.
 
 The linter targets this category directly:
 
-- `burstiness` — sentence-length and complexity variance.
-- `paragraph_uniformity` — paragraphs of near-identical length and shape.
-- `circular_conclusion` — a close that restates the open.
-- `five_paragraph_shape` — the preview/body/recap mold.
-- `svo_monotony` — a run of flat subject-verb-object sentences.
-- `parallel_structure` — over-regular parallelism across sentences or bullets.
-- `hypophora` — the pose-a-question-then-answer-it reflex, repeated.
+- `burstiness`: sentence-length and complexity variance.
+- `paragraph_uniformity`: paragraphs of near-identical length and shape.
+- `circular_conclusion`: a close that restates the open.
+- `five_paragraph_shape`: the preview/body/recap mold.
+- `svo_monotony`: a run of flat subject-verb-object sentences.
+- `parallel_structure`: over-regular parallelism across sentences or bullets.
+- `hypophora`: the pose-a-question-then-answer-it reflex, repeated.
 
 ## Sources
 
-- JCarterJohnson/vibecoded-design-tells (MIT) — cited-tell frequencies.
-- ryanthedev/oberskills, write skill (MIT) — discourse-tell catalog.
+- JCarterJohnson/vibecoded-design-tells (MIT): cited-tell frequencies.
+- ryanthedev/oberskills, write skill (MIT): discourse-tell catalog.
 - Reported detection breakdowns: discourse ~34%, syntax 28%, lexical 24%,
   morphology 14%; grammar-only detection 88.85% F1; RLHF diversity loss ~76.2%.

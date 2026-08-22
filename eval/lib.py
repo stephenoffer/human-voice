@@ -75,8 +75,15 @@ def load_labels():
 # non-native / formal-human negatives (still label "human", tracked for a
 # dedicated FPR). "over_corrected" marks the anti-AI-costume class (its own label
 # and directory), excluded from the binary metrics and scored on its own.
+# "ai_modern" is the class that matters most and is reported separately: prose in
+# the style contemporary instruction-tuned models actually produce, rather than
+# the 2023-era caricature in ai/. It is held out of the legacy binary set so the
+# old baseline stays comparable, and scored against the human class on its own.
 BINARY_LABELS = ("ai", "human")
-HARD_NEG_DIRS = ("esl_formal", "over_corrected")
+HARD_NEG_DIRS = ("esl_formal", "over_corrected", "ai_modern", "ai_modern_rewritten")
+MODERN_LABEL = "ai_modern"
+# The paired after-state: the same 12 files once the skill has rewritten them.
+REWRITTEN_LABEL = "ai_modern_rewritten"
 
 
 def _group_of(meta):
@@ -151,6 +158,76 @@ def costume_eval(dap, items, patterns, threshold):
         "flagged": flagged,
         "costume_caught": caught,
         "threshold": threshold,
+    }
+
+
+def modern_eval(records, threshold):
+    """Score the realistic-modern-AI class against the human class.
+
+    This is the honest separation number. The legacy `ai/` samples were authored
+    to carry the tells the linter scores, so their AUC measures internal
+    consistency. `ai_modern/` was written the way a current instruction-tuned
+    model writes when it is not being caricatured, so the overlap here is the
+    real measure of the floor's reach.
+    """
+    modern = [r for r in records if r["label"] == MODERN_LABEL]
+    human = [r for r in records if r["label"] == "human"]
+    n = len(modern)
+    if not n or not human:
+        return {"n": n}
+    flagged = sum(1 for r in modern if r["score"] >= threshold)
+    paired = ([dict(r, label="ai") for r in modern] + list(human))
+    tp, fp, tn, fn = confusion(paired, threshold)
+    m = metrics(tp, fp, tn, fn)
+    scores = sorted(r["score"] for r in modern)
+    return {
+        "n": n,
+        "threshold": threshold,
+        "recall": round4(flagged / n),
+        "flagged": flagged,
+        "auc_vs_human": auc(paired),
+        "precision": m["precision"],
+        "f1": m["f1"],
+        "score_min": scores[0],
+        "score_median": scores[n // 2],
+        "score_max": scores[-1],
+        "missed": [r["file"] for r in modern if r["score"] < threshold],
+    }
+
+
+def rewrite_eval(records, threshold):
+    """Before/after floor scores for the paired modern-AI class.
+
+    This is the skill's own claim, measured: does its rewrite procedure take prose a
+    current model writes down to the clean band, on identical claims? Files are
+    paired by basename, so a missing rewrite is reported rather than silently
+    averaged away.
+    """
+    before = {os.path.basename(r["file"]): r
+              for r in records if r["label"] == MODERN_LABEL}
+    after = {os.path.basename(r["file"]): r
+             for r in records if r["label"] == REWRITTEN_LABEL}
+    common = sorted(set(before) & set(after))
+    if not common:
+        return {"n": 0}
+    rows = [{"file": f, "before": before[f]["score"], "after": after[f]["score"],
+             "before_verdict": before[f]["verdict"],
+             "after_verdict": after[f]["verdict"],
+             "register": before[f]["register"]} for f in common]
+    n = len(rows)
+    return {
+        "n": n,
+        "threshold": threshold,
+        "unpaired": sorted(set(before) ^ set(after)),
+        "mean_before": round4(sum(r["before"] for r in rows) / n),
+        "mean_after": round4(sum(r["after"] for r in rows) / n),
+        "clean_before": sum(1 for r in rows if r["before_verdict"] == "clean"),
+        "clean_after": sum(1 for r in rows if r["after_verdict"] == "clean"),
+        "flagged_before": sum(1 for r in rows if r["before"] >= threshold),
+        "flagged_after": sum(1 for r in rows if r["after"] >= threshold),
+        "improved": sum(1 for r in rows if r["after"] < r["before"]),
+        "regressed": [r["file"] for r in rows if r["after"] > r["before"]],
+        "rows": rows,
     }
 
 
@@ -271,22 +348,44 @@ def metrics_by_register(records, threshold):
     return out
 
 
-def category_score_mass(dap, items, patterns):
-    """Per-category share of total AI-subset floor score (cat_points, total)."""
+def category_score_mass(dap, items, patterns, label="ai"):
+    """Per-category share of the target class's total floor score.
+
+    Mirrors dap.score: document-level findings (line 0) contribute fixed points,
+    instance findings contribute per-1000-word density capped per category. Pass
+    label="ai_modern" for the share against realistic contemporary model output.
+    """
     weights = dap.resolve_weights(patterns)
+    doc_points, cap, doc_cap = dap.resolve_scoring(patterns)
+    doc_cap = int(doc_cap)
     cat_points = {c: 0.0 for c in dap.CATEGORY_WEIGHTS}
     total = 0.0
     for item in items:
-        if item["label"] != "ai":
+        if item["label"] != label:
             continue
         hits, _report, words = dap.analyze(item["text"], item["register"], None, patterns)
         if not words:
             continue
         per_word = 1000.0 / words
+        instance: dict = {}
+        doc_counts: dict = {}
         for h in hits:
             w = weights.get(h.category, 1.0)
-            cat_points[h.category] = cat_points.get(h.category, 0.0) + w * per_word
-            total += w * per_word
+            if getattr(h, "line", None) == 0:
+                # Mirror dap.score exactly, including the per-category document cap.
+                seen = doc_counts.get(h.category, 0)
+                if seen >= doc_cap:
+                    continue
+                doc_counts[h.category] = seen + 1
+                pts = w * doc_points
+                cat_points[h.category] = cat_points.get(h.category, 0.0) + pts
+                total += pts
+            else:
+                instance[h.category] = instance.get(h.category, 0.0) + w * per_word
+        for cat, dens in instance.items():
+            pts = min(dens, cap)
+            cat_points[cat] = cat_points.get(cat, 0.0) + pts
+            total += pts
     return cat_points, total
 
 
@@ -431,8 +530,9 @@ def validate_corpus(labels, dap):
         problems.append("LABELS.json entry has no file: %s" % dangling)
     registers = set(getattr(dap, "REGISTERS", []))
     for rel, meta in sorted(labels.items()):
-        if meta.get("label") not in ("ai", "human", "over_corrected"):
-            problems.append("%s: label must be 'ai', 'human', or 'over_corrected'" % rel)
+        valid = ("ai", "human", "over_corrected", MODERN_LABEL, REWRITTEN_LABEL)
+        if meta.get("label") not in valid:
+            problems.append("%s: label must be one of %s" % (rel, ", ".join(valid)))
         if registers and meta.get("register") not in registers:
             problems.append("%s: unknown register %r" % (rel, meta.get("register")))
     return problems
@@ -448,5 +548,6 @@ __all__ = [
     "category_score_mass", "patterns_with_zeroed", "bootstrap_ci", "auc_ci",
     "f1_ci", "fpr_ci", "compare_results", "compare_ablation", "validate_corpus",
     "BINARY_LABELS", "HARD_NEG_DIRS", "binary_records", "subset_fpr",
-    "costume_eval",
+    "costume_eval", "modern_eval", "MODERN_LABEL", "REWRITTEN_LABEL",
+    "rewrite_eval",
 ]

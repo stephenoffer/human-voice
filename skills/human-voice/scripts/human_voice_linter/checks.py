@@ -15,6 +15,14 @@ CITATION_NEAR_RE = re.compile(
     r"\[\^?\d|\[\d+\]|\(\s*[A-Z][\w.&-]+,?\s*(?:et al\.?,?\s*)?\d{4}|\(\d{4}\)|https?://|doi:")
 
 
+# How many instance findings a single check will emit. This bounds memory and
+# output on a hostile input; it is NOT a display limit. It used to be 6 or 8,
+# inlined per check, and that silently capped the SCORE too: a 5,000-word document
+# with fifty em-dashes emitted eight hits and scored the same as one with eight,
+# because the density is computed from the hits the check produced. Display
+# truncation belongs in the report layer, which already says "... and N more".
+MAX_INSTANCE_HITS = 200
+
 def _line_bounds(text, idx):
     start = text.rfind("\n", 0, idx) + 1
     end = text.find("\n", idx)
@@ -34,33 +42,66 @@ def _span_hit(category, lm, m, text, suggestion=None):
 
 def check_lexical_list(text, value, category, hits, seen_spans, lm, protected=(),
                        cite_guard=False, skip_quoted=False):
-    for phrase, suggestion in as_phrase_list(value):
-        rx = _phrase_regex(phrase)
-        if rx is None:
+    """Flag every phrase from one pattern list, in ONE pass per boundary bucket.
+
+    This used to compile and run a separate `\bphrase\b` regex per entry. With a
+    thousand-plus entries in the pattern file that was 66% of total analysis time:
+    a 36,000-word document meant twelve hundred full scans of the text. The
+    phrases are alternated into a handful of combined regexes instead, and each
+    match is mapped back to its suggestion by normalizing the matched text the
+    same way `_phrase_regex` normalizes the phrase.
+
+    One deliberate behavior change comes with it: where two phrases in the SAME
+    list overlap at the same position, the alternation picks the longer one rather
+    than emitting both. That is what a reader would call one finding.
+    """
+    pairs = as_phrase_list(value)
+    if not pairs:
+        return
+    lookup = {}
+    for phrase, suggestion in pairs:
+        lookup.setdefault(_norm_phrase(phrase), suggestion)
+    found = seen_spans.setdefault(category, set())
+    # Collect from every chunk first, then take the longest match at each position
+    # and drop anything overlapping it. Two entries in one list that cover the same
+    # words ("it's worth noting" and "worth noting that") are one finding, not two,
+    # and this is also what keeps chunked alternations from re-introducing the
+    # double count across chunk boundaries.
+    matches = []
+    for rx in compile_phrase_matchers([p for p, _ in pairs]):
+        matches.extend(rx.finditer(text))
+    matches.sort(key=lambda m: (m.start(), -(m.end() - m.start())))
+    kept = []
+    last_end = -1
+    for m in matches:
+        if m.start() < last_end:
             continue
-        for m in rx.finditer(text):
-            span = (m.start(), m.end())
-            # Don't double-flag the same span across overlapping lists.
-            if span in seen_spans.get(category, set()):
+        kept.append(m)
+        last_end = m.end()
+    for m in kept:
+        span = (m.start(), m.end())
+        # Don't double-flag the same span across overlapping lists.
+        if span in found:
+            continue
+        # Suppress a hit that is part of a known-legitimate phrase.
+        if protected and _overlaps(m.start(), m.end(), protected):
+            continue
+        # Vague attribution that is immediately sourced is not vague.
+        if cite_guard and CITATION_NEAR_RE.search(text[m.end():m.end() + 45]):
+            continue
+        # Optionally skip matches on heading/blockquote lines or inside a
+        # quotation (where the wording belongs to someone else).
+        if skip_quoted:
+            ls, le = _line_bounds(text, m.start())
+            line = text[ls:le]
+            if HEADING_LINE_RE.match(line) or BLOCKQUOTE_RE.match(line):
                 continue
-            # Suppress a hit that is part of a known-legitimate phrase.
-            if protected and _overlaps(m.start(), m.end(), protected):
+            if text.count('"', ls, m.start()) % 2 == 1:
                 continue
-            # Vague attribution that is immediately sourced is not vague.
-            if cite_guard and CITATION_NEAR_RE.search(text[m.end():m.end() + 45]):
-                continue
-            # Optionally skip matches on heading/blockquote lines or inside a
-            # quotation (where the wording belongs to someone else).
-            if skip_quoted:
-                ls, le = _line_bounds(text, m.start())
-                line = text[ls:le]
-                if HEADING_LINE_RE.match(line) or BLOCKQUOTE_RE.match(line):
-                    continue
-                if text.count('"', ls, m.start()) % 2 == 1:
-                    continue
-            seen_spans.setdefault(category, set()).add(span)
-            hits.append(_span_hit(category, lm, m, m.group(0),
-                                  suggestion if suggestion else "cut"))
+        found.add(span)
+        suggestion = lookup.get(_norm_phrase(m.group(0)))
+        hits.append(_span_hit(category, lm, m, m.group(0),
+                              suggestion if suggestion else "cut"))
 
 
 def check_antithesis(text, patterns, hits, lm):
@@ -110,7 +151,11 @@ def check_pattern_list(text, patterns, category, suggestion, hits, lm, protected
                                   snippet.replace("\n", " "), suggestion))
 
 
-EM_DASH_RE = re.compile(r"\s?[—–]\s?|(?<=\w)--(?=\w)|\s--\s")
+# Real dashes only. ASCII `--` belongs to `dash_style`, which owns the "that is
+# raw markup, not a dash" finding; counting it here too made one double-hyphen
+# worth two hits in two categories, and a document written in the old
+# `name -- description` docstring style scored twice for one convention.
+EM_DASH_RE = re.compile(r"\s?[—–]\s?")
 
 
 def _is_numeric_en_dash(text, m):
@@ -144,14 +189,18 @@ def check_em_dash(text, words, threshold, hits, report, lm):
     report["en_dash_count"] = sum(1 for m in matches if "–" in m.group(0))
     paired = list(PAIRED_DASH_RE.finditer(text))
     report["paired_dash_asides"] = len(paired)
-    if per_1k > threshold and count >= 2:
-        for m in matches[:8]:
+    # Three, not two. Two em-dashes is what a person who likes em-dashes writes in
+    # an email; the tell is the dash becoming the default connector. The paired
+    # aside below still fires at two, because "— like this —" is a distinct tic
+    # rather than a rate.
+    if per_1k > threshold and count >= 3:
+        for m in matches[:MAX_INSTANCE_HITS]:
             ctx = text[max(0, m.start() - 15):m.start() + 15].replace("\n", " ").strip()
             hits.append(Hit("em_dash", lm.line_of(m.start()), ctx,
                             "use a comma, period, or parens"))
     # Paired dash asides are a distinctive tic even below the density floor.
     elif len(paired) >= 2:
-        for m in paired[:6]:
+        for m in paired[:MAX_INSTANCE_HITS]:
             hits.append(Hit("em_dash", lm.line_of(m.start()),
                             m.group(0).replace("\n", " ").strip(),
                             "rework the dashed aside as its own sentence or parens"))
@@ -168,16 +217,34 @@ def check_bold_bullets(text, threshold, hits, report, lm):
     report["bullets"] = len(bullets)
     report["bold_lead_bullets"] = len(bold)
     if bullets and (len(bold) / len(bullets)) >= threshold and len(bold) >= 3:
-        for m in bold[:8]:
+        for m in bold[:MAX_INSTANCE_HITS]:
             hits.append(_span_hit("bold_bullets", lm, m,
                                   m.group(0).strip(),
                                   "convert some to prose; drop ornamental bold"))
 
 
+def _distinct_by_text(matches):
+    """First occurrence of each distinct matched phrase, order preserved.
+
+    Used where the tell is a HABIT rather than a count: repeating one phrase is
+    terminology consistency (principle 6), and charging for every copy of it turns
+    a virtue into a finding.
+    """
+    seen = set()
+    out = []
+    for m in matches:
+        key = " ".join(m.group(0).lower().split())
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(m)
+    return out
+
+
 # Triads with an optional Oxford comma, joined by "and" or "or":
 # "fast, reliable, and scalable" and "fast, reliable and scalable" both match.
 RULE_OF_THREE_RE = re.compile(
-    r"\b([A-Za-z]+(?:ly)?)\s*,\s+([A-Za-z]+(?:ly)?)\s*,?\s+(?:and|or)\s+([A-Za-z]+(?:ly)?)\b")
+    r"\b([A-Za-z]+)\s*,\s+([A-Za-z]+)\s*,?\s+(?:and|or)\s+([A-Za-z]+)\b")
 
 # Noun-PHRASE triads the single-word pattern misses ("encryption at rest,
 # row-level access control, and audit logging"). Members are 1-3 words; at least
@@ -187,7 +254,58 @@ NOUN_TRIAD_RE = re.compile(
     r"\s+and\s+([A-Za-z][\w-]*(?:\s+[\w-]+){0,2})\b")
 
 
-def check_rule_of_three(prose_text, hits, lm):
+# Words that mark a triad member as a CLAUSE rather than a noun phrase. The
+# noun-triad pattern cannot tell "encryption at rest, row-level access control,
+# and audit logging" (a real triad) from "you paste code into a notebook, the
+# kernel dies, and the last save is gone" (a sentence with three clauses in it),
+# and flagging the second told a writer to break a sentence that was already fine.
+_CLAUSE_PRONOUNS = frozenset((
+    "it", "he", "she", "they", "we", "you", "i", "who", "which", "that"))
+_CLAUSE_VERBS = frozenset((
+    "is", "are", "was", "were", "be", "been", "am", "has", "have", "had",
+    "do", "does", "did", "will", "would", "can", "could", "should", "may",
+    "might", "must", "gets", "goes", "comes", "makes", "takes", "runs",
+    "starts", "stops", "dies", "fails", "works", "means", "keeps", "leaves"))
+# A member that OPENS with one of these is a phrase fragment captured out of a
+# longer clause, not a list item.
+_MEMBER_BAD_START = frozenset((
+    "into", "onto", "from", "with", "for", "of", "to", "in", "on", "at", "by",
+    "as", "than", "when", "while", "because", "if", "so", "but", "and", "or",
+    "after", "before", "since", "though", "although", "unless", "until"))
+
+
+def _is_noun_phrase(member):
+    """Rough test: does this triad member read as a noun phrase, not a clause?"""
+    words = [w.lower() for w in WORD_RE.findall(member)]
+    if not words:
+        return False
+    if words[0] in _MEMBER_BAD_START:
+        return False
+    return not any(w in _CLAUSE_PRONOUNS or w in _CLAUSE_VERBS for w in words)
+
+
+# A triad member that is really a function word swept up by the pattern: "a field
+# that, directly or indirectly, holds ..." is not a list of three.
+_TRIAD_STOP_MEMBERS = frozenset((
+    "that", "this", "these", "those", "which", "what", "when", "where", "while",
+    "then", "than", "with", "from", "into", "onto", "over", "under", "after",
+    "before", "because", "unless", "until", "since", "though", "although",
+    "here", "there", "they", "them", "their", "your", "ours", "have", "been",
+    "were", "will", "would", "could", "should", "does", "done", "such", "some",
+    "each", "both", "also", "only", "just", "even", "well", "more", "most",
+    "less", "least", "very", "much", "many", "same", "other", "another"))
+
+
+def check_rule_of_three(prose_text, hits, lm, min_single_word=2):
+    """Triads, single-word and noun-phrase, both gated on repetition.
+
+    A tricolon is a rhetorical figure, and principle 2 says explicitly that one is
+    fine. What marks machine prose is the REFLEX: reaching for three whenever a
+    list appears. Both halves of this check now need two instances in a document,
+    so "tuples, lists, and dicts" (a real enumeration of exactly three things) does
+    not get told to become two or four.
+    """
+    single = []
     for m in RULE_OF_THREE_RE.finditer(prose_text):
         a, b, c = m.group(1), m.group(2), m.group(3)
         # Adjective/adverb-looking triads only; require length and -ly/-ed-ish
@@ -199,8 +317,19 @@ def check_rule_of_three(prose_text, hits, lm):
         # adjective. The first member can be capitalized merely by position.
         if b[0].isupper() or c[0].isupper():
             continue
-        hits.append(Hit("rule_of_three", lm.line_of(m.start()),
-                        m.group(0), "vary to two or four, or a clause"))
+        if any(w.lower() in _TRIAD_STOP_MEMBERS for w in (a, b, c)):
+            continue
+        single.append(m)
+    # DISTINCT triads. One boilerplate phrase repeated across twenty API
+    # docstrings ("string, bytes, or bytearray") is one habit, not twenty, and
+    # counting each copy put a reference manual straight into the category cap.
+    # Terminology consistency is what principle 6 asks for; penalizing it is
+    # exactly backwards.
+    single = _distinct_by_text(single)
+    if len(single) >= min_single_word:
+        for m in single[:MAX_INSTANCE_HITS]:
+            hits.append(Hit("rule_of_three", lm.line_of(m.start()),
+                            m.group(0), "vary to two or four, or a clause"))
     # Noun-phrase triads: the reflexive STACKING is the tell, so only flag when a
     # document has 2+ of them; a single legitimate enumeration is left alone.
     np_hits = []
@@ -208,17 +337,34 @@ def check_rule_of_three(prose_text, hits, lm):
         members = (m.group(1), m.group(2), m.group(3))
         if not any(len(x.split()) > 1 for x in members):
             continue  # all single-word -> already covered above
+        # A clause list is not a rule-of-three triad. See _is_noun_phrase.
+        if not all(_is_noun_phrase(x) for x in members):
+            continue
         # Proper-noun list guard (members 2/3; member 1 may be capitalized by
         # sentence position): "Slack, Google Drive, and GitHub" is a real list.
         if members[1][0].isupper() or members[2][0].isupper():
             continue
         np_hits.append(m)
+    np_hits = _distinct_by_text(np_hits)
     if len(np_hits) >= 2:
-        for m in np_hits[:6]:
+        for m in np_hits[:MAX_INSTANCE_HITS]:
             snippet = m.group(0)
             hits.append(Hit("rule_of_three", lm.line_of(m.start()),
                             (snippet[:60] + "...") if len(snippet) > 63 else snippet,
                             "break the triad: two items, four, or a clause"))
+
+
+# The words English sentences start with by default. A third of sentences opening
+# "The" or "We" is what ordinary prose looks like -- measured on this corpus, human
+# and AI files overlap completely in the 0.30-0.45 band for these words, so firing
+# there produced false positives and no separation. A repeated DISTINCTIVE opener
+# ("However", "Additionally", "By") is a real templating signal at a much lower
+# rate, and svo_monotony already covers long subject-initial runs.
+COMMON_OPENERS = frozenset((
+    "the", "a", "an", "i", "we", "it", "this", "that", "they", "you", "he",
+    "she", "there", "our", "my", "these", "those", "his", "her", "its", "their"))
+COMMON_OPENER_RATIO = 0.45
+COMMON_OPENER_MIN = 5
 
 
 def check_uniform_openers(sents, ratio_threshold, hits, report):
@@ -239,7 +385,11 @@ def check_uniform_openers(sents, ratio_threshold, hits, report):
     word, count = counts.most_common(1)[0]
     ratio = count / total
     report["opener_repeat_ratio"] = round(ratio, 2)
-    if ratio >= ratio_threshold:
+    if word in COMMON_OPENERS:
+        fires = ratio >= COMMON_OPENER_RATIO and count >= COMMON_OPENER_MIN
+    else:
+        fires = ratio >= ratio_threshold
+    if fires:
         hits.append(Hit("uniform_openers", 0,
                         '%d of %d sentences open with "%s"' % (count, total, word),
                         "vary how sentences begin"))
@@ -264,10 +414,10 @@ def check_wh_openers(sents, ratio_threshold, run, hits, report):
     total = sum(1 for f in firsts if f is not None)
     count = sum(wh_flags)
     report["wh_opener_count"] = count
+    ratio = (count / total) if total else 0.0
+    report["wh_opener_ratio"] = round(ratio, 2)
     if total < 4:
         return
-    ratio = count / total
-    report["wh_opener_ratio"] = round(ratio, 2)
     streak = 0
     max_streak = 0
     for flag in wh_flags:
@@ -288,17 +438,33 @@ def check_formatting(text, max_rules, hits, report, lm):
         m = EMOJI_RE.search(text)
         hits.append(_span_hit("formatting", lm, m,
                               "emoji (%d)" % len(emojis), "remove decorative emoji"))
-    rules = list(SECTION_RULE_MULTILINE_RE.finditer(text))
+    # A run of dashes directly under a non-blank line is a setext heading
+    # underline, not a rule between sections. Counting those flagged every
+    # docstring and every doc that underlines its headings.
+    rules = []
+    for m in SECTION_RULE_MULTILINE_RE.finditer(text):
+        prev_end = text.rfind("\n", 0, m.start())
+        prev_start = text.rfind("\n", 0, prev_end) + 1 if prev_end > 0 else 0
+        if prev_end > 0 and text[prev_start:prev_end].strip():
+            continue
+        rules.append(m)
     report["section_rules"] = len(rules)
     if len(rules) > max_rules:
-        for m in rules[max_rules:max_rules + 6]:
+        for m in rules[max_rules:max_rules + MAX_INSTANCE_HITS]:
             hits.append(_span_hit("formatting", lm, m,
                                   "horizontal rule", "drop rules between every section"))
 
 
-def check_burstiness(sents, floor, hits, report):
+def check_burstiness(sents, floor, hits, report, min_sents=8):
+    """Coefficient of variation of sentence length.
+
+    Needs at least `min_sents` sentences. At five, the CoV is dominated by
+    sampling noise: a seven-sentence human abstract measured 0.33 and got flagged
+    for "flat rhythm" while every AI file that actually fires has ten or more
+    sentences. Raising the floor removed a false positive and cost no recall.
+    """
     lengths = [n for n in (len(WORD_RE.findall(s)) for s in sents) if n > 0]
-    if len(lengths) < 5:
+    if len(lengths) < min_sents:
         report["burstiness_cov"] = None
         report["mean_sentence_len"] = round(sum(lengths) / len(lengths), 1) if lengths else 0
         return
@@ -357,24 +523,71 @@ STOPWORDS = set("the a an of to in and or is are was were be been being it its "
                 "about which who whom there here when where how what why".split())
 
 
-def check_ngram_repetition(prose_text, sizes, min_count, hits):
-    words = [w.lower() for w in WORD_RE.findall(prose_text)]
+def check_ngram_repetition(prose_text, sizes, min_count, hits, lm=None, max_report=8,
+                           per_words=400):
+    """Repeated n-grams, reported at the first occurrence and capped.
+
+    This is an *instance* check, not a document one: a long repetitive text has
+    genuinely more of them. It used to emit unbounded positionless hits, which
+    both hid the location from the reader and let one category swamp the score on
+    a long document (hundreds of hits on an 800-word input). Each finding now
+    carries the line of its first occurrence, and the count is capped the same way
+    every other instance check caps its examples.
+    """
+    # Count n-grams WITHIN sentences. Sliding a window over the whole token stream
+    # manufactured phrases that straddle a full stop -- "...to the client. The
+    # client retries..." yielded the trigram "client the client" -- which is an
+    # artifact of the window, not a repetition anybody wrote.
+    per_sentence = [[w.lower() for w in WORD_RE.findall(sent)]
+                    for sent in sentences(prose_text)]
+    if not per_sentence:
+        per_sentence = [[w.lower() for w in WORD_RE.findall(prose_text)]]
+    total_words = sum(len(ws) for ws in per_sentence)
+    # Repetition is a RATE. A bigram appearing four times is a tic in a 300-word
+    # note and unremarkable in a 4,000-word reference, where the same four
+    # occurrences are terminology consistency (principle 6). Scale the floor with
+    # length instead of holding one absolute count for every document.
+    min_count = max(min_count, 3 + total_words // per_words)
+    found = []
     for n in sizes:
-        if n < 2 or len(words) < n:
+        if n < 2 or total_words < n:
             continue
+        # A repeated n-gram is only a tell when it repeats *content*. Requiring
+        # two content words keeps the check off "the text", "the skill", "the
+        # rewrite" -- article-plus-defined-term pairs that are precisely the
+        # terminology consistency principle 6 tells you to hold. Flagging them
+        # pushed writers toward rotating synonyms, which is the opposite of the
+        # guidance and a tell in its own right.
+        min_content = 2
         grams = Counter()
-        for i in range(len(words) - n + 1):
-            gram = tuple(words[i:i + n])
-            if all(w in STOPWORDS for w in gram):
-                continue
-            grams[gram] += 1
+        for words in per_sentence:
+            for i in range(len(words) - n + 1):
+                gram = tuple(words[i:i + n])
+                # A single letter is not a content word. "e.g." tokenizes to
+                # ("e", "g"), which passed the two-content-word test and made
+                # every document that abbreviates read as repetitive.
+                if sum(1 for w in gram
+                       if len(w) > 2 and w not in STOPWORDS) < min_content:
+                    continue
+                grams[gram] += 1
         for gram, count in grams.most_common():
-            if count >= min_count:
-                hits.append(Hit("ngram_repetition", 0,
-                                '"%s" x%d' % (" ".join(gram), count),
-                                "rephrase repeated %d-grams" % n))
-            else:
+            if count < min_count:
                 break  # most_common is descending; nothing further qualifies
+            found.append((count, n, gram))
+    found.sort(key=lambda t: (-t[0], t[1], t[2]))
+    for count, n, gram in found[:max_report]:
+        phrase = " ".join(gram)
+        line = 0
+        if lm is not None:
+            # Tokens are joined by single spaces, but the source may separate them
+            # with a newline or runs of whitespace, so a literal find() misses.
+            m = re.search(r"\s+".join(re.escape(w) for w in gram),
+                          prose_text, re.IGNORECASE)
+            if m:
+                line = lm.line_of(m.start())
+        hits.append(Hit("ngram_repetition", line,
+                        '"%s" x%d' % (phrase, count),
+                        "rephrase repeated %d-grams" % n))
 
 
 def _is_identifier_context(text, start, end):
@@ -388,21 +601,36 @@ def _is_identifier_context(text, start, end):
         return True
     before = text[start - 1] if start > 0 else ""
     after = text[end] if end < len(text) else ""
-    return before in "_.$" or after in "_.("
+    if before in "_$" or after in "_(":
+        return True
+    # `obj.method` / `pkg.name` is attribute access; `we optimise.` is a sentence.
+    # Requiring an identifier character on the far side of the dot keeps the check
+    # from silently skipping every word that ends a sentence.
+    if before == "." and start >= 2 and (text[start - 2].isalnum() or text[start - 2] == "_"):
+        return True
+    if after == "." and end + 1 < len(text) and (text[end + 1].isalnum() or text[end + 1] == "_"):
+        return True
+    return False
 
 
 def check_dialect(text, dialect_map, hits, lm):
+    """Spelling drift against the chosen dialect, in one pass over the text.
+
+    Sixty separate `\bword\b` scans became one alternation for the same reason
+    check_lexical_list did: the cost is a full pass per pattern, and a long
+    document pays it once per word in the map.
+    """
     if not isinstance(dialect_map, dict):
         return
-    for wrong, right in dialect_map.items():
-        if not isinstance(wrong, str) or not wrong:
-            continue
-        rx = _word_regex(wrong)
-        if rx is None:
-            continue
+    words = [w for w in dialect_map if isinstance(w, str) and w]
+    if not words:
+        return
+    lower = {w.lower(): dialect_map[w] for w in words}
+    for rx in compile_phrase_matchers(words):
         for m in rx.finditer(text):
             if _is_identifier_context(text, m.start(), m.end()):
                 continue
+            right = lower.get(_norm_phrase(m.group(0)))
             sug = ("use '%s' for consistent dialect" % right
                    if isinstance(right, str) else "spelling drift")
             hits.append(_span_hit("dialect", lm, m, m.group(0), sug))
@@ -494,7 +722,7 @@ def check_colon_summary(prose_text, hits, report, lm):
     matches = list(COLON_SUMMARY_RE.finditer(prose_text))
     report["colon_summary"] = len(matches)
     if len(matches) >= 3:
-        for m in matches[:6]:
+        for m in matches[:MAX_INSTANCE_HITS]:
             hits.append(Hit("colon_summary", lm.line_of(m.start()),
                             m.group(0).strip().replace("\n", " "),
                             "vary the lead-in; not every point needs 'X is: ...'"))
@@ -573,12 +801,16 @@ def check_circular_conclusion(code_stripped, hits, report, min_paras=3, overlap=
         text = strip_inline_markup(" ".join(lines))
         if WORD_RE.findall(text):
             prose.append([w.lower() for w in WORD_RE.findall(text) if w.lower() not in STOPWORDS])
+    report["prose_blocks"] = len(prose)
     if len(prose) < min_paras:
+        report["conclusion_overlap"] = None
         return
     first, last = set(prose[0]), set(prose[-1])
     if not first or not last:
+        report["conclusion_overlap"] = None
         return
     jacc = len(first & last) / len(first | last)
+    report["conclusion_overlap"] = round(jacc, 2)
     if jacc >= overlap:
         hits.append(Hit("circular_conclusion", 0,
                         "closing paragraph repeats the opening (overlap %.2f)" % jacc,
@@ -586,23 +818,35 @@ def check_circular_conclusion(code_stripped, hits, report, min_paras=3, overlap=
 
 
 def check_parallel_structure(sents, hits, report, run=3):
-    """Flag >= `run` consecutive sentences sharing their first two words."""
+    """Flag runs of >= `run` consecutive sentences sharing their first two words.
+
+    Reports the run's ACTUAL length, not the threshold. The old version fired the
+    instant a streak reached `run` and then went quiet, so five sentences opening
+    "The system ..." and three of them read identically in the report -- the
+    writer could not tell a borderline case from a severe one.
+    """
     def head(s):
         ws = WORD_RE.findall(s.lower())
         return tuple(ws[:2]) if len(ws) >= 2 else None
-    streak = 1
-    flagged = 0
-    for i in range(1, len(sents)):
-        if head(sents[i]) is not None and head(sents[i]) == head(sents[i - 1]):
-            streak += 1
-            if streak == run:
-                h = head(sents[i])
-                hits.append(Hit("parallel_structure", 0,
-                                '%d+ sentences in a row open "%s ..."' % (run, " ".join(h)),
-                                "vary sentence openings and structure"))
-                flagged += 1
-        else:
-            streak = 1
+    heads = [head(s) for s in sents]
+    runs = []
+    i = 0
+    while i < len(heads):
+        if heads[i] is None:
+            i += 1
+            continue
+        j = i + 1
+        while j < len(heads) and heads[j] == heads[i]:
+            j += 1
+        if j - i >= run:
+            runs.append((j - i, heads[i]))
+        i = j
+    report["parallel_runs"] = len(runs)
+    report["longest_parallel_run"] = max((n for n, _ in runs), default=0)
+    for length, h in runs[:4]:
+        hits.append(Hit("parallel_structure", 0,
+                        '%d sentences in a row open "%s ..."' % (length, " ".join(h)),
+                        "vary sentence openings and structure"))
 
 
 # ---------------------------------------------------------------------------
@@ -619,6 +863,26 @@ EM_SPACED_RE = re.compile(r"\w\s—\s\w")
 SPACED_HYPHEN_DASH_RE = re.compile(r"(?<=[a-z]) - (?=[a-z])")
 
 
+# Above this many occurrences of one dash convention, the finding is the
+# convention rather than the instances, and it is reported once.
+DASH_STYLE_INSTANCE_MAX = 5
+
+
+def _dash_findings(matches, label, suggestion, prose_text, hits, lm):
+    if not matches:
+        return
+    if len(matches) <= DASH_STYLE_INSTANCE_MAX:
+        for m in matches:
+            ctx = prose_text[max(0, m.start() - 8):m.end() + 8].replace("\n", " ").strip()
+            hits.append(Hit("dash_style", lm.line_of(m.start()), ctx or label, suggestion))
+        return
+    lines = ", ".join("L%d" % lm.line_of(m.start()) for m in matches[:6])
+    hits.append(Hit("dash_style", 0,
+                    "%d occurrences of %s (first at %s)" % (len(matches), label, lines),
+                    suggestion + "; this is one find-and-replace, not %d edits"
+                    % len(matches)))
+
+
 def check_dash_style(prose_text, hits, report, lm):
     """Dash *correctness and consistency*, distinct from em-dash density.
 
@@ -632,14 +896,16 @@ def check_dash_style(prose_text, hits, report, lm):
     report["dash_ascii_double"] = len(ascii_dd)
     report["dash_spaced_hyphen"] = len(spaced_hyphen)
     report["em_dash_spacing_mixed"] = bool(tight and spaced)
-    for m in ascii_dd[:6]:
-        hits.append(Hit("dash_style", lm.line_of(m.start()),
-                        m.group(0).strip() or "--",
-                        "use an em-dash (—) or rework; '--' reads as raw markup"))
-    for m in spaced_hyphen[:6]:
-        ctx = prose_text[max(0, m.start() - 8):m.end() + 8].replace("\n", " ").strip()
-        hits.append(Hit("dash_style", lm.line_of(m.start()), ctx,
-                        "a spaced hyphen isn't a dash; use a comma, period, or em-dash"))
+    # A handful of stray `--` is a per-line finding a writer fixes one at a time.
+    # A hundred of them is one house style and one find-and-replace, so report it
+    # once rather than charging for every occurrence: a reference manual written in
+    # the `name -- description` convention was otherwise pinned at the category cap
+    # by a single stylistic decision.
+    _dash_findings(ascii_dd, "--", "use an em-dash (—) or rework; '--' reads as raw markup",
+                   prose_text, hits, lm)
+    _dash_findings(spaced_hyphen, "a spaced hyphen used as a dash",
+                   "a spaced hyphen isn't a dash; use a comma, period, or em-dash",
+                   prose_text, hits, lm)
     if tight and spaced:
         hits.append(Hit("dash_style", 0,
                         "em-dash spacing is inconsistent (both word—word and word — word)",
@@ -650,7 +916,10 @@ def check_dash_style(prose_text, hits, report, lm):
 # or tabs only (no newline), so a word ending one line/heading and the same word
 # opening the next (e.g. "...use it" / "It does...") is not a false doubling.
 # Excludes words that legitimately repeat ("had had", "that that").
-DOUBLED_WORD_RE = re.compile(r"\b([A-Za-z]{2,})\b[ \t]+\1\b", re.IGNORECASE)
+# The gap is ONE space or tab. A doubled word is a typing slip and it leaves a
+# single space; three or more spaces is column alignment, and matching it flagged
+# every two-column reference table ("match     Match a regular expression").
+DOUBLED_WORD_RE = re.compile(r"\b([A-Za-z]{2,})\b[ \t]{1,2}\1\b", re.IGNORECASE)
 DOUBLE_OK = {"that", "had", "ha", "no", "so", "very", "really", "blah", "yeah",
              "ok", "bye", "din", "tut", "hear", "now"}
 
@@ -662,14 +931,17 @@ def check_doubled_words(prose_text, hits, report, lm):
             continue
         matches.append(m)
     report["doubled_words"] = len(matches)
-    for m in matches[:8]:
+    for m in matches[:MAX_INSTANCE_HITS]:
         hits.append(Hit("doubled_word", lm.line_of(m.start()),
                         m.group(0).replace("\n", " "),
                         "remove the duplicated word"))
 
 
 # Space before sentence punctuation: "word ," / "word ;" / "word ?".
-SPACE_BEFORE_PUNCT_RE = re.compile(r"\w[ \t]+([,;:!?])")
+# `word :` is a mechanical error; `plus one :-)` is a smiley and `see :func:`x``
+# is a role marker. Require the punctuation NOT to be the head of an emoticon or a
+# reStructuredText role.
+SPACE_BEFORE_PUNCT_RE = re.compile(r"\w[ \t]+([,;:!?])(?![-)(|/\\DPpO0<>*^]|\w+:)")
 # Repeated terminal punctuation: "!!", "??", or 3+ mixed ("?!?"). A lone "?!"
 # (one of each) is left alone as a legitimate interrobang.
 MULTI_PUNCT_RE = re.compile(r"!{2,}|\?{2,}|[!?]{3,}")
@@ -680,11 +952,11 @@ def check_mechanics(prose_text, hits, report, lm):
     multi_punct = list(MULTI_PUNCT_RE.finditer(prose_text))
     report["space_before_punct"] = len(space_before)
     report["multi_terminal_punct"] = len(multi_punct)
-    for m in space_before[:6]:
+    for m in space_before[:MAX_INSTANCE_HITS]:
         ctx = prose_text[max(0, m.start() - 6):m.end() + 4].replace("\n", " ").strip()
         hits.append(Hit("mechanics", lm.line_of(m.start()), ctx,
                         "no space before '%s'" % m.group(1)))
-    for m in multi_punct[:6]:
+    for m in multi_punct[:MAX_INSTANCE_HITS]:
         hits.append(Hit("mechanics", lm.line_of(m.start()), m.group(0),
                         "one punctuation mark is enough"))
 
@@ -725,7 +997,11 @@ def check_five_paragraph_shape(code_stripped, hits, report):
     """
     paras = _prose_paragraph_texts(code_stripped)
     report["prose_paragraphs"] = len(paras)
-    if not (4 <= len(paras) <= 9):
+    # The upper bound was 9, which let a 12-paragraph report close on "In
+    # conclusion, ..." unflagged -- the recap is the tell, and it does not stop
+    # being one because the piece is long. Only the floor is a real constraint:
+    # a three-paragraph note has no essay shape to critique.
+    if len(paras) < 4:
         return
     if CONCLUSION_OPENER_RE.match(paras[-1]):
         hits.append(Hit("five_paragraph_shape", 0,
@@ -775,9 +1051,15 @@ def check_superlative_creep(prose_text, words, threshold, hits, report, min_word
     per_1k = (count / words * 1000) if words else 0.0
     report["superlative_per_1k"] = round(per_1k, 1)
     if words >= min_words and per_1k > threshold and count >= 3:
-        for m in unbacked[:6]:
-            hits.append(Hit("superlative_creep", 0, m.group(0).strip(),
-                            "match the claim to evidence; cut the superlative or give the number"))
+        # ONE document finding, not one per example. Emitting six line-0 hits made
+        # a single density signal worth six times doc_hit_points -- more than any
+        # structural tell -- and gave the writer no line to go to. The examples ride
+        # along in the text instead.
+        examples = ", ".join(sorted({m.group(0).strip().lower() for m in unbacked})[:5])
+        hits.append(Hit("superlative_creep", 0,
+                        "unbacked superlatives: %.0f / 1k words (floor %.0f): %s"
+                        % (per_1k, threshold, examples),
+                        "match the claim to evidence; cut the superlative or give the number"))
 
 
 # Subject-class openers: the canonical Subject-Verb-Object lead. A long run of
@@ -801,13 +1083,13 @@ def check_svo_monotony(sents, hits, report, run=6, min_sents=8):
     for s in sents:
         m = WORD_RE.search(s)
         flags.append(bool(m) and m.group(0).lower() in SUBJECT_OPENERS)
-    if len(sents) < min_sents:
-        return
     streak = max_streak = 0
     for f in flags:
         streak = streak + 1 if f else 0
         max_streak = max(max_streak, streak)
     report["subject_opener_run"] = max_streak
+    if len(sents) < min_sents:
+        return
     if max_streak >= run:
         hits.append(Hit("svo_monotony", 0,
                         "%d sentences in a row open with a subject (Subject-Verb-Object lead)"
@@ -840,7 +1122,35 @@ COSTUME_SLANG_RE = re.compile(r"\b(?:lol|lmao|idk|tbh|ngl|imo|fr|smh|iirc)\b", r
 SENTENCE_START_RE = re.compile(r"(?:^|[.!?]\s+)([A-Za-z])")
 
 
-def check_over_correction(text, prose_text, hits, report):
+def check_punctuation_substitution(prose_text, words, semicolon_max, hits, report,
+                                   min_words=150):
+    """The humanizer's own fingerprint: every em-dash swapped for one other mark.
+
+    Principle 2 says the em-dash fix has to VARY the replacement, and this is the
+    check that holds the tool to it. A writer who reaches for semicolons also
+    reaches for dashes; a document with an unusual semicolon rate and not one dash
+    has been through a mechanical pass, and the flat substitution is a fresh
+    uniform signature in place of the old one. Measured on this repo's corpus the
+    human maximum is 5.5 semicolons per 1,000 words, and three of the shipped
+    rewrites were over it before this check existed.
+    """
+    if not words:
+        return
+    semis = prose_text.count(";")
+    per_1k = semis / words * 1000.0
+    dashes = len([m for m in EM_DASH_RE.finditer(prose_text)
+                  if not _is_numeric_en_dash(prose_text, m)])
+    report["semicolon_per_1k"] = round(per_1k, 1)
+    if words >= min_words and per_1k > semicolon_max and semis >= 3 and dashes == 0:
+        hits.append(Hit("over_correction", 0,
+                        "%.0f semicolons / 1k words and no dashes at all"
+                        % per_1k,
+                        "vary the replacement mark: a comma here, a period there, "
+                        "parentheses elsewhere. One substitute everywhere is a new "
+                        "uniform signature"))
+
+
+def check_over_correction(prose_text, hits, report):
     """Detect over-correction into the anti-AI costume.
 
     Forced all-lowercase sentence starts and sprinkled chat slang read as a
@@ -864,6 +1174,430 @@ def check_over_correction(text, prose_text, hits, report):
                         "sprinkled slang reads as performed casualness; drop it or commit to the register"))
 
 
+
+# ---------------------------------------------------------------------------
+# Detector-aligned shape checks (v0.5)
+#
+# The strongest published evidence about what trained detectors respond to is
+# that they track *post-training* artifacts rather than "machine-ness": base
+# models, which never went through instruction tuning, are classified human at
+# >96%, while their instruction-tuned siblings are caught. The artifacts named
+# are response length conventions, markdown formatting preference (headings,
+# lists, bolded runs), and assistant-style structural conventions. Word choice
+# is downstream of all of that. These two checks measure the shape directly.
+# See references/what-detectors-see.md.
+# ---------------------------------------------------------------------------
+
+BOLD_SPAN_RE = re.compile(r"\*\*[^*\n]{1,80}\*\*|__[^_\n]{1,80}__")
+
+# Section titles that mark an answer wrapping itself up for the reader. A human
+# report has a conclusion; an assistant response almost always does.
+SUMMARY_HEADING_RE = re.compile(
+    r"^[ \t]*#{1,6}[ \t]+(?:in\s+)?(?:conclusion|summary|in\s+summary|takeaways?|"
+    r"key\s+takeaways?|final\s+thoughts?|tl;?dr|wrapping\s+up|closing\s+thoughts?|"
+    r"the\s+bottom\s+line|next\s+steps)\b",
+    re.IGNORECASE | re.MULTILINE)
+
+
+def check_assistant_shape(text, word_count, headings_per_1k, bullet_ratio_max,
+                          bold_per_1k, hits, report, raw_text=None):
+    """Markdown scaffolding density: does this read as a written document or as a
+    chat answer? Density-based, so a README's headings are fine and a heading
+    every sixty words is not.
+
+    `text` must be code-stripped: a `# comment` inside a fenced bash block is not
+    a heading, `- **Flag**: ...` inside a quoted markdown sample is not a bold
+    bullet, and counting them flagged style guides for demonstrating the very
+    anti-pattern they warn against. `raw_text` (the pre-strip source) supplies the
+    content-line denominator, so a code-heavy page is not judged as if the code
+    were not there.
+    """
+    heading_lines = [ln for ln in text.splitlines() if HEADING_LINE_RE.match(ln)]
+    denominator_src = raw_text if raw_text is not None else text
+    content_lines = [ln for ln in denominator_src.splitlines() if ln.strip()]
+    bullet_lines = [ln for ln in text.splitlines() if LIST_MARKER_RE.match(ln)]
+    bold_spans = BOLD_SPAN_RE.findall(text)
+
+    h_per_1k = (len(heading_lines) / word_count * 1000.0) if word_count else 0.0
+    b_ratio = (len(bullet_lines) / len(content_lines)) if content_lines else 0.0
+    bold_1k = (len(bold_spans) / word_count * 1000.0) if word_count else 0.0
+    report["headings"] = len(heading_lines)
+    report["headings_per_1k"] = round(h_per_1k, 1)
+    report["bullet_line_ratio"] = round(b_ratio, 2)
+    report["bold_spans"] = len(bold_spans)
+    report["bold_spans_per_1k"] = round(bold_1k, 1)
+
+    if word_count < 120:  # too short for a density to mean anything
+        return
+    if h_per_1k > headings_per_1k and len(heading_lines) >= 3:
+        hits.append(Hit("assistant_shape", 0,
+                        "a heading every %d words (%d headings / %d words)"
+                        % (int(word_count / max(1, len(heading_lines))),
+                           len(heading_lines), word_count),
+                        "let paragraphs carry the structure; keep headings for real sections"))
+    if b_ratio > bullet_ratio_max and len(bullet_lines) >= 5:
+        hits.append(Hit("assistant_shape", 0,
+                        "%.0f%% of content lines are list items" % (b_ratio * 100),
+                        "turn the bulleted answer back into paragraphs"))
+    if bold_1k > bold_per_1k and len(bold_spans) >= 4:
+        hits.append(Hit("assistant_shape", 0,
+                        "%d bold spans in %d words" % (len(bold_spans), word_count),
+                        "drop emphasis that is decorating rather than distinguishing"))
+    # The tell is a document that WRAPS ITSELF UP, so the recap heading has to be
+    # the last one. A "Next steps" section in the middle of a project doc is a
+    # section, not a chat answer signing off, and flagging it was wrong.
+    summary = None
+    for m in SUMMARY_HEADING_RE.finditer(text):
+        summary = m
+    if summary and len(heading_lines) >= 2:
+        later = [ln for ln in text[summary.end():].splitlines()
+                 if HEADING_LINE_RE.match(ln)]
+        if not later:
+            hits.append(Hit("assistant_shape", 0,
+                            "closes with a %r section"
+                            % summary.group(0).strip().lstrip("# ").strip(),
+                            "end on the last real point; drop the recap section"))
+
+
+def check_sentence_shape(sents, short_max, short_floor, mid_low, mid_high,
+                         mid_max, hits, report, min_sents=8):
+    """Sentence-length *distribution*, not just its coefficient of variation.
+
+    Human prose reaches: it drops three-word sentences and runs forty-word ones.
+    LLM prose collapses toward the middle. CoV misses this because a single long
+    sentence inflates it while the rest stay uniform, so measure the tails
+    directly."""
+    lengths = [n for n in (len(WORD_RE.findall(s)) for s in sents) if n > 0]
+    if len(lengths) < min_sents:
+        report["short_sentence_ratio"] = None
+        report["mid_band_ratio"] = None
+        return
+    n = len(lengths)
+    short = sum(1 for x in lengths if x <= short_max) / n
+    mid = sum(1 for x in lengths if mid_low <= x <= mid_high) / n
+    report["short_sentence_ratio"] = round(short, 2)
+    report["mid_band_ratio"] = round(mid, 2)
+    report["longest_sentence"] = max(lengths)
+    report["shortest_sentence"] = min(lengths)
+    if short < short_floor:
+        hits.append(Hit("sentence_shape", 0,
+                        "only %.0f%% of sentences are <=%d words (floor %.0f%%)"
+                        % (short * 100, short_max, short_floor * 100),
+                        "cut in a short sentence. Like this one."))
+    if mid > mid_max:
+        hits.append(Hit("sentence_shape", 0,
+                        "%.0f%% of sentences sit in the %d-%d word band"
+                        % (mid * 100, mid_low, mid_high),
+                        "push sentences out of the middle: some very short, some long"))
+
+
+# Checkable specifics: numbers, dates, units, and proper nouns that are not just a
+# sentence-initial capital. Reported, never scored. See report_specificity.
+SPECIFIC_NUM_RE = re.compile(r"\b\d[\d,.:]*\b|\b\d+\s?%")
+CAPWORD_RE = re.compile(r"[A-Za-z][A-Za-z'\-]*")
+
+
+def report_specificity(prose_text, sents, words, report):
+    """How many checkable specifics per 100 words. A METRIC, not a tell.
+
+    Vacuity is the tell this skill calls highest and no regex can see. This does not
+    see it either, but it measures the thing vacuous prose reliably lacks: numbers,
+    dates, and named entities a reader could go and check.
+
+    Deliberately NOT scored. Measured on this corpus the medians separate (human 3.0
+    per 100 words, realistic-AI 0.6) and the ranges overlap completely: plenty of
+    good human writing, fiction especially, contains no number and no proper noun at
+    all. Scoring it would flag exactly the careful and creative writers detectors
+    already mistreat. What it is good for is prompting the author-material intake:
+    near-zero means the draft has nothing checkable in it, so cutting tells will
+    leave clean, generic, unowned prose unless real material comes from somewhere.
+    """
+    nums = SPECIFIC_NUM_RE.findall(prose_text)
+    proper = 0
+    for sent in sents:
+        toks = re.findall(r"\S+", sent)
+        for tok in toks[1:]:          # skip the sentence-initial capital
+            w = CAPWORD_RE.match(re.sub(r"^[^A-Za-z]+", "", tok))
+            if w:
+                text = w.group(0)
+                if text[:1].isupper() and not text.isupper():
+                    proper += 1
+    per_100 = ((len(nums) + proper) / words * 100) if words else 0.0
+    report["numbers"] = len(nums)
+    report["proper_nouns"] = proper
+    report["specifics_per_100"] = round(per_100, 2)
+    # A single flag the rewrite procedure can branch on.
+    report["specifics_thin"] = bool(words >= 120 and per_100 < 0.5)
+
+
+# ---------------------------------------------------------------------------
+# Modern instruction-tuned signature (v0.6)
+#
+# The lexical lists catch 2023-era slop ("delve", "tapestry", "in today's
+# fast-paced world"). A current model does not write that way; it writes clean,
+# well-organized prose whose tells are SYNTACTIC. Four constructions carry most of
+# it, and all four are ordinary English in isolation -- a person uses each of them
+# -- so every check here is count-gated and fires on the STACKING, never on one
+# instance. Each also reports a metric so a writer can see the trend before it
+# trips.
+# ---------------------------------------------------------------------------
+
+# Wh-cleft ("What matters is X", "All you need is Y"): the sentence delays its
+# subject to stage the point. One is rhetoric; four in a page is a cadence.
+WH_CLEFT_RE = re.compile(
+    r"(?:^|(?<=[.!?])\s+|(?<=[:;])\s+)(?:What|All)\s+[^.?!\n]{3,60}?\s(?:is|was|are|were)\b")
+# Reversed wh-cleft ("The reason this works is that...", "The thing about X is").
+# Anchored to a sentence start, because mid-sentence the same words are ordinary
+# ("we fixed the problem and the answer was obvious" is not a cleft), and the gap
+# refuses to cross a subordinator so "the problem looks like X when it is Y" no
+# longer matches. The second alternative covers the zero-gap form, which is only a
+# cleft when it continues with "that" or "not".
+_CLEFT_HEADS = (r"thing|reason|problem|point|question|part|issue|trick|catch|"
+                r"difference|answer|upshot|kicker|takeaway|challenge|surprise|"
+                r"story|truth")
+# Clause-start anchors. A reverse cleft can open a sentence or follow a comma or a
+# coordinator ("..., and the reason my estimate was low is that ..."). Every
+# alternative is fixed-width, which Python's lookbehind requires.
+_CLAUSE_START = (r"(?:^|(?<=[.!?;:])\s|(?<=\n)|(?<=,\s)|(?<=\band\s)"
+                 r"|(?<=\bbut\s)|(?<=\bso\s))")
+REVERSE_CLEFT_RE = re.compile(
+    _CLAUSE_START + r"the\s+(?:[\w-]+\s+){0,2}?(?:" + _CLEFT_HEADS + r")\b"
+    r"(?:\s+(?!when\b|because\b|if\b|while\b|although\b|unless\b|so\b|but\b"
+    r"|and\b|or\b)[\w'-]+){1,5}\s+(?:is|was)\b"
+    r"|" + _CLAUSE_START + r"the\s+(?:[\w-]+\s+){0,2}?(?:" + _CLEFT_HEADS +
+    r")\s+(?:is|was)\s+(?:that|not)\b",
+    re.IGNORECASE)
+# It-cleft ("It is the second call that fails").
+IT_CLEFT_RE = re.compile(
+    r"\bit\s+(?:is|was|isn'?t|wasn'?t)\s+(?:not\s+)?(?:the\s+|a\s+|an\s+)?"
+    r"[\w'-]+(?:\s+[\w'-]+){0,3}\s+that\b",
+    re.IGNORECASE)
+
+
+def check_cleft(prose_text, words, threshold, hits, report, lm, min_count=3,
+                min_words=120):
+    """Cleft-construction stacking: What-X-is-Y / The-reason-is / It-is-X-that.
+
+    A cleft front-loads emphasis by deferring the real subject. Every one of these
+    is grammatical and useful, and careful human writers reach for them, so a lone
+    cleft means nothing -- the human corpus has them too. What separates
+    instruction-tuned prose is the RATE: the construction becomes the default way
+    a point gets introduced, several times a page, because it reliably reads as
+    thoughtful. Gated on both an absolute count and a per-1k density so a short
+    note with two clefts stays clean.
+    """
+    matches = []
+    for rx in (WH_CLEFT_RE, REVERSE_CLEFT_RE, IT_CLEFT_RE):
+        matches.extend(rx.finditer(prose_text))
+    matches.sort(key=lambda m: m.start())
+    # Overlapping alternatives (a reverse cleft inside a wh-cleft) count once.
+    deduped = []
+    for m in matches:
+        if deduped and m.start() < deduped[-1].end():
+            continue
+        deduped.append(m)
+    count = len(deduped)
+    per_1k = (count / words * 1000) if words else 0.0
+    report["cleft_count"] = count
+    report["cleft_per_1k"] = round(per_1k, 1)
+    if words < min_words or count < min_count or per_1k <= threshold:
+        return
+    for m in deduped[:MAX_INSTANCE_HITS]:
+        snippet = m.group(0).strip().replace("\n", " ")
+        if len(snippet) > 60:
+            snippet = snippet[:57] + "..."
+        hits.append(Hit("cleft", lm.line_of(m.start()), snippet,
+                        "put the subject first: say the thing instead of staging it"))
+
+
+# Resultative participial tail: a comma followed by an -ing verb that explains the
+# consequence of the main clause. LLM prose appends one to sentence after sentence
+# because it manufactures a sense of consequence for free.
+#
+# Abstract, resultative participles only. "turning", "letting", "leaving" and
+# "freeing" were in this list and are ordinary narrative motion (", turning toward
+# the door"), which would have made the check fire on fiction for doing the thing
+# fiction does. What stays is the consequence-clause vocabulary: verbs that assert
+# an effect rather than describe an action.
+PARTICIPIAL_TAIL_RE = re.compile(
+    r",\s+(?:making|allowing|enabling|ensuring|helping|giving|providing|creating|"
+    r"offering|delivering|driving|reducing|improving|increasing|"
+    r"reflecting|highlighting|underscoring|demonstrating|showcasing|emphasizing|"
+    r"emphasising|reinforcing|meaning|resulting|leading|"
+    r"saving|boosting|streamlining|unlocking|empowering|positioning|paving)\s+\w",
+    re.IGNORECASE)
+
+
+def check_participial_tail(prose_text, words, threshold, hits, report, lm,
+                           min_count=3, min_words=120):
+    """The ", making it easier to..." tail, counted as a rate.
+
+    One resultative participle is fine English. Three or four in a page is the
+    single most repeatable syntactic habit of instruction-tuned prose: every
+    sentence is given a consequence clause so it sounds like it earned a payoff,
+    whether or not one follows from it. Because the tail is grammatically
+    subordinate, it also lets a claim slide past unexamined, which is why cutting
+    it usually improves the argument and not just the rhythm.
+    """
+    matches = list(PARTICIPIAL_TAIL_RE.finditer(prose_text))
+    count = len(matches)
+    per_1k = (count / words * 1000) if words else 0.0
+    report["participial_tail_count"] = count
+    report["participial_tail_per_1k"] = round(per_1k, 1)
+    if words < min_words or count < min_count or per_1k <= threshold:
+        return
+    for m in matches[:MAX_INSTANCE_HITS]:
+        ctx = prose_text[max(0, m.start() - 24):m.end() + 12].replace("\n", " ").strip()
+        hits.append(Hit("participial_tail", lm.line_of(m.start()), ctx,
+                        "split it: state the consequence as its own sentence, or drop it"))
+
+
+# Copula ("to be") as the main verb. Counted per sentence, not per document,
+# because the tell is a paragraph where nothing happens -- everything simply IS.
+COPULA_RE = re.compile(r"\b(?:is|are|was|were|be|been|being|isn'?t|aren'?t|"
+                       r"wasn'?t|weren'?t)\b", re.IGNORECASE)
+
+
+def check_copula_density(sents, words, threshold, hits, report, min_words=150):
+    """How much of the prose leans on 'to be' instead of a verb that does work.
+
+    Reported always, flagged only well above the human range. High copula density
+    is what makes a passage feel like a definition list read aloud: X is Y, Y is
+    important, the result is Z. It correlates with vacuity, which is the tell this
+    skill ranks highest and no regex can see directly.
+    """
+    per_sentence = [len(COPULA_RE.findall(s)) for s in sents]
+    count = sum(per_sentence)
+    per_1k = (count / words * 1000) if words else 0.0
+    report["copula_per_1k"] = round(per_1k, 1)
+    report["copula_stacked_sentences"] = sum(1 for n in per_sentence if n >= 3)
+    if words >= min_words and per_1k > threshold and count >= 8:
+        hits.append(Hit("copula_density", 0,
+                        "'to be' as the main verb: %.0f / 1k words (floor %.0f)"
+                        % (per_1k, threshold),
+                        "give the sentences real verbs; 'X is Y' twice a paragraph reads as a glossary"))
+
+
+# Two independent clauses welded with ", and" / ", but" where a period belongs.
+# The give-away shape is a comma, a coordinator, and a fresh pronoun subject.
+SPLICE_RE = re.compile(
+    r",\s+(?:and|but|so|yet)\s+(?:it|this|that|they|we|you|he|she|there)\s+"
+    r"(?:is|was|are|were|has|have|had|will|can|could|would|does|did|do|"
+    r"means?|makes?|becomes?|gives?|takes?|works?|helps?)\b",
+    re.IGNORECASE)
+
+
+def check_comma_splice_chain(prose_text, words, threshold, hits, report, lm,
+                             min_count=4, min_words=150):
+    """Repeated ', and it is ...' clause-welding.
+
+    Chaining two full clauses with a comma plus a coordinator is correct English
+    and every writer does it. Doing it four or five times a page flattens the
+    prose into one continuous middle-length line, which is the same defect
+    burstiness measures from the other side. Count-gated hard, and low-weighted,
+    because the construction itself is innocent.
+    """
+    matches = list(SPLICE_RE.finditer(prose_text))
+    count = len(matches)
+    per_1k = (count / words * 1000) if words else 0.0
+    report["clause_splice_count"] = count
+    report["clause_splice_per_1k"] = round(per_1k, 1)
+    if words < min_words or count < min_count or per_1k <= threshold:
+        return
+    for m in matches[:MAX_INSTANCE_HITS]:
+        ctx = prose_text[max(0, m.start() - 20):m.end() + 6].replace("\n", " ").strip()
+        hits.append(Hit("clause_splice", lm.line_of(m.start()), ctx,
+                        "end the sentence and start a new one; the comma is doing a period's job"))
+
+
+def _first_words(text, n=2):
+    ws = WORD_RE.findall(text.lower())
+    return tuple(ws[:n]) if len(ws) >= n else (tuple(ws) if ws else None)
+
+
+def check_paragraph_openers(code_stripped, hits, report, min_paras=5,
+                            repeat_ratio=0.4):
+    """Paragraphs that all open with the same PHRASE.
+
+    `uniform_openers` measures sentences and misses this: a draft can vary inside
+    a paragraph and still start every paragraph the same way. Paragraph openings
+    are what a reader skims, so repetition there is disproportionately visible.
+
+    Keyed on the first TWO words, not the first one. "The" is the most common word
+    in English and three paragraphs starting with it says nothing -- that version
+    of the check flagged a human business proposal whose paragraphs opened "The
+    math:", "The real win", "The warehouse". Two words separate a shared article
+    from a shared opening move.
+    """
+    paras = _prose_paragraph_texts(code_stripped)
+    openers = [w for w in (_first_words(p, 2) for p in paras) if w and len(w) == 2]
+    report["paragraph_count"] = len(paras)
+    if len(openers) < min_paras:
+        report["paragraph_opener_repeat"] = None
+        return
+    phrase, count = Counter(openers).most_common(1)[0]
+    ratio = count / len(openers)
+    report["paragraph_opener_repeat"] = round(ratio, 2)
+    if ratio >= repeat_ratio and count >= 3:
+        hits.append(Hit("paragraph_openers", 0,
+                        '%d of %d paragraphs open with "%s"'
+                        % (count, len(openers), " ".join(phrase)),
+                        "vary how paragraphs begin; readers skim the first words of each"))
+
+
+def check_bullet_openers(code_stripped, hits, report, min_items=4,
+                         repeat_ratio=0.6):
+    """List items that all open with the same word or the same part of speech.
+
+    Templated bullets ("Improve...", "Reduce...", "Increase...") are the list-level
+    version of parallel structure: the shape is filled in rather than written. A
+    deliberately parallel list is a real technique, so this needs a clear majority
+    and at least four items before it says anything.
+    """
+    items = []
+    for ln in code_stripped.split("\n"):
+        if LIST_MARKER_RE.match(ln):
+            body = strip_inline_markup(LIST_MARKER_RE.sub("", ln)).strip()
+            if WORD_RE.findall(body):
+                items.append(body)
+    if len(items) < min_items:
+        report["bullet_opener_repeat"] = None
+        return
+    firsts = [WORD_RE.findall(i.lower())[0] for i in items]
+    word, count = Counter(firsts).most_common(1)[0]
+    ratio = count / len(firsts)
+    report["bullet_opener_repeat"] = round(ratio, 2)
+    gerunds = sum(1 for f in firsts if f.endswith("ing") and len(f) > 5)
+    if ratio >= repeat_ratio and count >= 3:
+        hits.append(Hit("bullet_openers", 0,
+                        '%d of %d list items open with "%s"' % (count, len(firsts), word),
+                        "vary the item openings, or fold the list into a sentence"))
+    elif len(firsts) >= min_items and gerunds / len(firsts) >= 0.75:
+        hits.append(Hit("bullet_openers", 0,
+                        "%d of %d list items open with an -ing verb"
+                        % (gerunds, len(firsts)),
+                        "a list of gerunds reads as generated; use varied phrasing"))
+
+
+# Nominal chain: "the reduction of the complexity of the interface". Three or more
+# "of the" links in one sentence is a noun pile-up rather than a sentence.
+OF_CHAIN_RE = re.compile(r"\b(?:of|for|in|to)\s+the\s+[\w-]+\s+"
+                         r"(?:of|for|in)\s+the\s+[\w-]+\s+(?:of|for|in)\s+the\b",
+                         re.IGNORECASE)
+
+
+def check_noun_chains(prose_text, hits, report, lm, min_count=2):
+    """Stacked prepositional-noun chains ('the X of the Y of the Z')."""
+    matches = list(OF_CHAIN_RE.finditer(prose_text))
+    report["noun_chains"] = len(matches)
+    if len(matches) < min_count:
+        return
+    for m in matches[:MAX_INSTANCE_HITS]:
+        hits.append(Hit("noun_chain", lm.line_of(m.start()),
+                        m.group(0).replace("\n", " "),
+                        "unstack the nouns: make one of them the verb"))
+
+
 # ---------------------------------------------------------------------------
 # Driver
 # ---------------------------------------------------------------------------
@@ -871,6 +1605,7 @@ def check_over_correction(text, prose_text, hits, report):
 
 __all__ = [
     'CITATION_NEAR_RE',
+    'MAX_INSTANCE_HITS',
     '_line_bounds',
     'check_lexical_list',
     'check_antithesis',
@@ -882,9 +1617,18 @@ __all__ = [
     'BOLD_BULLET_RE',
     'BULLET_RE',
     'check_bold_bullets',
+    '_distinct_by_text',
+    '_TRIAD_STOP_MEMBERS',
     'RULE_OF_THREE_RE',
     'NOUN_TRIAD_RE',
+    '_CLAUSE_PRONOUNS',
+    '_CLAUSE_VERBS',
+    '_MEMBER_BAD_START',
+    '_is_noun_phrase',
     'check_rule_of_three',
+    'COMMON_OPENERS',
+    'COMMON_OPENER_RATIO',
+    'COMMON_OPENER_MIN',
     'check_uniform_openers',
     'WH_OPENERS',
     'check_wh_openers',
@@ -919,6 +1663,8 @@ __all__ = [
     'EM_TIGHT_RE',
     'EM_SPACED_RE',
     'SPACED_HYPHEN_DASH_RE',
+    'DASH_STYLE_INSTANCE_MAX',
+    '_dash_findings',
     'check_dash_style',
     'DOUBLED_WORD_RE',
     'DOUBLE_OK',
@@ -940,5 +1686,30 @@ __all__ = [
     'check_name_selection',
     'COSTUME_SLANG_RE',
     'SENTENCE_START_RE',
+    'check_punctuation_substitution',
     'check_over_correction',
+    'BOLD_SPAN_RE',
+    'SUMMARY_HEADING_RE',
+    'check_assistant_shape',
+    'check_sentence_shape',
+    'SPECIFIC_NUM_RE',
+    'CAPWORD_RE',
+    'report_specificity',
+    'WH_CLEFT_RE',
+    '_CLEFT_HEADS',
+    '_CLAUSE_START',
+    'REVERSE_CLEFT_RE',
+    'IT_CLEFT_RE',
+    'check_cleft',
+    'PARTICIPIAL_TAIL_RE',
+    'check_participial_tail',
+    'COPULA_RE',
+    'check_copula_density',
+    'SPLICE_RE',
+    'check_comma_splice_chain',
+    '_first_words',
+    'check_paragraph_openers',
+    'check_bullet_openers',
+    'OF_CHAIN_RE',
+    'check_noun_chains',
 ]

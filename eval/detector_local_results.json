@@ -1,0 +1,1755 @@
+{
+  "causal_model": "gpt2-large",
+  "performer_model": "gpt2",
+  "classifiers": {
+    "roberta_openai_2019": "openai-community/roberta-base-openai-detector",
+    "chatgpt_detector_2023": "Hello-SimpleAI/chatgpt-detector-roberta",
+    "mixed_detector": "andreas122001/roberta-mixed-detector",
+    "fakespot": "fakespot-ai/roberta-base-ai-text-detection-v1"
+  },
+  "by_class": {
+    "ai": {
+      "ppl": {
+        "median": 12.07079892175938,
+        "min": 7.920367489282323,
+        "max": 23.64766554940265,
+        "n": 24
+      },
+      "surprisal_cov": {
+        "median": 1.0496410713906017,
+        "min": 0.8783217770624125,
+        "max": 1.1879297325155196,
+        "n": 24
+      },
+      "binoculars": {
+        "median": 0.7046681972365048,
+        "min": 0.6134703225866164,
+        "max": 0.7985957265353406,
+        "n": 24
+      },
+      "p_ai_roberta_openai_2019": {
+        "median": 0.014224676880985498,
+        "min": 0.00017762603238224983,
+        "max": 0.9997878670692444,
+        "n": 24
+      },
+      "p_ai_chatgpt_detector_2023": {
+        "median": 0.10470737144351006,
+        "min": 0.0010877895401790738,
+        "max": 0.9967976212501526,
+        "n": 24
+      },
+      "p_ai_mixed_detector": {
+        "median": 0.9999385476112366,
+        "min": 0.999932050704956,
+        "max": 0.99993896484375,
+        "n": 24
+      },
+      "p_ai_fakespot": {
+        "median": 0.9999208450317383,
+        "min": 0.7859542965888977,
+        "max": 0.9999430179595947,
+        "n": 24
+      }
+    },
+    "ai_modern": {
+      "ppl": {
+        "median": 30.136351018777834,
+        "min": 18.47445209099929,
+        "max": 50.76740844261048,
+        "n": 12
+      },
+      "surprisal_cov": {
+        "median": 0.8486833130971438,
+        "min": 0.7725838243162608,
+        "max": 0.9485687565618607,
+        "n": 12
+      },
+      "binoculars": {
+        "median": 0.7942484084422972,
+        "min": 0.7005604575087216,
+        "max": 0.858780272347956,
+        "n": 12
+      },
+      "p_ai_roberta_openai_2019": {
+        "median": 0.00018766761058941483,
+        "min": 0.00017340319755021483,
+        "max": 0.00030325487023219466,
+        "n": 12
+      },
+      "p_ai_chatgpt_detector_2023": {
+        "median": 0.0017129681655205786,
+        "min": 0.000433932727901265,
+        "max": 0.7848255634307861,
+        "n": 12
+      },
+      "p_ai_mixed_detector": {
+        "median": 0.9999382495880127,
+        "min": 0.9999349117279053,
+        "max": 0.99993896484375,
+        "n": 12
+      },
+      "p_ai_fakespot": {
+        "median": 0.01817656960338354,
+        "min": 0.0051632835529744625,
+        "max": 0.7242155075073242,
+        "n": 12
+      }
+    },
+    "ai_modern_rewritten": {
+      "ppl": {
+        "median": 81.15004134039125,
+        "min": 39.05179722399043,
+        "max": 116.06626558000303,
+        "n": 12
+      },
+      "surprisal_cov": {
+        "median": 0.8970725681806853,
+        "min": 0.8151488179973656,
+        "max": 1.0085186556041712,
+        "n": 12
+      },
+      "binoculars": {
+        "median": 0.9913071073952209,
+        "min": 0.8203458529769955,
+        "max": 1.042415386315038,
+        "n": 12
+      },
+      "p_ai_roberta_openai_2019": {
+        "median": 0.00022143738897284493,
+        "min": 0.00016939427587203681,
+        "max": 0.19143329560756683,
+        "n": 12
+      },
+      "p_ai_chatgpt_detector_2023": {
+        "median": 0.0003611616266425699,
+        "min": 0.0002792332961689681,
+        "max": 0.007173145655542612,
+        "n": 12
+      },
+      "p_ai_mixed_detector": {
+        "median": 0.9999376535415649,
+        "min": 0.9999350309371948,
+        "max": 0.9999387264251709,
+        "n": 12
+      },
+      "p_ai_fakespot": {
+        "median": 0.0009614933514967561,
+        "min": 0.0006159818731248379,
+        "max": 0.012147982604801655,
+        "n": 12
+      }
+    },
+    "human": {
+      "ppl": {
+        "median": 29.46226987473299,
+        "min": 16.613724032122285,
+        "max": 59.11749249218219,
+        "n": 34
+      },
+      "surprisal_cov": {
+        "median": 0.846686354181573,
+        "min": 0.7742030842839063,
+        "max": 0.9585238623836807,
+        "n": 34
+      },
+      "binoculars": {
+        "median": 0.779684233952103,
+        "min": 0.7018962525850032,
+        "max": 0.8764620167021415,
+        "n": 34
+      },
+      "p_ai_roberta_openai_2019": {
+        "median": 0.00022732143406756222,
+        "min": 0.00017101848789025098,
+        "max": 0.0005887577426619828,
+        "n": 34
+      },
+      "p_ai_chatgpt_detector_2023": {
+        "median": 0.0007086097321007401,
+        "min": 0.0003080785972997546,
+        "max": 0.07380980253219604,
+        "n": 34
+      },
+      "p_ai_mixed_detector": {
+        "median": 0.9999383687973022,
+        "min": 0.9999347925186157,
+        "max": 0.9999390840530396,
+        "n": 34
+      },
+      "p_ai_fakespot": {
+        "median": 0.01161156315356493,
+        "min": 0.0011172592639923096,
+        "max": 0.24741558730602264,
+        "n": 34
+      }
+    },
+    "over_corrected": {
+      "ppl": {
+        "median": 58.036811956477464,
+        "min": 43.54326134778692,
+        "max": 81.66150276922235,
+        "n": 10
+      },
+      "surprisal_cov": {
+        "median": 0.8300747549312592,
+        "min": 0.7806653848322243,
+        "max": 0.9310151476192157,
+        "n": 10
+      },
+      "binoculars": {
+        "median": 0.7883174013223009,
+        "min": 0.7372587972064644,
+        "max": 0.8436427215834694,
+        "n": 10
+      },
+      "p_ai_roberta_openai_2019": {
+        "median": 0.00020792184659512714,
+        "min": 0.00016809694352559745,
+        "max": 0.0011571886716410518,
+        "n": 10
+      },
+      "p_ai_chatgpt_detector_2023": {
+        "median": 0.0002884058776544407,
+        "min": 0.00026531200273893774,
+        "max": 0.0003328383609186858,
+        "n": 10
+      },
+      "p_ai_mixed_detector": {
+        "median": 0.9999110698699951,
+        "min": 0.9998352527618408,
+        "max": 0.9999228715896606,
+        "n": 10
+      },
+      "p_ai_fakespot": {
+        "median": 0.10752660781145096,
+        "min": 0.007730141282081604,
+        "max": 0.5167272686958313,
+        "n": 10
+      }
+    }
+  },
+  "calibration": {
+    "roberta_openai_2019": {
+      "human_fpr": 0.0,
+      "flagged_human": 0,
+      "n_human": 34,
+      "usable": true
+    },
+    "chatgpt_detector_2023": {
+      "human_fpr": 0.0,
+      "flagged_human": 0,
+      "n_human": 34,
+      "usable": true
+    },
+    "mixed_detector": {
+      "human_fpr": 1.0,
+      "flagged_human": 34,
+      "n_human": 34,
+      "usable": false
+    },
+    "fakespot": {
+      "human_fpr": 0.0,
+      "flagged_human": 0,
+      "n_human": 34,
+      "usable": true
+    }
+  },
+  "usable_classifiers": [
+    "roberta_openai_2019",
+    "chatgpt_detector_2023",
+    "fakespot"
+  ],
+  "modern_pairs": [
+    {
+      "file": "m01_technical_tradeoff.md",
+      "before": {
+        "ppl": 50.76740844261048,
+        "surprisal_mean": 3.9272545826025005,
+        "surprisal_cov": 0.8333491383312678,
+        "n_tokens": 261,
+        "binoculars": 0.8186848179808984,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017340319755021483,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0005855020717717707,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999376535415649,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.005829319823533297,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017340319755021483,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0005855020717717707,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999376535415649,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.005829319823533297,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 116.06626558000303,
+        "surprisal_mean": 4.754161283002366,
+        "surprisal_cov": 0.8873187201853115,
+        "n_tokens": 241,
+        "binoculars": 1.002129961097629,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.19143329560756683,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.00032971453038044274,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999363422393799,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0007438963511958718,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.19143329560756683,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.00032971453038044274,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999363422393799,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0007438963511958718,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.2862357788306054
+    },
+    {
+      "file": "m02_business_review.md",
+      "before": {
+        "ppl": 39.10741257869752,
+        "surprisal_mean": 3.666312029041139,
+        "surprisal_cov": 0.8420554118105008,
+        "n_tokens": 274,
+        "binoculars": 0.858780272347956,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017370340356137604,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.000433932727901265,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999383687973022,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.021744761615991592,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017370340356137604,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.000433932727901265,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999383687973022,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.021744761615991592,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 95.59217128492065,
+        "surprisal_mean": 4.560090926379062,
+        "surprisal_cov": 0.8639775338071846,
+        "n_tokens": 231,
+        "binoculars": 0.9984866927313849,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017162274161819369,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0002792332961689681,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999375343322754,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0006159818731248379,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017162274161819369,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0002792332961689681,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999375343322754,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0006159818731248379,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.44434916507341
+    },
+    {
+      "file": "m03_technical_scaffolded.md",
+      "before": {
+        "ppl": 40.742322710541615,
+        "surprisal_mean": 3.707267422196101,
+        "surprisal_cov": 0.818618290756125,
+        "n_tokens": 314,
+        "binoculars": 0.8256371454270698,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0001951340091181919,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.00047444188385270536,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999349117279053,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.3126293122768402,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0001951340091181919,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.00047444188385270536,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999349117279053,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.3126293122768402,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 89.18800715568707,
+        "surprisal_mean": 4.4907465816196215,
+        "surprisal_cov": 0.8151488179973656,
+        "n_tokens": 286,
+        "binoculars": 1.0084740372315375,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.002186801750212908,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0003137091698590666,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999361038208008,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0006560469628311694,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.002186801750212908,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0003137091698590666,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999361038208008,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0006560469628311694,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.1890751734831917
+    },
+    {
+      "file": "m04_academic_abstract.md",
+      "before": {
+        "ppl": 18.47445209099929,
+        "surprisal_mean": 2.9163888096150243,
+        "surprisal_cov": 0.9067002844879477,
+        "n_tokens": 228,
+        "binoculars": 0.7095767815264629,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017885562556330115,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.006012520287185907,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999356269836426,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.6592473983764648,
+            "label": "AI",
+            "says_ai": true
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017885562556330115,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.006012520287185907,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999356269836426,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.6592473983764648,
+        "says_ai_fakespot": true
+      },
+      "after": {
+        "ppl": 84.3544094102873,
+        "surprisal_mean": 4.435027082792096,
+        "surprisal_cov": 1.0085186556041712,
+        "n_tokens": 233,
+        "binoculars": 1.0172448489880843,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017840477812569588,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.00035043605021201074,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999368190765381,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0009200080530717969,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017840477812569588,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.00035043605021201074,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999368190765381,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0009200080530717969,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 4.566003310668389
+    },
+    {
+      "file": "m05_marketing_page.md",
+      "before": {
+        "ppl": 30.278178193531474,
+        "surprisal_mean": 3.4104272614201223,
+        "surprisal_cov": 0.8597798603563913,
+        "n_tokens": 203,
+        "binoculars": 0.7958740574970871,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017451138410251588,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.02250058948993683,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999381303787231,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.006842481903731823,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017451138410251588,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.02250058948993683,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999381303787231,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.006842481903731823,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 80.47923478615277,
+        "surprisal_mean": 4.387999198181882,
+        "surprisal_cov": 0.956941028497067,
+        "n_tokens": 172,
+        "binoculars": 0.9805982796508323,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00023566056916024536,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0003654873580671847,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999382495880127,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0010029786499217153,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00023566056916024536,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0003654873580671847,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999382495880127,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0010029786499217153,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.6579946214645793
+    },
+    {
+      "file": "m06_email_update.md",
+      "before": {
+        "ppl": 29.994523844024194,
+        "surprisal_mean": 3.401014826467443,
+        "surprisal_cov": 0.9485687565618607,
+        "n_tokens": 229,
+        "binoculars": 0.8266911629539361,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0002514882362447679,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0017325362423434854,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999386072158813,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.01460837759077549,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0002514882362447679,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0017325362423434854,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999386072158813,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.01460837759077549,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 74.14734398443939,
+        "surprisal_mean": 4.306054248447322,
+        "surprisal_cov": 0.9907824658871187,
+        "n_tokens": 212,
+        "binoculars": 1.014629030561845,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0005148547934368253,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0004556276253424585,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999386072158813,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0022955911699682474,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0005148547934368253,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0004556276253424585,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999386072158813,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0022955911699682474,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.4720293734288354
+    },
+    {
+      "file": "m07_casual_blog.md",
+      "before": {
+        "ppl": 22.891458289949718,
+        "surprisal_mean": 3.13076384053935,
+        "surprisal_cov": 0.8500694560009643,
+        "n_tokens": 219,
+        "binoculars": 0.7545109626482088,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00021546629432123154,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0013640578836202621,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999387264251709,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0051632835529744625,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00021546629432123154,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0013640578836202621,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999387264251709,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0051632835529744625,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 45.184778976785026,
+        "surprisal_mean": 3.810760281824528,
+        "surprisal_cov": 0.9800060682984072,
+        "n_tokens": 201,
+        "binoculars": 0.922968091326882,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00016940639761742204,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.000743116601370275,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999386072158813,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0009101145551539958,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00016940639761742204,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.000743116601370275,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999386072158813,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0009101145551539958,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 1.9738707077750037
+    },
+    {
+      "file": "m08_technical_bulleted.md",
+      "before": {
+        "ppl": 35.49056358068474,
+        "surprisal_mean": 3.569266846517801,
+        "surprisal_cov": 0.8472971701933233,
+        "n_tokens": 278,
+        "binoculars": 0.8130733244885443,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00023652832896914333,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.010031112469732761,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999359846115112,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.42493730783462524,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00023652832896914333,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.010031112469732761,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999359846115112,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.42493730783462524,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 93.85891118701957,
+        "surprisal_mean": 4.541792709904991,
+        "surprisal_cov": 0.8988480791408743,
+        "n_tokens": 238,
+        "binoculars": 0.9841275220590567,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00016939427587203681,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0003252174938097596,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999350309371948,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0040998803451657295,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00016939427587203681,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0003252174938097596,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999350309371948,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0040998803451657295,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.644615968795182
+    },
+    {
+      "file": "m09_creative_scene.md",
+      "before": {
+        "ppl": 18.871002362120002,
+        "surprisal_mean": 2.937626477318908,
+        "surprisal_cov": 0.8807890925179623,
+        "n_tokens": 218,
+        "binoculars": 0.7005604575087216,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0001866381790023297,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.7848255634307861,
+            "label": "ChatGPT",
+            "says_ai": true
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999387264251709,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.6169980764389038,
+            "label": "AI",
+            "says_ai": true
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0001866381790023297,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.7848255634307861,
+        "says_ai_chatgpt_detector_2023": true,
+        "p_ai_mixed_detector": 0.9999387264251709,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.6169980764389038,
+        "says_ai_fakespot": true
+      },
+      "after": {
+        "ppl": 39.05179722399043,
+        "surprisal_mean": 3.6648888988883654,
+        "surprisal_cov": 0.8385704477395275,
+        "n_tokens": 196,
+        "binoculars": 0.8203458529769955,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017080811085179448,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.007173145655542612,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999387264251709,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.012147982604801655,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017080811085179448,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.007173145655542612,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999387264251709,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.012147982604801655,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.0694076803455648
+    },
+    {
+      "file": "m10_business_proposal.md",
+      "before": {
+        "ppl": 37.88582828237082,
+        "surprisal_mean": 3.6345771182133895,
+        "surprisal_cov": 0.7725838243162608,
+        "n_tokens": 251,
+        "binoculars": 0.782852059789691,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00018869704217649996,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0010774594265967607,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999386072158813,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.008272090926766396,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00018869704217649996,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0010774594265967607,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999386072158813,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.008272090926766396,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 81.82084789462974,
+        "surprisal_mean": 4.404532075373856,
+        "surprisal_cov": 0.853571831654902,
+        "n_tokens": 251,
+        "binoculars": 0.9494626788226752,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.17249137163162231,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0003568358952179551,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999377727508545,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0006174283334985375,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.17249137163162231,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0003568358952179551,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999377727508545,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0006174283334985375,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.159668973971012
+    },
+    {
+      "file": "m11_tutorial_steps.md",
+      "before": {
+        "ppl": 25.01243058158152,
+        "surprisal_mean": 3.219372924556936,
+        "surprisal_cov": 0.8763908595355002,
+        "n_tokens": 294,
+        "binoculars": 0.7888890226128988,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00030325487023219466,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.016035614535212517,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999350309371948,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.7242155075073242,
+            "label": "AI",
+            "says_ai": true
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00030325487023219466,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.016035614535212517,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999350309371948,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.7242155075073242,
+        "says_ai_fakespot": true
+      },
+      "after": {
+        "ppl": 65.83432365545423,
+        "surprisal_mean": 4.187141338427583,
+        "surprisal_cov": 0.9968564930611484,
+        "n_tokens": 269,
+        "binoculars": 0.957919203806599,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0005075174849480391,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0009188499534502625,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999350309371948,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0058952923864126205,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0005075174849480391,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0009188499534502625,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999350309371948,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0058952923864126205,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.632064222656268
+    },
+    {
+      "file": "m12_casual_review.md",
+      "before": {
+        "ppl": 23.73697318898754,
+        "surprisal_mean": 3.1670338826951876,
+        "surprisal_cov": 0.8368420802124086,
+        "n_tokens": 232,
+        "binoculars": 0.7926227593875071,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0001748881913954392,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0016934000886976719,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.99993896484375,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0070571862161159515,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0001748881913954392,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0016934000886976719,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.99993896484375,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0070571862161159515,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 74.1250142414596,
+        "surprisal_mean": 4.305753049445488,
+        "surprisal_cov": 0.8952970572204961,
+        "n_tokens": 215,
+        "binoculars": 1.042415386315038,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0002072142087854445,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.001322120544500649,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999387264251709,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.001475670374929905,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0002072142087854445,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.001322120544500649,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999387264251709,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.001475670374929905,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 3.1227660599898615
+    }
+  ],
+  "pairs": [
+    {
+      "pair": "academic",
+      "before": {
+        "ppl": 42.64561615891747,
+        "surprisal_mean": 3.7529244822284817,
+        "surprisal_cov": 0.9571782053171403,
+        "n_tokens": 200,
+        "binoculars": 0.8802067751894377,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00018189355614595115,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0024806703440845013,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.999924898147583,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.99983811378479,
+            "label": "AI",
+            "says_ai": true
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00018189355614595115,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0024806703440845013,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.999924898147583,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.99983811378479,
+        "says_ai_fakespot": true
+      },
+      "after": {
+        "ppl": 88.73720407602822,
+        "surprisal_mean": 4.4856792385356385,
+        "surprisal_cov": 0.8053025563248586,
+        "n_tokens": 274,
+        "binoculars": 0.8509655504243949,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0001916899491334334,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0002814514155033976,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.023212673142552376,
+            "label": "human-produced",
+            "says_ai": false
+          },
+          "fakespot": {
+            "p_ai": 0.0023903727997094393,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0001916899491334334,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0002814514155033976,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.023212673142552376,
+        "says_ai_mixed_detector": false,
+        "p_ai_fakespot": 0.0023903727997094393,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.0808048298646216
+    },
+    {
+      "pair": "casual",
+      "before": {
+        "ppl": 8.552681639917315,
+        "surprisal_mean": 2.1462448758688613,
+        "surprisal_cov": 1.2455720353273507,
+        "n_tokens": 391,
+        "binoculars": 0.6552397905795747,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.9930744171142578,
+            "label": "Fake",
+            "says_ai": true
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.014836923219263554,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999370574951172,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.9997579455375671,
+            "label": "AI",
+            "says_ai": true
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.9930744171142578,
+        "says_ai_roberta_openai_2019": true,
+        "p_ai_chatgpt_detector_2023": 0.014836923219263554,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999370574951172,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.9997579455375671,
+        "says_ai_fakespot": true
+      },
+      "after": {
+        "ppl": 29.688869441853534,
+        "surprisal_mean": 3.3907722092986683,
+        "surprisal_cov": 0.9651337135580708,
+        "n_tokens": 322,
+        "binoculars": 0.7659973985473877,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00021752534667029977,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0007367187063209713,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999356269836426,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.011341710574924946,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00021752534667029977,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0007367187063209713,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999356269836426,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.011341710574924946,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 3.471293647046186
+    },
+    {
+      "pair": "cliche-metaphor",
+      "before": {
+        "ppl": 47.864235882061834,
+        "surprisal_mean": 3.868368584248365,
+        "surprisal_cov": 0.8657483111150304,
+        "n_tokens": 278,
+        "binoculars": 0.8457477457397288,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00018186111992690712,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.00036353495670482516,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999334812164307,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.011618013493716717,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00018186111992690712,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.00036353495670482516,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999334812164307,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.011618013493716717,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 88.36301909332012,
+        "surprisal_mean": 4.481453546068247,
+        "surprisal_cov": 0.7830066701122698,
+        "n_tokens": 311,
+        "binoculars": 0.8872455808542106,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0014861954841762781,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0003537998127285391,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999299049377441,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.008243727497756481,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0014861954841762781,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0003537998127285391,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999299049377441,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.008243727497756481,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 1.8461178260747308
+    },
+    {
+      "pair": "email",
+      "before": {
+        "ppl": 24.830695265050466,
+        "surprisal_mean": 3.2120806001369333,
+        "surprisal_cov": 1.023443934455398,
+        "n_tokens": 281,
+        "binoculars": 0.7469531282399521,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00032868830021470785,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.005968510173261166,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999376535415649,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.870901346206665,
+            "label": "AI",
+            "says_ai": true
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00032868830021470785,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.005968510173261166,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999376535415649,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.870901346206665,
+        "says_ai_fakespot": true
+      },
+      "after": {
+        "ppl": 54.93980175283942,
+        "surprisal_mean": 4.006238072230319,
+        "surprisal_cov": 0.90725140046262,
+        "n_tokens": 168,
+        "binoculars": 0.8600374122912705,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017803908849600703,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0006007848423905671,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999376535415649,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.002816413063555956,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017803908849600703,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0006007848423905671,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999376535415649,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.002816413063555956,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.212576054210126
+    },
+    {
+      "pair": "marketing",
+      "before": {
+        "ppl": 28.508226701512214,
+        "surprisal_mean": 3.3501927018148323,
+        "surprisal_cov": 1.0069341965130962,
+        "n_tokens": 268,
+        "binoculars": 0.7654955967343445,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00019974018505308777,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0006298894877545536,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999374151229858,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.9996238946914673,
+            "label": "AI",
+            "says_ai": true
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00019974018505308777,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0006298894877545536,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999374151229858,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.9996238946914673,
+        "says_ai_fakespot": true
+      },
+      "after": {
+        "ppl": 80.20702545313787,
+        "surprisal_mean": 4.384611110202194,
+        "surprisal_cov": 0.7972890558834047,
+        "n_tokens": 263,
+        "binoculars": 0.8153522366288852,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0014001433737576008,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0008098913822323084,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999288320541382,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.019188329577445984,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0014001433737576008,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0008098913822323084,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999288320541382,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.019188329577445984,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.8134694694596107
+    },
+    {
+      "pair": "modern-ai",
+      "before": {
+        "ppl": 50.76740844261048,
+        "surprisal_mean": 3.9272545826025005,
+        "surprisal_cov": 0.8333491383312678,
+        "n_tokens": 261,
+        "binoculars": 0.8186848179808984,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00017340319755021483,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.0005855020717717707,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999376535415649,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.005829319823533297,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00017340319755021483,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.0005855020717717707,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999376535415649,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.005829319823533297,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 116.06626558000303,
+        "surprisal_mean": 4.754161283002366,
+        "surprisal_cov": 0.8873187201853115,
+        "n_tokens": 241,
+        "binoculars": 1.002129961097629,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.19143329560756683,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.00032971453038044274,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999363422393799,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.0007438963511958718,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.19143329560756683,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.00032971453038044274,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999363422393799,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.0007438963511958718,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 2.2862357788306054
+    },
+    {
+      "pair": "over-corrected",
+      "before": {
+        "ppl": 113.66921343176172,
+        "surprisal_mean": 4.733292593922427,
+        "surprisal_cov": 0.7481269446280935,
+        "n_tokens": 285,
+        "binoculars": 0.8539359383348599,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.00026994329527951777,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.00026943496777676046,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9996435642242432,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.06431369483470917,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.00026994329527951777,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.00026943496777676046,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9996435642242432,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.06431369483470917,
+        "says_ai_fakespot": false
+      },
+      "after": {
+        "ppl": 60.57370915867354,
+        "surprisal_mean": 4.103860956672372,
+        "surprisal_cov": 0.8030784174306552,
+        "n_tokens": 350,
+        "binoculars": 0.8187022575806884,
+        "classifiers": {
+          "roberta_openai_2019": {
+            "p_ai": 0.0011114929802715778,
+            "label": "Real",
+            "says_ai": false
+          },
+          "chatgpt_detector_2023": {
+            "p_ai": 0.00048673537094146013,
+            "label": "Human",
+            "says_ai": false
+          },
+          "mixed_detector": {
+            "p_ai": 0.9999368190765381,
+            "label": "machine-generated",
+            "says_ai": true
+          },
+          "fakespot": {
+            "p_ai": 0.03558274731040001,
+            "label": "Human",
+            "says_ai": false
+          }
+        },
+        "p_ai_roberta_openai_2019": 0.0011114929802715778,
+        "says_ai_roberta_openai_2019": false,
+        "p_ai_chatgpt_detector_2023": 0.00048673537094146013,
+        "says_ai_chatgpt_detector_2023": false,
+        "p_ai_mixed_detector": 0.9999368190765381,
+        "says_ai_mixed_detector": true,
+        "p_ai_fakespot": 0.03558274731040001,
+        "says_ai_fakespot": false
+      },
+      "ppl_ratio": 0.532894592387035
+    }
+  ],
+  "pair_ppl_ratio_median": 2.212576054210126,
+  "modern_flagged_before": 3,
+  "modern_flagged_after": 0,
+  "modern_ppl_ratio_median": 2.4581892692511227,
+  "after_flagged_count": 0,
+  "n_pairs": 7
+}

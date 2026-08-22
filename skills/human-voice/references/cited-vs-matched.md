@@ -31,12 +31,12 @@ The em dash is the single most-cited tell. AI uses it at two to five times the
 human rate (Pangram Labs). That is why it sits at the top of the weight table and
 why the autofixer rewrites it everywhere outside `creative`.
 
-Two of the top tells — sycophancy and saying-nothing-at-length — can never be
+Two of the top tells, sycophancy and saying-nothing-at-length, can never be
 caught by a vocabulary list. You have to read for them. The linter flags the
 stock openers it can see (`chatbot_scaffold`, `vague_declarative`), but the real
 catch is a skeptical human read.
 
-**High-match, low-cited words** — these match at up to 6.3% but are cited near
+**High-match, low-cited words.** These match at up to 6.3% but are cited near
 0%, because people genuinely write this way:
 
 - however
@@ -55,12 +55,12 @@ the actual machine cadence. So v0.4.0 demotes them.
 The linter sorts every tell into one of three tiers. The tier reflects how often
 the tell is *cited*, not how easy it is to match.
 
-- **Tier A (weight >= 2.0)** — high-cited structural tells and hard artifacts:
+- **Tier A (weight >= 2.0).** High-cited structural tells and hard artifacts:
   em-dash overuse, flat rhythm, the antithesis template, the five-paragraph
   shape. These move the score the most because readers react to them the most.
-- **Tier B (weight 1.5)** — moderate tells: real but secondary, the kind a reader
+- **Tier B (weight 1.5).** Moderate tells: real but secondary, the kind a reader
   notices on a second pass.
-- **Tier C (weight <= 0.5)** — generic diction, parked in `soft_filler` and
+- **Tier C (weight <= 0.5).** Generic diction, parked in `soft_filler` and
   `transitions`. The high-match/low-cited words live here. A hit nudges the score;
   it never carries a verdict on its own.
 
@@ -80,7 +80,7 @@ tells you where to look. The decision is still a read.
 
 ## Sources
 
-- JCarterJohnson/vibecoded-design-tells (MIT) — the ~90,000-post Reddit audit of
+- JCarterJohnson/vibecoded-design-tells (MIT): the ~90,000-post Reddit audit of
   what readers cite as AI.
-- ryanthedev/oberskills, the write skill (MIT) — corroborating tell catalog.
-- Pangram Labs — em-dash rate measurement (2-5x human) and phrase-overuse counts.
+- ryanthedev/oberskills, the write skill (MIT): corroborating tell catalog.
+- Pangram Labs: em-dash rate measurement (2-5x human) and phrase-overuse counts.

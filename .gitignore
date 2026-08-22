@@ -39,3 +39,6 @@ desktop.ini
 
 # Logs / scratch
 *.log
+
+# Opt-in venv for eval/detector_local.py (torch + transformers, ~1.5GB).
+.detvenv/

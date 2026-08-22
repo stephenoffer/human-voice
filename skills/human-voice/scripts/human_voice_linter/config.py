@@ -77,25 +77,54 @@ def merge_config(patterns, cfg):
     return patterns
 
 
+TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".mdx", ".rst")
+
+# Directories a prose walk should never descend into: they hold generated output
+# and dependencies, not writing, and linting them buries the real findings.
+SKIP_DIRS = frozenset({
+    ".git", ".hg", ".svn", ".venv", "venv", "node_modules", "__pycache__",
+    ".mypy_cache", ".pytest_cache", ".ruff_cache", ".tox", "dist", "build",
+    "site-packages", ".next", ".cache",
+})
+
+
 def collect_targets(inputs, recursive):
-    """Expand inputs into a flat list of file paths (or '-'), walking dirs."""
+    """Expand inputs into a flat list of file paths (or '-'), walking dirs.
+
+    Deduplicates while preserving order, so `lint docs/ docs/intro.md` does not
+    analyze and print intro.md twice, and prunes vendor/build directories on a
+    recursive walk.
+    """
     targets = []
+    seen = set()
+
+    def add(path):
+        key = path if path == "-" else os.path.normpath(path)
+        if key in seen:
+            return
+        seen.add(key)
+        targets.append(path)
+
     for inp in inputs:
         if inp == "-":
-            targets.append(inp)
+            add(inp)
         elif os.path.isdir(inp):
-            for root, _dirs, files in os.walk(inp):
+            for root, dirs, files in os.walk(inp):
+                dirs[:] = sorted(d for d in dirs
+                                 if d not in SKIP_DIRS and not d.startswith("."))
                 for fn in sorted(files):
-                    if fn.endswith((".md", ".markdown", ".txt")):
-                        targets.append(os.path.join(root, fn))
+                    if fn.endswith(TEXT_SUFFIXES):
+                        add(os.path.join(root, fn))
                 if not recursive:
                     break
         else:
-            targets.append(inp)
+            add(inp)
     return targets
 
 
 __all__ = [
+    'TEXT_SUFFIXES',
+    'SKIP_DIRS',
     'apply_threshold_overrides',
     'CONFIG_NAME',
     'find_project_config',

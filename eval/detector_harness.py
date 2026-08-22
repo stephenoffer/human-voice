@@ -18,28 +18,20 @@ HOW TO WIRE A REAL DETECTOR
 
        export GPTZERO_API_KEY=sk-...
 
-2. Implement `call_detector(text, api_key) -> float` below. It must return a
-   single "probability this text is AI" in [0.0, 1.0]. For GPTZero that is the
-   `documents[0].completely_generated_prob` field of the POST /v2/predict/text
-   response. Use only the standard library (urllib.request) so this file keeps
-   its zero-dependency promise, or import `requests` if your project already
-   has it.
+2. The request shapes live in `human_voice_linter/detector.py` (GPTZero,
+   Originality.ai, Sapling, Winston), shared with the skill's `verify_detector.py`
+   gate so there is one copy. Those shapes have NOT been exercised against a
+   live API from this repo, so treat the first run as a smoke test: a stale shape
+   prints ERR(...) for each file rather than crashing, and the fix is one entry in
+   the `DETECTORS` table. Standard library only (urllib), so the zero-dependency
+   promise holds.
 
-       import urllib.request, json
-       req = urllib.request.Request(
-           "https://api.gptzero.me/v2/predict/text",
-           data=json.dumps({"document": text}).encode(),
-           headers={"x-api-key": api_key, "Content-Type": "application/json"},
-           method="POST")
-       with urllib.request.urlopen(req, timeout=30) as resp:
-           payload = json.load(resp)
-       return float(payload["documents"][0]["completely_generated_prob"])
-
-3. Run before/after pairs. This harness looks for pairs in the corpus by
-   convention: an AI file `ai/aNN_*.md` is the "before"; if a matching human
-   rewrite exists you can compare. By default it simply scores every corpus
-   file through the detector and prints the detector score next to the linter
-   floor score, so you can see whether the two agree.
+3. What to look at. `--pairs` scores just the shipped before/after example pairs,
+   which is the measurement you actually want: same claim, two voices, does the
+   detector move? It prints the mean drop in p(AI) across pairs. The full run also
+   prints mean p(AI) per corpus class — if the detector does not put `human` well
+   below `ai` and `ai_modern`, its verdicts on this corpus mean little and you
+   should not tune anything to them.
 
 ------------------------------------------------------------------------------
 HONESTY NOTE
@@ -58,29 +50,46 @@ import lib
 
 CORPUS = lib.CORPUS
 
-# Recognized API-key env vars. The first one set selects the detector.
-KEY_ENV_VARS = ("GPTZERO_API_KEY", "ORIGINALITY_API_KEY", "SAPLING_API_KEY",
-                "AI_DETECTOR_API_KEY")
+# The request shapes, key discovery, and the probe live in the skill package, so
+# the skill works when copied to ~/.claude/skills/ without this eval directory.
+_dap = lib.load_detector()
+sys.path.insert(0, lib.SKILL_DIR)
+from human_voice_linter import detector as D  # noqa: E402
+
+DETECTORS = D.DETECTORS
+KEY_ENV_VARS = D.KEY_ENV_VARS
+find_api_key = D.find_api_key
+_dig_path = D.dig
 
 
-def find_api_key():
-    for var in KEY_ENV_VARS:
-        val = os.environ.get(var)
-        if val:
-            return var, val
-    return None, None
+def call_detector(text, api_key, key_var="GPTZERO_API_KEY", timeout=30):
+    """Thin alias kept for callers of the older name."""
+    return D.probe(text, api_key, key_var, timeout=timeout)
 
 
-def call_detector(text, api_key):
-    """Return P(text is AI) in [0,1] from a real external detector.
+# Register for each shipped example pair, so the floor column is scored the way
+# the skill would score it rather than always as `technical`.
+PAIR_REGISTER = {"academic": "academic", "casual": "casual", "email": "email",
+                 "marketing": "marketing", "modern-ai": "technical",
+                 "syntax-signature": "technical",
+                 "cliche-metaphor": "technical", "over-corrected": "technical"}
 
-    Intentionally unimplemented. Fill this in following the docstring above to
-    enable the online path. Until then the harness will refuse to pretend it
-    has a working detector.
-    """
-    raise NotImplementedError(
-        "call_detector is a stub. Wire a real detector per the module docstring "
-        "before using the online path.")
+
+def example_pairs():
+    """The shipped before/after example pairs, which are what you actually want
+    to measure: does the rewrite move a detector, on the same claim?"""
+    ex = os.path.join(os.path.dirname(lib.SKILL_DIR), "examples")
+    pairs = []
+    if not os.path.isdir(ex):
+        return pairs
+    for fn in sorted(os.listdir(ex)):
+        if not fn.endswith("-before.md"):
+            continue
+        stem = fn[:-len("-before.md")]
+        after = os.path.join(ex, stem + "-after.md")
+        if os.path.isfile(after):
+            pairs.append((stem, os.path.join(ex, fn), after))
+    return pairs
 
 
 def run_offline_summary():
@@ -100,33 +109,83 @@ def run_offline_summary():
         print("  %-38s %-6s %8.1f" % (rel, meta["label"], res["score"]))
 
 
-def run_online(key_var, api_key):
+def _mean(xs):
+    return sum(xs) / len(xs) if xs else None
+
+
+def run_online(key_var, api_key, pairs_only=False):
     dap = lib.load_detector()
     patterns = lib.load_patterns(dap)
-    labels = lib.load_labels()
-    print("Online path: using %s. Calling external detector per file." % key_var)
+    name = DETECTORS.get(key_var, {}).get("name", key_var)
+    print("Online path: %s (via %s)." % (name, key_var))
     print("(External detectors are biased; treat scores as evidence, not truth.)")
     print()
-    print("  %-38s %-6s %8s %12s" % ("file", "label", "floor", "detector_p"))
-    print("  " + "-" * 70)
+
+    def score_one(text, register):
+        res = dap.lint(text, register=register, dialect=None, patterns=patterns)
+        try:
+            return res["score"], call_detector(text, api_key, key_var), None
+        except Exception as exc:  # never crash the harness on a bad response
+            return res["score"], None, "%s: %s" % (type(exc).__name__, exc)
+
+    print("Example before/after pairs (does the rewrite move the detector?):")
+    print("  %-22s %8s %8s %10s %10s" % ("pair", "floor.b", "floor.a", "det.b", "det.a"))
+    print("  " + "-" * 64)
+    deltas = []
+    for stem, bpath, apath in example_pairs():
+        with open(bpath, encoding="utf-8") as fh:
+            btext = fh.read()
+        with open(apath, encoding="utf-8") as fh:
+            atext = fh.read()
+        reg = PAIR_REGISTER.get(stem, "technical")
+        fb, pb, eb = score_one(btext, reg)
+        fa, pa, ea = score_one(atext, reg)
+        print("  %-22s %8.1f %8.1f %10s %10s" % (
+            stem, fb, fa,
+            "ERR" if pb is None else "%.3f" % pb,
+            "ERR" if pa is None else "%.3f" % pa))
+        if eb or ea:
+            print("      %s" % (eb or ea))
+        if pb is not None and pa is not None:
+            deltas.append(pb - pa)
+    if deltas:
+        print()
+        print("  mean detector-probability drop across %d pairs: %+.3f"
+              % (len(deltas), _mean(deltas)))
+        print("  (positive = the rewrite reads more human to this detector)")
+    if pairs_only:
+        return
+
+    labels = lib.load_labels()
+    print()
+    print("Full corpus:")
+    print("  %-40s %-14s %8s %10s" % ("file", "label", "floor", "det_p"))
+    print("  " + "-" * 76)
+    by_label = {}
     for rel, meta in sorted(labels.items()):
         with open(os.path.join(CORPUS, rel), encoding="utf-8") as fh:
             text = fh.read()
-        res = dap.lint(text, register=meta["register"], dialect=None, patterns=patterns)
-        try:
-            p = call_detector(text, api_key)
-            pstr = "%.3f" % p
-        except NotImplementedError as exc:
-            print()
-            print("error: %s" % exc)
-            print("Falling back to the offline summary.")
-            return run_offline_summary()
-        except Exception as exc:  # network/parse errors must never crash the harness
-            pstr = "ERR(%s)" % type(exc).__name__
-        print("  %-38s %-6s %8.1f %12s" % (rel, meta["label"], res["score"], pstr))
+        floor, p, err = score_one(text, meta["register"])
+        print("  %-40s %-14s %8.1f %10s" % (
+            rel, meta["label"], floor, "ERR" if p is None else "%.3f" % p))
+        if p is not None:
+            by_label.setdefault(meta["label"], []).append(p)
+    print()
+    print("Mean detector probability by class (this is the comparison that matters):")
+    for lab in sorted(by_label):
+        ps = by_label[lab]
+        print("  %-16s n=%-3d mean p(AI) = %.3f" % (lab, len(ps), _mean(ps)))
+    print()
+    print("If mean p(AI) for 'human' is not far below 'ai' and 'ai_modern', the")
+    print("detector is not separating this corpus and its verdicts here mean little.")
 
 
-def main():
+def main(argv=None):
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--pairs", action="store_true",
+                    help="only score the shipped before/after example pairs")
+    args = ap.parse_args(argv)
     key_var, api_key = find_api_key()
     if not api_key:
         print("skipped: no API key set.")
@@ -135,7 +194,7 @@ def main():
         print()
         run_offline_summary()
         return 0
-    run_online(key_var, api_key)
+    run_online(key_var, api_key, pairs_only=args.pairs)
     return 0
 
 

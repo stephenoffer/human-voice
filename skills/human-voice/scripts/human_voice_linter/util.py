@@ -5,7 +5,8 @@ import sys
 
 MAX_CHARS = 5_000_000
 
-# Category weights feed the single "floor" score (tells per 1000 words).
+# Category weights feed the single "floor" score. See score.score: document-level
+# findings contribute fixed points, instance findings a capped per-1000-word density.
 # Structure and substance-adjacent tells weigh more than lone diction hits.
 def warn(msg):
     sys.stderr.write("warning: %s\n" % msg)

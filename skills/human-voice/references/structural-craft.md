@@ -1,31 +1,31 @@
-# Structural craft — writing human from the first draft
+# Structural craft: writing human from the first draft
 
 The linter catches surface tells. It cannot teach the moves that make prose read
 human in the first place. This file is the generative companion: load it for
 `generate` mode, and for the rewrite pass once the cheap tells are gone. It draws
 on the structural-detection literature, where grammar and discourse features
-alone separate human from AI text at ~88% F1 — the signal is in *how the prose is
+alone separate human from AI text at ~88% F1. The signal is in *how the prose is
 built*, not which words it uses.
 
 ## Five moves that carry the most weight
 
-1. **Lurch — vary sentence length, hard.** Humans swing: a three-word sentence
+1. **Lurch: vary sentence length, hard.** Humans swing: a three-word sentence
    against a forty-word one. AI clusters every sentence in a narrow mid-length
    band. If your sentences sit within a four-word range, the rhythm is the tell.
    Put a short punch after a long, winding sentence on purpose.
-2. **Spike — vary information density.** Pack one paragraph tight with specifics;
+2. **Spike: vary information density.** Pack one paragraph tight with specifics;
    let the next breathe. Uniform density across every paragraph is a machine
    signature even when each sentence is clean.
-3. **Wander — don't follow the outline.** AI marches setup → complication →
+3. **Wander: don't follow the outline.** AI marches setup → complication →
    resolution → reflection, every time. Start with the most interesting thing.
    Circle back. Leave one thread half-resolved. (See
    [`discourse-and-structure.md`](discourse-and-structure.md) for why discourse
    shape is the single largest detection signal.)
-4. **Shift register — move between precise and casual.** One sustained tone is a
+4. **Shift register: move between precise and casual.** One sustained tone is a
    costume, not a voice. A technical piece can drop into plain speech for a
    sentence and back. Match claim strength to evidence: understatement reads as
    confidence, overstatement reads as AI.
-5. **Get specific — write for someone, not everyone.** Name the particular
+5. **Get specific: write for someone, not everyone.** Name the particular
    failure, the particular afternoon, the actual error code. Unglamorous concrete
    detail is more convincing than a dramatic generality. A detail a generic model
    could not have invented is the strongest human signal there is.
@@ -34,8 +34,8 @@ built*, not which words it uses.
 
 - **Cowardly passives.** "It can be seen that…", "The decision was made to…",
   "Mistakes were made." They hide the actor. If you can name who acted, name
-  them. (Legitimate actor-irrelevant passive — "the server was deployed at 3 AM"
-  — stays.) The linter flags the common dodge phrases as `cowardly_passive`, but
+  them. (Legitimate actor-irrelevant passive, "the server was deployed at 3 AM",
+  stays.) The linter flags the common dodge phrases as `cowardly_passive`, but
   judgment catches the rest.
 - **Clause-level parallelism.** "It reduces costs, improves efficiency, and
   increases reliability." AI stacks parallel clauses at rates humans don't. Break
@@ -52,7 +52,7 @@ built*, not which words it uses.
   possible one.
 - **Resumptive filler.** "In terms of…", "When it comes to…", "At the end of the
   day…" Name the subject and get on with it. (Flagged at low weight in
-  `soft_filler`/`transitions` — common in careful and non-native writing, so the
+  `soft_filler`/`transitions`, common in careful and non-native writing, so the
   linter treats them as a whisper, not a verdict.)
 
 ## The second dialect (what's left after the first cleanup)
@@ -64,11 +64,11 @@ pass; the first two the linter now flags, the last two are yours to catch.
 - **The ", and" splice rhythm.** Joining two independent clauses with a comma +
   *and* (or *but*/*so*), sentence after sentence, builds a uniform compound
   cadence: "We shipped on Tuesday, and latency jumped. We raised the limit, and
-  it held." A few are fine — banning them outright just makes a *different*
+  it held." A few are fine. Banning them outright just makes a *different*
   uniform signature (principle 2). The fix is variety: split some into separate
   sentences, restructure others, keep one or two where the rhythm wants them.
-  (The linter does **not** flag this — humans and ESL writers use ", and" heavily
-  and legitimately — so it is judgment, not a check.)
+  (The linter does **not** flag this, because humans and ESL writers use ", and"
+  heavily and legitimately, so it is judgment rather than a check.)
 - **Stacked "[noun] is [noun]" copulas.** Flat definitional sentences in a row:
   "Security is the constraint. The size was wrong. The keys were correct." One is
   fine; a run reads as a glossary. Break it with a verb that does work: "Security

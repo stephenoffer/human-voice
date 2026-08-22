@@ -20,7 +20,7 @@ the stance is committed, and there's no filler. The linter scores it clean. The
 correct edit here is **no edit**. Touching it can only add risk to the
 invariants (those numbers) and flatten prose that's doing its job.
 
-## Case 2: a tell that the register earns — keep it
+## Case 2: a tell that the register earns: keep it
 
 This is the opening of a personal essay (register: creative):
 

@@ -8,7 +8,23 @@ from .util import *  # noqa: F401,F403
 
 
 def render_text(target, register, dialect, hits, report, word_count, floor_score,
-                band="n/a", max_examples=6):
+                band="n/a", max_examples=6, thresholds=None):
+    """Human-readable report.
+
+    `thresholds` is the resolved threshold table. The "want >=" figures used to be
+    hardcoded in this format string, so overriding a threshold on the command line
+    or in .humanvoicerc changed what fired while the report kept quoting the
+    default -- the reader was told to aim at a number the linter was not using.
+    """
+    th = thresholds if isinstance(thresholds, dict) else DEFAULTS["thresholds"]
+
+    def _t(key):
+        v = th.get(key, DEFAULTS["thresholds"].get(key))
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return float(DEFAULTS["thresholds"][key])
+
     by_cat = {}
     for h in hits:
         by_cat.setdefault(h.category, []).append(h)
@@ -17,14 +33,27 @@ def render_text(target, register, dialect, hits, report, word_count, floor_score
     out.append("AI-prose floor report — %s" % target)
     out.append("register: %s%s   words: %d" % (
         register, ("   dialect: " + dialect) if dialect else "", word_count))
-    out.append("score: %.1f weighted tells / 1k words  [%s]  (lower is better; a FLOOR, not proof)"
+    out.append("score: %.1f floor points  [%s]  (lower is better; a FLOOR, not proof)"
                % (floor_score, band))
-    bcov = report.get("burstiness_cov")
-    out.append("burstiness CoV: %s   TTR: %s   em-dash/1k: %s   mean sentence: %s words" % (
-        bcov if bcov is not None else "n/a",
-        report.get("ttr", "n/a"),
-        report.get("em_dash_per_1k", "n/a"),
-        report.get("mean_sentence_len", "n/a")))
+    def _m(key, fmt="%s"):
+        v = report.get(key)
+        return "n/a" if v is None else fmt % v
+    out.append("rhythm:  CoV %s (want >=%.2f)   short<=%dw %s (want >=%.2f)   "
+               "mid-band %s (want <=%.2f)   mean %s w" % (
+        _m("burstiness_cov"), _t("burstiness_cov_floor"),
+        int(_t("short_sentence_max_words")), _m("short_sentence_ratio"),
+        _t("short_sentence_ratio_floor"), _m("mid_band_ratio"),
+        _t("mid_band_ratio_max"), _m("mean_sentence_len")))
+    out.append("shape:   headings/1k %s   bullet-line ratio %s   bold/1k %s   em-dash/1k %s" % (
+        _m("headings_per_1k"), _m("bullet_line_ratio"), _m("bold_spans_per_1k"),
+        _m("em_dash_per_1k")))
+    out.append("syntax:  clefts %s   ',VERBing' tails %s   copula/1k %s   passive/1k %s" % (
+        _m("cleft_count"), _m("participial_tail_count"), _m("copula_per_1k"),
+        _m("passive_per_1k")))
+    out.append("lexicon: TTR %s   Yule's K %s" % (_m("ttr"), _m("yules_k")))
+    out.append("detail:  %s specifics/100w (%s numbers, %s proper nouns)%s" % (
+        _m("specifics_per_100"), _m("numbers"), _m("proper_nouns"),
+        "   <- nothing checkable in here" if report.get("specifics_thin") else ""))
     out.append("")
     if word_count == 0:
         out.append("No prose found (empty, code-only, or non-text input). Nothing to score.")

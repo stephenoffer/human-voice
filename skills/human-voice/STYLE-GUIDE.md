@@ -1,16 +1,16 @@
-# Style Guide — Structure Worth Keeping
+# Style guide: structure worth keeping
 
 The skill removes AI tells. It must not flatten *purposeful* structure into a new
 uniform signature in the process. Stripping every list, every heading, and every
-bold term is its own machine tell — it trades one fingerprint for another
+bold term is its own machine tell. It trades one fingerprint for another
 (principle 2). This guide names the structure to preserve.
 
 ## Keep
 
 - **Headings that map the document.** A reader should be able to scan headings
   and know what's where. Keep them; just hold one case convention.
-- **Lists that earn their place.** Genuinely parallel items — steps in a
-  procedure, options being compared, a config reference — are clearer as a list
+- **Lists that earn their place.** Genuinely parallel items (steps in a
+  procedure, options being compared, a config reference) are clearer as a list
   than as prose. Keep those. The tell is the *bold-lead-in listicle* where every
   item is `- **Term:** sentence`, not the existence of bullets.
 - **Code, commands, and config verbatim.** Never paraphrase code into prose.
@@ -28,7 +28,7 @@ bold term is its own machine tell — it trades one fingerprint for another
 - Bold scattered mid-sentence for emphasis (not on defined terms).
 - A `---` horizontal rule between every section.
 - Emoji in headings and bullets outside genuinely casual/social copy.
-- Lists used to avoid writing connected prose — if the items aren't parallel,
+- Lists used to avoid writing connected prose. If the items aren't parallel,
   they're paragraphs.
 - Uniform list shape across a whole document (every list a bold-lead-in triad).
 
@@ -46,7 +46,7 @@ The linter flags `superlative_creep` (an absolute with no number nearby) and
 
 Removing tells must not install a new uniform signature. Forced all-lowercase,
 fake typos, staccato fragments everywhere, sprinkled "lol/honestly?", and
-conspicuous dash-avoidance are the *anti-AI costume* — as much a tell as the slop
+conspicuous dash-avoidance are the *anti-AI costume*, as much a tell as the slop
 they replace, and the linter flags them (`over_correction`, `internet_tells`).
 The goal is a real, deliberate voice in the register the genre wants, not the
 mechanical absence of the old tells. See `references/over-correction.md`.

@@ -47,6 +47,8 @@ def build_report():
 
     esl_rate, esl_flagged, n_esl = lib.subset_fpr(binary, lib.DEFAULT_THRESHOLD, "esl")
     costume = lib.costume_eval(dap, items, patterns, lib.DEFAULT_THRESHOLD)
+    modern = lib.modern_eval(records, lib.DEFAULT_THRESHOLD)
+    rewritten = lib.rewrite_eval(records, lib.DEFAULT_THRESHOLD)
 
     out = {
         "corpus_size": len(binary),
@@ -70,6 +72,11 @@ def build_report():
                            "n": n_esl, "threshold": lib.DEFAULT_THRESHOLD},
             "over_corrected": costume,
         },
+        # The headline honesty number: realistic contemporary model output vs the
+        # human class. The legacy roc_auc above is measured against caricature.
+        "modern_ai": modern,
+        # The skill's own claim, measured on identical claims before and after.
+        "modern_ai_rewritten": rewritten,
         "sweep": [{"threshold": th, "f1": m["f1"], "precision": m["precision"],
                    "recall": m["recall"], "accuracy": m["accuracy"],
                    "human_fpr": m["human_subset_false_positive_rate"]}
@@ -152,6 +159,31 @@ def print_report(out):
     print("    (%d of %d caught by over_correction/internet_tells)  [higher is better]"
           % (oc["costume_caught"], oc["n"]))
     print()
+    md = out.get("modern_ai") or {}
+    if md.get("n"):
+        print("REALISTIC MODERN AI vs human (the honest separation number):")
+        print("  n=%d   score range %.1f-%.1f (median %.1f)"
+              % (md["n"], md["score_min"], md["score_max"], md["score_median"]))
+        print("  AUC vs human %.3f   recall@%.1f %.3f (%d of %d)   precision %.3f   F1 %.3f"
+              % (md["auc_vs_human"], md["threshold"], md["recall"], md["flagged"],
+                 md["n"], md["precision"], md["f1"]))
+        if md.get("missed"):
+            print("  missed at threshold: %s" % ", ".join(
+                f.split("/")[-1] for f in md["missed"]))
+        print("  This is the number to trust. The 1.000 AUC above is measured")
+        print("  against 2023-era caricature and overstates the floor's reach.")
+        rw = out.get("modern_ai_rewritten") or {}
+    if rw.get("n"):
+        print("AFTER THE SKILL: the same %d realistic-AI files, rewritten" % rw["n"])
+        print("  mean floor %.1f -> %.1f     clean %d/%d -> %d/%d     flagged@%.1f %d -> %d"
+              % (rw["mean_before"], rw["mean_after"], rw["clean_before"], rw["n"],
+                 rw["clean_after"], rw["n"], rw["threshold"],
+                 rw["flagged_before"], rw["flagged_after"]))
+        print("  improved %d/%d%s" % (rw["improved"], rw["n"],
+              ("   REGRESSED: " + ", ".join(rw["regressed"])) if rw["regressed"] else ""))
+        if rw.get("unpaired"):
+            print("  UNPAIRED (missing a before or after): %s" % ", ".join(rw["unpaired"]))
+        print()
     print("Note: this corpus is small and authored to exhibit/avoid the exact")
     print("tells the linter scores. These numbers measure calibration, not")
     print("real-world detection. The linter is a FLOOR, not ground truth.")
