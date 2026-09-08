@@ -11,7 +11,7 @@
       "name": "human-voice",
       "source": "./",
       "description": "Rewrite or generate prose so it does not read as AI-written: removes hedging, em-dash overuse, filler, rule-of-three padding, bold-bullet listicles, meta-commentary, and vacuity without altering facts, numbers, code, or citations.",
-      "version": "0.6.0",
+      "version": "0.8.0",
       "author": {
         "name": "Stephen Offer"
       },

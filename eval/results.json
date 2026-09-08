@@ -203,34 +203,36 @@
     }
   },
   "by_category_ai_share": {
-    "filler": 0.1231,
-    "meta_commentary": 0.1173,
-    "bold_bullets": 0.0938,
-    "rule_of_three": 0.0889,
-    "puffery": 0.086,
-    "aidiolect": 0.0654,
-    "soft_filler": 0.0634,
-    "jargon": 0.0572,
-    "vague_attribution": 0.0469,
-    "significance_inflation": 0.0456,
-    "antithesis": 0.0371,
-    "burstiness": 0.0233,
-    "negative_listing": 0.0196,
-    "assistant_shape": 0.0167,
-    "cliche_metaphor": 0.0145,
-    "transitions": 0.0144,
-    "sycophancy": 0.0132,
-    "paragraph_uniformity": 0.0125,
-    "vague_declarative": 0.0125,
-    "sentence_shape": 0.01,
-    "chatbot_scaffold": 0.0088,
-    "false_agency": 0.0063,
-    "redundancy": 0.0058,
-    "five_paragraph_shape": 0.005,
+    "filler": 0.1215,
+    "meta_commentary": 0.1159,
+    "bold_bullets": 0.0926,
+    "rule_of_three": 0.0878,
+    "puffery": 0.085,
+    "aidiolect": 0.0646,
+    "soft_filler": 0.0626,
+    "jargon": 0.0564,
+    "vague_attribution": 0.0463,
+    "significance_inflation": 0.0451,
+    "antithesis": 0.0366,
+    "burstiness": 0.0231,
+    "negative_listing": 0.0193,
+    "assistant_shape": 0.0165,
+    "cliche_metaphor": 0.0143,
+    "transitions": 0.0142,
+    "sycophancy": 0.013,
+    "paragraph_uniformity": 0.0123,
+    "vague_declarative": 0.0123,
+    "sentence_shape": 0.0099,
+    "chatbot_scaffold": 0.0087,
+    "heading_structure": 0.0065,
+    "false_agency": 0.0062,
+    "copula_avoidance": 0.006,
+    "redundancy": 0.0057,
+    "five_paragraph_shape": 0.0049,
     "ngram_repetition": 0.0029,
     "parallel_structure": 0.0025,
-    "nominalization": 0.0017,
-    "svo_monotony": 0.0017,
+    "nominalization": 0.0016,
+    "svo_monotony": 0.0016,
     "heading_case": 0.0011,
     "uniform_openers": 0.0008,
     "list_uniformity": 0.0008,
@@ -256,29 +258,28 @@
   "modern_ai": {
     "n": 20,
     "threshold": 5.0,
-    "recall": 0.85,
-    "flagged": 17,
-    "auc_vs_human": 0.9371794871794872,
+    "recall": 0.9,
+    "flagged": 18,
+    "auc_vs_human": 0.9384615384615385,
     "precision": 1.0,
-    "f1": 0.9189,
+    "f1": 0.9474,
     "score_min": 0.0,
-    "score_median": 15.0,
-    "score_max": 41.1,
+    "score_median": 17.0,
+    "score_max": 47.2,
     "missed": [
       "ai_modern/m09_creative_scene.md",
-      "ai_modern/m17_email_project.md",
-      "ai_modern/m20_creative_arrival.md"
+      "ai_modern/m17_email_project.md"
     ]
   },
   "modern_ai_rewritten": {
     "n": 20,
     "threshold": 5.0,
     "unpaired": [],
-    "mean_before": 16.065,
+    "mean_before": 17.285,
     "mean_after": 1.3,
-    "clean_before": 3,
+    "clean_before": 2,
     "clean_after": 20,
-    "flagged_before": 17,
+    "flagged_before": 18,
     "flagged_after": 0,
     "improved": 18,
     "regressed": [],
@@ -381,7 +382,7 @@
       },
       {
         "file": "m13_technical_postmortem.md",
-        "before": 41.1,
+        "before": 47.2,
         "after": 3.0,
         "before_verdict": "strong-tell",
         "after_verdict": "clean",
@@ -421,7 +422,7 @@
       },
       {
         "file": "m18_tutorial_deploy.md",
-        "before": 30.0,
+        "before": 33.3,
         "after": 3.0,
         "before_verdict": "strong-tell",
         "after_verdict": "clean",
@@ -437,9 +438,9 @@
       },
       {
         "file": "m20_creative_arrival.md",
-        "before": 3.3,
+        "before": 18.3,
         "after": 0.0,
-        "before_verdict": "clean",
+        "before_verdict": "strong-tell",
         "after_verdict": "clean",
         "register": "creative"
       }
@@ -743,31 +744,23 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 79.8,
+      "threshold": 80.3,
       "f1": 0.5,
       "precision": 1.0,
       "recall": 0.3333,
       "accuracy": 0.746,
-      "human_fpr": 0.0
-    },
-    {
-      "threshold": 87.3,
-      "f1": 0.5,
-      "precision": 1.0,
-      "recall": 0.3333,
-      "accuracy": 0.746,
-      "human_fpr": 0.0
-    },
-    {
-      "threshold": 87.8,
-      "f1": 0.4516,
-      "precision": 1.0,
-      "recall": 0.2917,
-      "accuracy": 0.7302,
       "human_fpr": 0.0
     },
     {
       "threshold": 88.3,
+      "f1": 0.5,
+      "precision": 1.0,
+      "recall": 0.3333,
+      "accuracy": 0.746,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 92.8,
       "f1": 0.4516,
       "precision": 1.0,
       "recall": 0.2917,
@@ -775,7 +768,15 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 95.0,
+      "threshold": 97.3,
+      "f1": 0.4516,
+      "precision": 1.0,
+      "recall": 0.2917,
+      "accuracy": 0.7302,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 99.5,
       "f1": 0.4,
       "precision": 1.0,
       "recall": 0.25,
@@ -823,7 +824,7 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 141.5,
+      "threshold": 143.2,
       "f1": 0.2222,
       "precision": 1.0,
       "recall": 0.125,
@@ -831,19 +832,11 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 160.3,
+      "threshold": 163.7,
       "f1": 0.2222,
       "precision": 1.0,
       "recall": 0.125,
       "accuracy": 0.6667,
-      "human_fpr": 0.0
-    },
-    {
-      "threshold": 163.65,
-      "f1": 0.1538,
-      "precision": 1.0,
-      "recall": 0.0833,
-      "accuracy": 0.6508,
       "human_fpr": 0.0
     },
     {
@@ -855,7 +848,15 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 168.5,
+      "threshold": 170.3,
+      "f1": 0.1538,
+      "precision": 1.0,
+      "recall": 0.0833,
+      "accuracy": 0.6508,
+      "human_fpr": 0.0
+    },
+    {
+      "threshold": 171.8,
       "f1": 0.08,
       "precision": 1.0,
       "recall": 0.0417,
@@ -863,7 +864,7 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 170.0,
+      "threshold": 173.3,
       "f1": 0.08,
       "precision": 1.0,
       "recall": 0.0417,
@@ -871,7 +872,7 @@
       "human_fpr": 0.0
     },
     {
-      "threshold": 170.1,
+      "threshold": 173.4,
       "f1": 0.0,
       "precision": 0.0,
       "recall": 0.0,
@@ -1047,7 +1048,7 @@
       "label": "ai",
       "register": "technical",
       "group": "ai",
-      "score": 167.0,
+      "score": 170.3,
       "verdict": "strong-tell",
       "words": 189
     },
@@ -1056,7 +1057,7 @@
       "label": "ai",
       "register": "business",
       "group": "ai",
-      "score": 170.0,
+      "score": 173.3,
       "verdict": "strong-tell",
       "words": 188
     },
@@ -1074,7 +1075,7 @@
       "label": "ai",
       "register": "marketing",
       "group": "ai",
-      "score": 160.3,
+      "score": 163.7,
       "verdict": "strong-tell",
       "words": 192
     },
@@ -1092,7 +1093,7 @@
       "label": "ai",
       "register": "creative",
       "group": "ai",
-      "score": 87.3,
+      "score": 97.3,
       "verdict": "strong-tell",
       "words": 206
     },
@@ -1209,7 +1210,7 @@
       "label": "ai_modern",
       "register": "technical",
       "group": "ai_modern",
-      "score": 41.1,
+      "score": 47.2,
       "verdict": "strong-tell",
       "words": 326
     },
@@ -1254,7 +1255,7 @@
       "label": "ai_modern",
       "register": "tutorial",
       "group": "ai_modern",
-      "score": 30.0,
+      "score": 33.3,
       "verdict": "strong-tell",
       "words": 263
     },
@@ -1272,8 +1273,8 @@
       "label": "ai_modern",
       "register": "creative",
       "group": "ai_modern",
-      "score": 3.3,
-      "verdict": "clean",
+      "score": 18.3,
+      "verdict": "strong-tell",
       "words": 286
     },
     {

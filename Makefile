@@ -1,4 +1,4 @@
-.PHONY: test eval eval-check lint dogfood human-baseline detector detector-local detector-check verify quality all
+.PHONY: test eval eval-check lint dogfood human-baseline profile profile-check detector detector-local detector-check verify quality all
 
 # Full robustness + correctness suite (also runs in CI on Python 3.8-3.13).
 test:
@@ -23,6 +23,14 @@ eval-check:
 human-baseline:
 	python3 eval/human_baseline.py
 
+# The committed human function-word profile behind the (unscored) stylometric
+# delta. Regenerate when eval/corpus/human/ changes; --check gates the drift.
+profile:
+	python3 eval/build_profile.py
+
+profile-check:
+	python3 eval/build_profile.py --check
+
 # Dogfood: lint the repository's own prose. The reference docs QUOTE the tells they
 # teach, so they are excluded; what is gated is the prose a reader takes as the
 # project's own voice. A skill that tells writers to drop the em-dash should not
@@ -44,7 +52,8 @@ dogfood:
 		skills/human-voice/references/discourse-and-structure.md \
 		skills/human-voice/references/over-correction.md \
 		skills/human-voice/references/structural-craft.md \
-		skills/human-voice/references/what-detectors-see.md
+		skills/human-voice/references/what-detectors-see.md \
+		skills/human-voice/references/competitive-landscape.md
 	# references/ai-tells.md is exempt: its dash-mechanics section cannot teach the
 	# right mark without printing the wrong one, and the BAD examples throughout are
 	# supposed to contain the tell.
@@ -103,4 +112,4 @@ quality:
 	mypy
 	pytest -q
 
-all: test eval-check lint dogfood
+all: test eval-check profile-check lint dogfood

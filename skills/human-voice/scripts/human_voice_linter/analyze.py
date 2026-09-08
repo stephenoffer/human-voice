@@ -7,6 +7,7 @@ from .directives import *  # noqa: F401,F403
 from .hit import *  # noqa: F401,F403
 from .patterns import *  # noqa: F401,F403
 from .score import *  # noqa: F401,F403
+from .stylometry import report_stylometry
 from .textutil import *  # noqa: F401,F403
 from .util import *  # noqa: F401,F403
 
@@ -29,8 +30,22 @@ def analyze(text: str, register: str, dialect: str | None,
     if not isinstance(th, dict):
         th = {}
 
+    # Per-register threshold multipliers. See DEFAULTS["register_thresholds"]:
+    # a register that legitimately runs hot on one construction gets a wider
+    # bar rather than the check switched off, so the signal above that bar is
+    # still counted. Only *_per_1k-style knobs are scaled; a ratio floor is left
+    # alone because doubling a floor tightens it rather than loosening it.
+    rt = patterns.get("register_thresholds")
+    if not isinstance(rt, dict):
+        rt = DEFAULTS.get("register_thresholds", {})
+    reg_mult = rt.get(register) if isinstance(rt.get(register), dict) else {}
+
     def thr(key):  # JSON value if present, else the canonical default
-        return safe_float(th, key, threshold_default(key))
+        base = safe_float(th, key, threshold_default(key))
+        mult = reg_mult.get(key)
+        if isinstance(mult, (int, float)) and not isinstance(mult, bool) and mult > 0:
+            return base * float(mult)
+        return base
     hits: list = []
     seen: dict = {}
     report: dict = {}
@@ -89,6 +104,12 @@ def analyze(text: str, register: str, dialect: str | None,
     check_ngram_repetition(metric_prose, safe_int_list(th, "ngram_sizes", threshold_default("ngram_sizes")),
                            int(thr("ngram_min_count")), hits, lm_metric)
     check_heading_case(code_stripped, hits, lm_code)
+    check_heading_structure(code_stripped, hits, report, lm_code)
+    # Precision checks: residue rather than style. Run on the metric prose so a
+    # document that *documents* these strings in backticks (this repo's own
+    # references do) is not flagged for naming them.
+    check_llm_artifact(code_stripped, hits, lm_code)
+    check_quote_style(metric_prose, hits, report, lm_metric)
 
     # Density / structural checks. Conservative thresholds keep clean human prose
     # clean; several are muted by register (see register_mutes).
@@ -113,6 +134,8 @@ def analyze(text: str, register: str, dialect: str | None,
     check_copula_density(sents, word_count, thr("copula_per_1k"), hits, report)
     check_comma_splice_chain(metric_prose, word_count, thr("clause_splice_per_1k"),
                              hits, report, lm_metric)
+    check_copula_avoidance(metric_prose, word_count, thr("copula_avoidance_per_1k"),
+                           hits, report, lm_metric)
     check_paragraph_openers(code_stripped, hits, report)
     check_bullet_openers(code_stripped, hits, report)
     check_noun_chains(metric_prose, hits, report, lm_metric)
@@ -136,6 +159,13 @@ def analyze(text: str, register: str, dialect: str | None,
     report_punctuation_profile(metric_prose, word_count, report)
     # Reported, not scored: what vacuous prose lacks rather than what it contains.
     report_specificity(metric_prose, sents, word_count, report)
+    # Reported, never scored -- scoring it reproduces the ESL bias this skill
+    # exists to argue against. See report_contraction_rate's docstring.
+    report_contraction_rate(metric_prose, word_count, report)
+    # Burrows's Delta against the committed human function-word profile. Also
+    # unscored, and read in the opposite direction from the obvious one: see
+    # stylometry.py. A missing or malformed profile leaves the key absent.
+    report_stylometry(metric_prose, report)
 
     if dialect:
         dmap = patterns.get("dialect", {})

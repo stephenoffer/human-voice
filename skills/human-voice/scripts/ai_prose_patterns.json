@@ -1,6 +1,6 @@
 {
-  "version": "0.6.0",
-  "updated": "2026-08-22",
+  "version": "0.8.0",
+  "updated": "2026-09-08",
   "_notes": [
     "Lexical lists are a FLOOR, not proof. Banned-word lists age: the PubMed study (arXiv 2406.07016) measured a ~25x jump in 'delves' in 2024 abstracts, and writers have since learned to avoid it. A hit raises suspicion; it never proves AI authorship, and a clean lexical pass never proves human authorship.",
     "Seeded from the PubMed excess-vocabulary study (arXiv 2406.07016: 280 excess style words, ~66% verbs, ~18% adjectives) plus curated practitioner lists. Edit freely; the linter reads only this file for word lists.",
@@ -96,7 +96,16 @@
     "real question": "question",
     "deeper question": "question",
     "worth unpacking": "cut",
-    "operationalizing": "putting into practice"
+    "operationalizing": "putting into practice",
+    "ensuring": "so that / and",
+    "encompassing": "covering",
+    "align with": "match",
+    "aligns with": "matches",
+    "aligned with": "matched",
+    "valuable insights": "findings",
+    "diverse array": "range",
+    "wide array": "range",
+    "focal point": "centre / the thing it turns on"
   },
   "_soft_filler_note": "Tier C — formal diction that a keyword scanner over-matches but readers rarely cite (the ~90k-post study put 'however/thus/comprehensive/robust/crucial/nuanced' near 0% cited despite high match rates). Kept as a soft signal at weight 0.5 so it never dominates the floor score. Many careful human and ESL writers use these legitimately.",
   "soft_filler": {
@@ -345,7 +354,10 @@
     "this is where it gets interesting",
     "and that's the point",
     "which is exactly the point",
-    "and therein lies"
+    "and therein lies",
+    "as of my knowledge cutoff",
+    "as of my last update",
+    "i do not have access to"
   ],
   "chatbot_scaffold": [
     "sure! here's",
@@ -507,7 +519,14 @@
     "carefully crafted",
     "deceptively simple",
     "elegantly simple",
-    "beautifully simple"
+    "beautifully simple",
+    "renowned",
+    "groundbreaking",
+    "in the heart of",
+    "nestled in",
+    "deeply rooted",
+    "rich cultural heritage",
+    "natural beauty"
   ],
   "_aidiolect_note": "Multi-word phrases the current model generation overuses at extreme rates (Pangram Labs measured some at 10,000x-40,000x the human base rate: 'as a poignant', 'as a powerful reminder', 'faced numerous challenges', 'the complex interplay'). Phrase-level tells are far more cited than lone words, so this sits at Tier A. Kept distinct from puffery/meta_commentary to avoid double-counting the same span.",
   "aidiolect": [
@@ -563,7 +582,11 @@
     "the reality is more nuanced",
     "more nuanced than",
     "it's complicated",
-    "the answer is nuanced"
+    "the answer is nuanced",
+    "in connection with",
+    "in association with",
+    "widely associated with",
+    "closely associated with"
   ],
   "_cliche_metaphor_note": "Domain-agnostic metaphor frames an LLM reaches for regardless of topic (construction, nature, travel, depth). Matched as phrases, not bare words, to avoid flagging legitimate literal uses ('the foundation of the house'). Suggest literal language or a domain-specific comparison.",
   "cliche_metaphor": [
@@ -669,7 +692,12 @@
     "the stakes have never been higher",
     "in an era of",
     "in an age of",
-    "as the industry moves toward"
+    "as the industry moves toward",
+    "indelible mark",
+    "setting the stage for",
+    "marking a turning point",
+    "represents a shift",
+    "enduring legacy"
   ],
   "vague_attribution": [
     "studies suggest",
@@ -958,7 +986,6 @@
       "fragments",
       "internet_voice",
       "over_correction_ok",
-      "long_sentences_ok",
       "lecturer_voice"
     ],
     "creative": [
@@ -969,9 +996,7 @@
       "internet_voice",
       "over_correction_ok",
       "metaphor_ok",
-      "superlatives_ok",
-      "cleft_ok",
-      "long_sentences_ok"
+      "superlatives_ok"
     ],
     "email": [
       "warmth",
@@ -1004,7 +1029,7 @@
       "templated_lists_ok"
     ]
   },
-  "_muted_checks_note": "Maps a register-mute token to the check categories it silences. Rhythm checks (burstiness, sentence_shape) are deliberately absent from every token: they fire only on LOW variance, and no genre is served by a metronome. 'fragments' silences only the over-correction check that reads staccato as a costume.",
+  "_muted_checks_note": "Maps a register-mute token to the check categories it silences. Rhythm checks (burstiness, sentence_shape) are deliberately absent from every token: they fire only on LOW variance, and no genre is served by a metronome. 'fragments' silences only the over-correction check that reads staccato as a costume. Two tokens (cleft_ok, long_sentences_ok) were retired in favour of register_thresholds: switching a check off threw away the signal above the register's genuine tolerance, and it cost two of the three misses on the modern-AI eval class.",
   "muted_checks": {
     "warmth": [],
     "contractions": [],
@@ -1058,12 +1083,6 @@
     ],
     "assistant_format_ok": [
       "assistant_shape"
-    ],
-    "cleft_ok": [
-      "cleft"
-    ],
-    "long_sentences_ok": [
-      "clause_splice"
     ],
     "templated_lists_ok": [
       "bullet_openers"
@@ -1211,7 +1230,8 @@
     "participial_tail_per_1k": 6.0,
     "copula_per_1k": 78.0,
     "clause_splice_per_1k": 8.0,
-    "semicolon_per_1k_max": 7.0
+    "semicolon_per_1k_max": 7.0,
+    "copula_avoidance_per_1k": 8.0
   },
   "_protected_terms_note": "Project-specific terms that must NEVER be flagged or rewritten — product names, required jargon, defined terms. Matched as whole words. Empty by default; set per project via a .humanvoicerc file at the repo root.",
   "protected_terms": [],
@@ -1413,7 +1433,11 @@
     "clause_splice": 0.5,
     "paragraph_openers": 1.5,
     "bullet_openers": 1.0,
-    "noun_chain": 0.5
+    "noun_chain": 0.5,
+    "llm_artifact": 4.0,
+    "copula_avoidance": 1.0,
+    "heading_structure": 1.0,
+    "quote_style": 0.5
   },
   "_score_bands_note": "Upper-exclusive verdict bands for the floor score (weighted tells / 1k words). score < clean reads clean; < watch is worth a look; at/above watch is a strong floor signal (the open-ended top band uses a large threshold). A FLOOR only — never ground truth.",
   "score_bands": {
@@ -1426,5 +1450,19 @@
     "category_cap": 15.0,
     "doc_cap_per_category": 4,
     "density_floor_words": 300
+  },
+  "_register_thresholds_note": "Per-register multipliers on the *_per_1k thresholds. A register that runs hot on a construction gets a wider bar rather than the check muted, so the signal above that bar still counts. Replaces the blunt mute for cleft in creative, which was costing two of the three misses on the modern-AI class.",
+  "register_thresholds": {
+    "creative": {
+      "cleft_per_1k": 1.3,
+      "clause_splice_per_1k": 1.6
+    },
+    "academic": {
+      "passive_per_1k": 1.5,
+      "nominalization_per_1k": 1.4
+    },
+    "casual": {
+      "clause_splice_per_1k": 1.4
+    }
   }
 }

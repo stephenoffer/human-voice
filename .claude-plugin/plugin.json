@@ -1,7 +1,7 @@
 {
   "name": "human-voice",
   "description": "Rewrite or generate prose so it does not read as AI-written, without altering facts, numbers, code, or citations.",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "keywords": [
     "writing",
     "editing",

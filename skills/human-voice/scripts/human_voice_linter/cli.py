@@ -236,6 +236,18 @@ def main(argv=None):
             print("compare: %s [%s %.1f]  ->  %s [%s %.1f]   delta %+.1f" % (
                 base["input"], base["verdict"], base["score"],
                 cur["input"], cur["verdict"], cur["score"], delta))
+            # Function-word movement across the rewrite. The per-document value is
+            # a weak signal; the DIRECTION across a pair is the useful part, and
+            # this is the only place in the tool where it is visible. Toward the
+            # human median is the direction a real edit moves it.
+            b_sty = (base.get("metrics") or {}).get("stylometric_delta")
+            c_sty = (cur.get("metrics") or {}).get("stylometric_delta")
+            med = (cur.get("metrics") or {}).get("human_delta_median")
+            if b_sty is not None and c_sty is not None:
+                toward = ("toward" if abs(c_sty - (med or 0)) < abs(b_sty - (med or 0))
+                          else "away from")
+                print("         function-word delta %.3f -> %.3f  (%s the human "
+                      "median %s; diagnostic, unscored)" % (b_sty, c_sty, toward, med))
         return 0
 
     targets = collect_targets(args.input, args.recursive)

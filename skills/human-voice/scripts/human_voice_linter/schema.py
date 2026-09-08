@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import re
 
-from .defaults import DEFAULTS, KNOWN_CATEGORIES
+from .defaults import DEFAULTS, KNOWN_CATEGORIES, REGISTERS
 
 # Pattern keys whose value is coerced by as_phrase_list (dict | list | str).
 _PHRASE_KEYS = (
@@ -109,6 +109,29 @@ def validate(patterns: dict) -> list:
                     if known_tokens and t not in known_tokens:
                         issues.append("register_mutes.%s references token %r not in "
                                       "muted_checks" % (reg, t))
+
+    # --- register_thresholds: register -> {threshold key: positive multiplier} ---
+    # A multiplier only ever widens a bar, so a value <= 0 would silence a check
+    # entirely by accident and a value below 1 would tighten it without saying so.
+    # Both are worth a warning; neither is fatal.
+    rt = patterns.get("register_thresholds")
+    if rt is not None:
+        if not isinstance(rt, dict):
+            issues.append("register_thresholds: expected an object")
+        else:
+            for reg, knobs in rt.items():
+                if reg not in REGISTERS:
+                    issues.append("register_thresholds: unknown register %r (ignored)" % reg)
+                if not isinstance(knobs, dict):
+                    issues.append("register_thresholds.%s: expected an object" % reg)
+                    continue
+                for k, v in knobs.items():
+                    if k not in DEFAULTS["thresholds"]:
+                        issues.append("register_thresholds.%s: unknown threshold %r "
+                                      "(ignored)" % (reg, k))
+                    elif not _is_number(v) or v <= 0:
+                        issues.append("register_thresholds.%s.%s: expected a positive "
+                                      "multiplier, got %r" % (reg, k, v))
 
     # --- dialect: name -> {wrong: right} ---
     dia = patterns.get("dialect")

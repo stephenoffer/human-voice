@@ -1609,9 +1609,25 @@ _h_cleft_fp, _, _, _ = run_analyze(
     "The difference between the two teams showed up in the retro. " + _PAD)
 check("cleft_no_false_positive", "cleft" not in cats(_h_cleft_fp),
       "non-cleft uses of problem/question/answer fired: %s" % sorted(cats(_h_cleft_fp)))
-# Creative narration keeps the wh-cleft; casual does not.
+# Creative narration gets a WIDER bar for clefts, not an exemption. The check
+# used to be muted outright in that register, which meant a fiction sample could
+# stack them at any rate and score zero; two of the three files the floor missed
+# on the modern-AI class were exactly that. register_thresholds scales the bar
+# 1.3x instead, so a moderate rate passes in creative and fails in technical,
+# and a heavy stack fails in both.
+_cleft_moderate = _cleft_text.replace(_PAD, "") + (
+    "The team shipped the change on Tuesday and watched the graphs. "
+    "Nothing moved for an hour. Then the queue drained. " * 18)
+_h_cleft_mod_tech, _, _, _ = run_analyze("cleft_moderate_tech", _cleft_moderate)
+_h_cleft_mod_cre, _, _, _ = run_analyze("cleft_moderate_creative", _cleft_moderate,
+                                        register="creative")
+check("cleft_moderate_fires_in_technical", "cleft" in cats(_h_cleft_mod_tech),
+      "a moderate cleft rate should still fire in the strictest register")
+check("cleft_moderate_passes_in_creative", "cleft" not in cats(_h_cleft_mod_cre),
+      "creative tolerates 1.3x the cleft rate; got %s" % sorted(cats(_h_cleft_mod_cre)))
 _h_cleft_cre, _, _, _ = run_analyze("cleft_creative", _cleft_text, register="creative")
-check("cleft_muted_in_creative", "cleft" not in cats(_h_cleft_cre))
+check("cleft_stacking_fires_in_creative", "cleft" in cats(_h_cleft_cre),
+      "a heavy stack is a tell in fiction too; the bar is wider, not absent")
 _h_cleft_cas, _, _, _ = run_analyze("cleft_casual", _cleft_text, register="casual")
 check("cleft_fires_in_casual", "cleft" in cats(_h_cleft_cas),
       "casual prose stacks clefts the same way an assistant answer does")
@@ -1994,6 +2010,172 @@ _elapsed = time.time() - _t0
 check("analysis_is_not_quadratic", _elapsed < 10.0,
       "analyzing ~13k words took %.1fs; the lexical pass has probably regressed to "
       "one regex per phrase" % _elapsed)
+
+
+# ---------------------------------------------------------------------------
+# v0.7: paste artifacts, heading structure, quote seams, copula avoidance
+# ---------------------------------------------------------------------------
+
+# Residue, not style. One instance is a finding: no writer types "oaicite".
+_art_text = ("The migration notes are collected below for the on-call rotation. "
+             "See the summary oaicite:12 and turn0search3 for the raw traces. "
+             "The Gemini export left [cite: 4] in the third paragraph. "
+             "Send the draft to [Your Name] before Friday afternoon. "
+             "Source: https://example.com/x?utm_source=chatgpt.com " + _PAD)
+_h_art, _, _, _ = run_analyze("llm_artifact", _art_text)
+_art_hits = [h for h in _h_art if h.category == "llm_artifact"]
+check("llm_artifact_fires", len(_art_hits) >= 5,
+      "expected every residue string flagged; got %d" % len(_art_hits))
+
+# The skill's own placeholders are the author's to resolve, not residue.
+_h_art_ok, _, _, _ = run_analyze(
+    "llm_artifact_sanctioned",
+    "The throughput figure is [SOURCE NEEDED] and the date is [VERIFY]. " + _PAD)
+check("llm_artifact_spares_sanctioned_placeholders",
+      "llm_artifact" not in cats(_h_art_ok),
+      "the anti-hallucination protocol's own markers must not be flagged")
+
+# A document that DOCUMENTS these strings in backticks is not using them.
+_h_art_doc, _, _, _ = run_analyze(
+    "llm_artifact_documented",
+    "Strip `oaicite` and `turn0search3` from pasted output before you file it. " + _PAD)
+check("llm_artifact_skips_inline_code", "llm_artifact" not in cats(_h_art_doc),
+      "backticked mentions are documentation, not residue")
+
+# Heading scaffolding: skipped rung, second H1, empty parent, heading into a list.
+_head_text = ("# Overview\n\n## Background\n\n#### Deep dive\n\n"
+              "The team shipped the change on Tuesday and watched the graphs.\n\n"
+              "# Second Top Level\n\n## Details\n\n- first item\n- second item\n\n" + _PAD)
+_h_head, _r_head, _, _ = run_analyze("heading_structure", _head_text)
+_head_msgs = " ".join(h.text for h in _h_head if h.category == "heading_structure")
+check("heading_structure_fires", "heading_structure" in cats(_h_head))
+check("heading_structure_catches_level_skip", "jumps 2 -> 4" in _head_msgs,
+      "expected the skipped rung; got %r" % _head_msgs)
+check("heading_structure_catches_second_h1", "level-1 headings" in _head_msgs,
+      "expected the duplicate H1; got %r" % _head_msgs)
+check("heading_structure_catches_heading_into_list", "runs straight into a list" in _head_msgs,
+      "expected the lead-in-less list; got %r" % _head_msgs)
+
+# A conventionally structured document must stay clean.
+_h_head_ok, _, _, _ = run_analyze(
+    "heading_structure_clean",
+    "# Title\n\nThe team shipped the change on Tuesday and watched the graphs.\n\n"
+    "## Detail\n\nNothing moved for an hour. Then the queue drained.\n\n"
+    "### Sub\n\nThe queue drained again on Wednesday without any intervention.\n\n" + _PAD)
+check("heading_structure_no_false_positive",
+      "heading_structure" not in cats(_h_head_ok),
+      "a normal heading tree fired: %s" % sorted(cats(_h_head_ok)))
+
+# Quote seams: lopsided mixes only, and only with enough quotes to judge.
+_quote_seam = ("The report said “the numbers held” and the follow-up said "
+               "“they did not”. She wrote “the boiler needs replacing” "
+               "and he answered “we knew that”. The invoice quoted \"four hundred\" "
+               "and nobody argued the point. " + _PAD)
+_h_q, _, _, _ = run_analyze("quote_seam", _quote_seam)
+check("quote_style_fires_on_seam", "quote_style" in cats(_h_q),
+      "one straight quote among eight curly ones is a paste seam")
+_h_q_ok, _, _, _ = run_analyze(
+    "quote_balanced",
+    "She said “yes” and the config key is \"retries\" in the file. " + _PAD)
+check("quote_style_spares_small_mix", "quote_style" not in cats(_h_q_ok),
+      "quoted code beside quoted speech is a genuine mix, not a seam")
+
+# Copula avoidance: stacked substitutes for "is", count- and density-gated.
+_avoid_text = ("The library serves as a bridge between the two systems. "
+               "It stands as a reference implementation for the protocol. "
+               "The runtime boasts a scheduler and a work-stealing queue. "
+               "The adapter functions as a thin wrapper over the socket. "
+               "The result represents the state of the pipeline at cutover. ")
+_h_av, _r_av, _, _ = run_analyze("copula_avoidance", _avoid_text + _PAD)
+check("copula_avoidance_fires", "copula_avoidance" in cats(_h_av),
+      "five elaborate copula substitutes should fire; got %s" % sorted(cats(_h_av)))
+check("copula_avoidance_reported", (_r_av.get("copula_avoidance_count") or 0) >= 5,
+      "count was %s" % _r_av.get("copula_avoidance_count"))
+_h_av1, _, _, _ = run_analyze(
+    "copula_avoidance_single",
+    "The adapter serves as a thin wrapper over the socket layer. " + _PAD)
+check("copula_avoidance_single_does_not_fire", "copula_avoidance" not in cats(_h_av1),
+      "one 'serves as' is ordinary English")
+
+# Contraction rate is measured and never scored. Scoring it would flag the
+# ESL/formal human corpus, which is the bias this skill exists to argue against.
+_h_c, _r_c, _, _ = run_analyze(
+    "contraction_diagnostic",
+    "We have completed the migration for fourteen services. It is ahead of "
+    "schedule. We will confirm the cutover window on Thursday. " + _PAD,
+    register="casual")
+check("contraction_rate_reported", "contractions_per_1k" in _r_c,
+      "the diagnostic must be in the metrics")
+check("contraction_rate_not_scored",
+      "contractions" not in dap.KNOWN_CATEGORIES
+      and "contraction_absence" not in dap.KNOWN_CATEGORIES,
+      "contraction absence must never become a scored category")
+
+# register_thresholds only ever widens a bar, and only for the named register.
+check("register_thresholds_present",
+      isinstance(dap.DEFAULTS.get("register_thresholds"), dict)
+      and "creative" in dap.DEFAULTS["register_thresholds"],
+      "register_thresholds missing from DEFAULTS")
+check("register_thresholds_are_multipliers",
+      all(isinstance(v, (int, float)) and v > 0
+          for reg in dap.DEFAULTS["register_thresholds"].values()
+          for v in reg.values()),
+      "multipliers must be positive numbers")
+check("register_thresholds_name_real_knobs",
+      all(k in dap.DEFAULTS["thresholds"]
+          for reg in dap.DEFAULTS["register_thresholds"].values() for k in reg),
+      "a multiplier names a threshold that does not exist")
+check("register_thresholds_name_real_registers",
+      all(r in dap.REGISTERS for r in dap.DEFAULTS["register_thresholds"]),
+      "a multiplier names a register that does not exist")
+
+
+# ---------------------------------------------------------------------------
+# v0.8: the stylometric delta (reported, never scored, read inverted)
+# ---------------------------------------------------------------------------
+
+from human_voice_linter import stylometry as _sty  # noqa: E402
+
+_prof = _sty.load_profile()
+check("stylometry_profile_loads", isinstance(_prof, dict) and _prof.get("features"),
+      "the committed human_reference_profile.json failed to load")
+if _prof:
+    check("stylometry_profile_wellformed",
+          len(_prof["features"]) == len(_prof["mean"]) == len(_prof["stdev"])
+          and all(v > 0 for v in _prof["stdev"]),
+          "profile vectors are ragged or carry a zero stdev")
+    check("stylometry_profile_has_human_range",
+          all(isinstance(_prof.get(k), (int, float))
+              for k in ("human_delta_min", "human_delta_median", "human_delta_max")),
+          "the profile must ship the human range it was built from")
+
+_, _r_sty, _, _ = run_analyze(
+    "stylometry_metric",
+    "The team shipped the change on Tuesday and watched the graphs closely. "
+    "Nothing moved for an hour. Then the queue drained and the alarms cleared. "
+    "We rolled the second batch at noon without touching the config. " * 4)
+check("stylometry_delta_reported", isinstance(_r_sty.get("stylometric_delta"), float),
+      "stylometric_delta missing from the metrics")
+check("stylometry_never_scored",
+      "stylometry" not in dap.KNOWN_CATEGORIES
+      and "stylometric_delta" not in dap.KNOWN_CATEGORIES,
+      "the delta must never become a scored category")
+
+# Too short to estimate frequencies: the metric is absent, not zero.
+_, _r_short, _, _ = run_analyze("stylometry_short", "It broke. We fixed it.")
+check("stylometry_absent_when_too_short",
+      _r_short.get("stylometric_delta") is None,
+      "a 5-word note cannot carry a function-word profile")
+
+# A missing or malformed profile must degrade to silence, never to an exception.
+check("stylometry_missing_profile_is_silent",
+      _sty.load_profile("/nonexistent/profile.json") is None
+      and _sty.delta("word " * 200, None) is not None,
+      "a bad profile path must return None rather than raise")
+_bad = {"features": ["the"], "mean": [0.1], "stdev": [0.0]}
+check("stylometry_survives_zero_stdev",
+      isinstance(_sty.delta("the the the " * 100, _bad), float),
+      "a zero stdev in a caller-supplied profile must not divide by zero")
 
 
 # ---------------------------------------------------------------------------

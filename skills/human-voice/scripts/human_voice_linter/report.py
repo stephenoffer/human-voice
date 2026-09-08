@@ -50,7 +50,20 @@ def render_text(target, register, dialect, hits, report, word_count, floor_score
     out.append("syntax:  clefts %s   ',VERBing' tails %s   copula/1k %s   passive/1k %s" % (
         _m("cleft_count"), _m("participial_tail_count"), _m("copula_per_1k"),
         _m("passive_per_1k")))
-    out.append("lexicon: TTR %s   Yule's K %s" % (_m("ttr"), _m("yules_k")))
+    out.append("lexicon: TTR %s   Yule's K %s   copula-avoid/1k %s" % (
+        _m("ttr"), _m("yules_k"), _m("copula_avoidance_per_1k")))
+    # Reported, never scored: see checks.report_contraction_rate. A conversational
+    # register with a contraction rate near zero reads stiff and is worth telling
+    # the writer about; scoring it would flag careful non-native writers, which is
+    # the exact failure this skill argues detectors make.
+    out.append("voice:   contractions/1k %s (diagnostic, unscored)   quotes %s curly / %s straight" % (
+        _m("contractions_per_1k"), _m("curly_quotes"), _m("straight_quotes")))
+    if report.get("stylometric_delta") is not None:
+        out.append("style:   function-word delta %s   (human range %s-%s, median %s)%s" % (
+            _m("stylometric_delta"), _m("human_delta_min"), _m("human_delta_max"),
+            _m("human_delta_median"),
+            "   <- flatter than any human sample; the profile has no fingerprint"
+            if report.get("stylometric_flat") else ""))
     out.append("detail:  %s specifics/100w (%s numbers, %s proper nouns)%s" % (
         _m("specifics_per_100"), _m("numbers"), _m("proper_nouns"),
         "   <- nothing checkable in here" if report.get("specifics_thin") else ""))

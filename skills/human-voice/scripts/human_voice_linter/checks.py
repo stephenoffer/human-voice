@@ -1344,8 +1344,15 @@ def report_specificity(prose_text, sents, words, report):
 
 # Wh-cleft ("What matters is X", "All you need is Y"): the sentence delays its
 # subject to stage the point. One is rhetoric; four in a page is a cadence.
+# Anchored at a clause boundary, not only a sentence boundary. Restricting this
+# to sentence-initial "What" missed the commonest form in narrative prose --
+# "But standing in the hallway, what she felt was mostly the practical weight"
+# -- which is the same construction one clause later. Comma-anchored matches
+# require the lowercase form so a mid-sentence proper "What" (a quoted question)
+# does not count.
 WH_CLEFT_RE = re.compile(
-    r"(?:^|(?<=[.!?])\s+|(?<=[:;])\s+)(?:What|All)\s+[^.?!\n]{3,60}?\s(?:is|was|are|were)\b")
+    r"(?:^|(?<=[.!?])\s+|(?<=[:;])\s+)(?:What|All)\s+[^.?!\n]{3,60}?\s(?:is|was|are|were)\b"
+    r"|(?<=,)\s+(?:what|all)\s+[^.?!\n]{3,60}?\s(?:is|was|are|were)\b")
 # Reversed wh-cleft ("The reason this works is that...", "The thing about X is").
 # Anchored to a sentence start, because mid-sentence the same words are ordinary
 # ("we fixed the problem and the answer was obvious" is not a cleft), and the gap
@@ -1603,6 +1610,215 @@ def check_noun_chains(prose_text, hits, report, lm, min_count=2):
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Paste artifacts: residue a model left in its own output.
+#
+# Every string here is a citation marker, tool-call wrapper, or unfilled template
+# slot that appears only because text came out of a chat product and went into a
+# document unread. Unlike every other check in this file, these are not stylistic
+# tendencies with a human range -- no writer types "oaicite" -- so one instance is
+# a finding rather than a whisper, and the category carries the weight to say so.
+# Catalogued by Wikipedia's WikiProject AI Cleanup across ChatGPT, Gemini, Grok,
+# DeepSeek and Perplexity output; see references/competitive-landscape.md.
+LLM_ARTIFACT_RES = (
+    (re.compile(r"\b(?:oaicite|contentReference|attributableIndex|citeturn\w*)\b"),
+     "ChatGPT citation residue: delete it"),
+    (re.compile(r"\bturn\d+(?:search|news|view|image)\d+\b"),
+     "ChatGPT tool-call residue: delete it"),
+    (re.compile(r"\[cite:\s*\d+\s*\]|\[span_\d+\]\(start_span\)|\(end_span\)"),
+     "Gemini citation residue: delete it"),
+    (re.compile(r"\bgrok_(?:card|render_citation_card_json)\b"),
+     "Grok render residue: delete it"),
+    (re.compile(r"\b(?:ppl-ai-file-upload|attached_file:)"),
+     "Perplexity upload residue: delete it"),
+    (re.compile(r":::writing\b"),
+     "model block marker: delete it"),
+    (re.compile(r"utm_source=(?:chatgpt|openai|perplexity)[\w.]*", re.I),
+     "tracking parameter added by the chat product: strip it from the URL"),
+    (re.compile(r"【[^】]{0,80}】"),
+     "lenticular-bracket citation residue: delete it"),
+    # Template slots only. A bare "[X]" or "[X, Y]" is mathematical and
+    # generic-parameter notation in real technical writing -- the Python stdlib
+    # docs in eval/human_baseline.py carry eleven of them -- so the pattern
+    # requires a form no equation produces: an explicit verb, a possessive, or a
+    # two-word slot name.
+    (re.compile(r"\[(?:INSERT[\w ]*|Insert\s+\w+|Your\s+\w+"
+                r"|(?:Company|Client|Product|Customer|Recipient|Sender|Full)\s+Name"
+                r"|Name\s+of\s+\w+|PLACEHOLDER\w*)[^\]\n]{0,40}\]"),
+     "unfilled template placeholder: fill it or cut the sentence"),
+)
+
+# Placeholders this skill deliberately emits (anti-hallucination protocol step 5)
+# are the author's to resolve, not residue to flag.
+_SANCTIONED_PLACEHOLDER = re.compile(
+    r"\[(?:SOURCE NEEDED|VERIFY|FIGURE\?|TODO|CITATION NEEDED)\]", re.I)
+
+
+_INLINE_CODE_RE = re.compile(r"`[^`\n]+`")
+
+
+def check_llm_artifact(text, hits, lm):
+    """Flag chat-product residue and unfilled placeholders. Precision check.
+
+    Runs on the code-stripped source rather than the reduced metric prose,
+    because two of these live inside a URL (`utm_source=chatgpt.com`) and the
+    metric text drops link targets. Backticked spans are skipped by hand instead,
+    so a document that *names* these strings -- this repo's own reference pages do
+    -- is not flagged for documenting them.
+    """
+    skip = [(m.start(), m.end()) for m in _INLINE_CODE_RE.finditer(text)]
+    for rx, suggestion in LLM_ARTIFACT_RES:
+        for m in rx.finditer(text):
+            frag = m.group(0)
+            if _SANCTIONED_PLACEHOLDER.fullmatch(frag):
+                continue
+            if any(a <= m.start() < b for a, b in skip):
+                continue
+            hits.append(_span_hit("llm_artifact", lm, m, frag.strip(), suggestion))
+            if len(hits) > MAX_INSTANCE_HITS * 4:
+                return
+
+
+# Copula avoidance: the elaborate substitute for "is". Present-tense third person
+# only, because "represented" and "featured" in a past-tense narrative are doing
+# ordinary work. "Serves as" and its family are the constructions the Wikipedia
+# AI-Cleanup corpus found rising as "is"/"are" fell.
+COPULA_AVOID_RE = re.compile(
+    r"\b(?:serves?|stands?|functions?|operates?|acts?)\s+as\b"
+    r"|\b(?:represents|embodies|exemplifies|encompasses|constitutes)\b"
+    r"|\b(?:boasts|features|offers|maintains|possesses)\s+(?:a|an|the|its|several|numerous|\d)",
+    re.IGNORECASE)
+
+
+def check_copula_avoidance(prose_text, words, threshold, hits, report, lm,
+                           min_count=3, min_words=150):
+    """The mirror of copula_density: reaching past 'is' on every definition.
+
+    One "serves as" is unremarkable. A document where nothing is allowed to
+    simply BE anything -- where each subject instead stands as, represents,
+    embodies or boasts -- has the register of a press release written to fill a
+    length, and it is the construction that replaced plain copulas in
+    post-2022 encyclopedic text. Count- and density-gated like every other
+    syntactic check here, because each phrase on its own is fine English.
+    """
+    matches = list(COPULA_AVOID_RE.finditer(prose_text))
+    count = len(matches)
+    per_1k = (count / words * 1000) if words else 0.0
+    report["copula_avoidance_count"] = count
+    report["copula_avoidance_per_1k"] = round(per_1k, 1)
+    if words < min_words or count < min_count or per_1k <= threshold:
+        return
+    for m in matches[:MAX_INSTANCE_HITS]:
+        hits.append(Hit("copula_avoidance", lm.line_of(m.start()), m.group(0).strip(),
+                        "use the plain copula, or a verb that does real work"))
+
+
+_HEADING_RE = re.compile(r"^(#{1,6})\s+(\S.*?)\s*$", re.M)
+_LIST_LINE_RE = re.compile(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)")
+
+
+def check_heading_structure(code_stripped, hits, report, lm):
+    """Markdown scaffolding a person does not produce by hand.
+
+    Four distinct faults, all of them artifacts of a model emitting an outline
+    rather than a writer building a document: heading levels that skip a rung
+    (## straight to ####), more than one H1 in a single file, a heading whose
+    entire body is the next heading, and a heading that runs straight into a
+    bullet list with no sentence in between. Each is individually minor; the
+    reason to score them is that a document with several has been assembled, not
+    written. Catalogued by Wikipedia's AI-Cleanup project as markup signs.
+    """
+    headings = [(m.start(), len(m.group(1)), m.group(2)) for m in _HEADING_RE.finditer(code_stripped)]
+    report["heading_count"] = len(headings)
+    if len(headings) < 2:
+        return
+    h1s = [h for h in headings if h[1] == 1]
+    if len(h1s) > 1:
+        hits.append(Hit("heading_structure", lm.line_of(h1s[1][0]),
+                        "%d level-1 headings in one document" % len(h1s),
+                        "one H1 per document; demote the rest"))
+    prev_level = headings[0][1]
+    for start, level, title in headings[1:]:
+        if level > prev_level + 1:
+            hits.append(Hit("heading_structure", lm.line_of(start),
+                            "heading level jumps %d -> %d at %r" % (prev_level, level, title[:40]),
+                            "use the next level down; do not skip a rung"))
+        prev_level = level
+    lines = code_stripped.split("\n")
+    heading_lines = {}
+    for m in _HEADING_RE.finditer(code_stripped):
+        heading_lines[code_stripped.count("\n", 0, m.start())] = m.group(2)
+    for idx, title in sorted(heading_lines.items()):
+        nxt = None
+        for j in range(idx + 1, min(idx + 4, len(lines))):
+            if lines[j].strip():
+                nxt = (j, lines[j])
+                break
+        if not nxt:
+            continue
+        j, body = nxt
+        if j in heading_lines:
+            hits.append(Hit("heading_structure", idx + 1,
+                            "heading %r contains only another heading" % title[:40],
+                            "merge the two, or write the section"))
+        elif _LIST_LINE_RE.match(body):
+            hits.append(Hit("heading_structure", idx + 1,
+                            "heading %r runs straight into a list" % title[:40],
+                            "put a sentence between the heading and the list"))
+
+
+_CURLY_RE = re.compile(r"[‘’“”]")
+_STRAIGHT_QUOTE_RE = re.compile(r"(?<![\w=])[\"'](?=\w)|(?<=\w)[\"'](?![\w=])")
+
+
+def check_quote_style(prose_text, hits, report, lm):
+    """Straight and curly quotes mixed in one document.
+
+    Either convention is fine held consistently, and a word processor produces
+    curly quotes throughout. A document carrying BOTH usually has a seam in it:
+    text that came out of a chat product (which emits curly) pasted beside text
+    someone typed (straight). Same logic as the dialect and heading-case checks
+    -- the tell is the inconsistency, not either style.
+    """
+    curly = list(_CURLY_RE.finditer(prose_text))
+    straight = list(_STRAIGHT_QUOTE_RE.finditer(prose_text))
+    report["curly_quotes"] = len(curly)
+    report["straight_quotes"] = len(straight)
+    if not curly or not straight:
+        return
+    total = len(curly) + len(straight)
+    minority = curly if len(curly) <= len(straight) else straight
+    # A seam is a lopsided mix in a document with enough quotes to judge. Two of
+    # each is a document that quotes code beside quoted speech, not a paste.
+    if total < 6 or len(minority) * 4 > total:
+        return
+    for m in minority[:6]:
+        hits.append(Hit("quote_style", lm.line_of(m.start()), m.group(0),
+                        "hold one quote convention through the document"))
+
+
+CONTRACTION_RE = re.compile(r"\b\w+['’](?:t|s|re|ve|ll|d|m)\b", re.IGNORECASE)
+
+
+def report_contraction_rate(prose_text, words, report):
+    """Reported, never scored. See references/competitive-landscape.md.
+
+    Contraction rate is the single most discriminative surface feature in the
+    published humanizer literature (AI ~0.00 per chunk against ~0.17 for human)
+    and it is measured here for the writer's benefit: marketing copy with zero
+    contractions reads stiff, and that is worth knowing. It is deliberately NOT
+    a scored category. On this repo's own corpus a contraction-absence check
+    gated to the conversational registers fires on four of the ten ESL/formal
+    files -- careful non-native writers who use no contractions and are human.
+    Scoring it would reproduce exactly the bias Liang et al. (2023) measured in
+    commercial detectors, in a tool whose whole argument is that those detectors
+    are wrong about that population.
+    """
+    count = len(CONTRACTION_RE.findall(prose_text))
+    report["contractions"] = count
+    report["contractions_per_1k"] = round((count / words * 1000) if words else 0.0, 1)
+
+
 __all__ = [
     'CITATION_NEAR_RE',
     'MAX_INSTANCE_HITS',
@@ -1703,6 +1919,14 @@ __all__ = [
     'check_cleft',
     'PARTICIPIAL_TAIL_RE',
     'check_participial_tail',
+    'LLM_ARTIFACT_RES',
+    'check_llm_artifact',
+    'COPULA_AVOID_RE',
+    'check_copula_avoidance',
+    'check_heading_structure',
+    'check_quote_style',
+    'CONTRACTION_RE',
+    'report_contraction_rate',
     'COPULA_RE',
     'check_copula_density',
     'SPLICE_RE',

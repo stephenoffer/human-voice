@@ -35,7 +35,9 @@ It draws on the same ideas as the public linters (proselint, write-good, Vale)
 but goes past them on shape, substance, stance, and consistency, which no word
 list catches. Note that banned-word lists age: "delve" spiked after ChatGPT then
 faded once writers learned to avoid it, so treat the lexical checks as a floor,
-never as proof.
+never as proof. What the rest of the field does, which of their techniques were
+adopted after measurement, and which were tested and thrown out:
+[`references/competitive-landscape.md`](references/competitive-landscape.md).
 
 ## What detectors actually see
 
@@ -157,6 +159,35 @@ rationale and the weight tiers: [`references/cited-vs-matched.md`](references/ci
    detector is ground truth in either direction, all carry real false-positive rates,
    and the skeptical human read is still the test that matters.
 
+## Scope and persistence
+
+Once this skill is invoked it governs prose for the rest of the session, not only
+the file in front of you. The rules do not expire after a turn or two, and they
+do not lapse when the topic changes. If you are unsure whether they still apply,
+they do.
+
+That matters more here than it looks. Most of the damage does not come from a bad
+rewrite. It comes from a good one handed back inside a paragraph of
+chat-assistant prose, or from a second document drafted an hour later in the
+default voice because nobody thought to say "humanize" twice.
+
+So the scope is everything you write while the skill is on. The artifact is the
+obvious case. The response carrying it is the one people miss: no "Great
+question", no "I've now rewritten your document to remove several AI tells", no
+"Let me know if you'd like me to adjust anything". Open on the finding. Stop when
+the finding is done. A pass that strips sycophancy out of a report and then hands
+it over with "Hope this helps!" has taught the reader nothing. The same rule
+reaches commit messages, PR descriptions, issue comments and the doc comments you
+leave in code, and it holds for every later draft until the user turns it off.
+
+They turn it off by saying so: "stop human-voice", "normal voice", "drop the
+voice rules". Confirm in one line, then go back to your default style.
+
+Two things stay on either way, because they were never stylistic. Never fabricate
+(principle 3). Never alter an invariant (Invariant guard). Those are honesty
+rules wearing a style skill's clothes, and switching off the voice does not
+switch them off.
+
 ## Modes
 
 Parse `$ARGUMENTS` for a mode token and an optional `register:` token. Parsing is
@@ -197,6 +228,40 @@ any file.
 
 Default `register` is inferred from the content (see Register profiles); if
 genuinely ambiguous and it changes the voice materially, ask one short question.
+
+## Pick the depth of the pass
+
+The procedure below runs eleven steps, plus an intake, a three-angle critique and
+a detector gate. Spend all of that on a two-line Slack message and you have spent
+more than the message is worth, which in practice means the skill gets skipped
+entirely the next time it would have helped. Use the fewest steps that still fix
+the text. A short pass finished beats a full pass abandoned.
+
+Pick the depth by what it costs if a reader decides a machine wrote this.
+
+**Quick**: a chat reply, a Slack message, a code comment, a commit message.
+Roughly under 150 words. Strip the assistant shape, cut the vacuity, fix diction
+on the way past. No intake, no linter, no audit. Report in one line or not at all.
+
+**Standard**: an email, an internal doc, a README section, release notes;
+nothing a stranger will judge the author by. Intake from material already in the
+draft and the surrounding context, without stopping to ask. Full rewrite
+procedure, one self-critique pass, linter if it is there. Audit trimmed to the
+score, the word delta, and the categories you actually touched.
+
+**Full**: anything published, customer-facing, graded, or submitted.
+Anything where being taken for AI carries a real cost. Everything: intake including
+questions to the user, the rewrite procedure, the three-angle critique scored to
+the 0–2 bar, the concrete targets, the hallucination diff, the detector gate, the
+complete audit.
+
+When the depth is genuinely unclear, ask, or go one level up. Guessing low on a
+landing page is the expensive mistake. Guessing high on a Slack message costs a
+little time.
+
+Depth changes how much you run, never how strictly you run it. The invariant
+guard and the anti-hallucination protocol apply at every level, and a gap gets
+marked rather than filled whether or not there is an audit to list it in.
 
 ## Register profiles
 
@@ -246,6 +311,19 @@ Two rules that survive every register: **never fabricate** (no invented facts,
 stats, anecdotes, or quotes to sound human, principle 3) and **match, don't
 fake** (don't bolt slang onto a report or stiff formality onto a blog post).
 
+**A register is never exempt from a check, only more tolerant of it.** Where a
+genre legitimately runs hot on a construction, the linter widens the bar rather
+than switching the check off (`register_thresholds`). Creative prose gets 1.3x
+the cleft rate before `cleft` fires, not an exemption, because the exemption was
+letting fiction stack the construction at any rate and score zero.
+
+Two tells to watch by eye in `creative`, where the linter deliberately stays
+quiet: the **comma-anchored analogy tail** (", the way snow lies on a road nobody
+drives") and the **negated definition** (a coffee he did not want, a name that was
+not his). Both separate cleanly on this repo's corpus and neither is scored,
+because each is also ordinary fiction and firing on one instance is what principle
+2 forbids. Reasoning: [`references/competitive-landscape.md`](references/competitive-landscape.md).
+
 ## Top tells, in order of how loud they are
 
 Tiered, because a flat list of forty prohibitions gives no priority signal and
@@ -282,6 +360,14 @@ rewrite.
 - **Rule of three everywhere** ("fast, reliable, and scalable"; also the
   noun-phrase kind, "encryption at rest, row-level access control, and audit
   logging") → vary to two or four, or a sentence.
+- **Paste residue** (`oaicite`, `turn0search3`, `[cite: 4]`, `grok_render_...`,
+  `utm_source=chatgpt.com` on a link, an unfilled `[Your Name]`) → delete it.
+  These are the only tells here that are proof rather than evidence: no writer
+  types them, and they mean the text went from a chat window into a document
+  unread. Linter: `llm_artifact`.
+- **Assembled heading trees** (a level skipped, a second H1, a heading whose whole
+  body is the next heading, a heading running straight into a bullet list) →
+  write the section, or merge the headings. Linter: `heading_structure`.
 - **The "second dialect"**: what's left after the obvious slop is gone: a uniform
   ", and" splice rhythm, stacked "[noun] is [noun]" copulas, "[thing] lives in
   [place]" locatives. Trade the slop signature for a *voice*, not a tidier
@@ -304,6 +390,11 @@ stacking, never the single instance**, and that is how the linter gates them.
   slips the claim past unexamined, so cutting it usually improves the argument
   and not just the rhythm. Split it into its own sentence or drop it. Linter:
   `participial_tail`.
+- **Copula avoidance**: the opposite failure, and the newer one. Nothing is
+  allowed simply to *be* anything, so each subject instead *serves as*, *stands
+  as*, *functions as*, *represents*, *embodies* or *boasts*. Wikipedia's
+  AI-Cleanup corpus measured "is" and "are" falling more than 10% after 2022 while
+  these rose. Say what the thing is. Linter: `copula_avoidance`.
 - **Copula density**: everything simply *is*. X is Y, Y is important, the result
   is Z. A paragraph where nothing happens reads as a glossary read aloud, and it
   correlates with the vacuity in Tier 2. Give the sentences verbs that do work.
@@ -377,7 +468,9 @@ an -ing verb (`bullet_openers`). Both are templating a reader sees while skimmin
   strips decorative emoji outside `creative`/`casual`.)
 - **Doubled words** ("the the") → cut the duplicate; it's an editing typo.
 - **Punctuation mechanics** → no space before `,;:!?`; one terminal mark; one
-  quote and ellipsis style throughout.
+  quote and ellipsis style throughout. Curly quotes mixed lopsidedly with straight
+  ones usually marks the seam where pasted output meets typed text. Linter:
+  `quote_style`.
 - **N-gram repetition** → vary repeated bigrams and repeated sentence openers.
 
 ### The costume is not the fix
@@ -684,6 +777,9 @@ that is the marketing-specific failure mode. Worked rules and examples:
   varying the replacement mark so the rhythm doesn't flatten.
 - **Do** keep purposeful structure the document wants: callout tiers, scannable
   lists, code-comment density (see [`STYLE-GUIDE.md`](STYLE-GUIDE.md)).
+- **Do** widen a bar for a register rather than muting the check
+  (`register_thresholds` in the pattern file). Muting throws away the signal above
+  the register's genuine tolerance along with the false positives below it.
 - **Don't** ban a token globally; that just trades one signature for another.
   Target *patterns in excess* (false agency, the Wh-opener run, three same-length
   fragments), not a category to zero. The newer structural checks fire on
@@ -699,10 +795,52 @@ that is the marketing-specific failure mode. Worked rules and examples:
   the old tell. See [`references/over-correction.md`](references/over-correction.md).
 - **Don't** cut precision a technical doc needs in the name of "plain language".
 
+These guardrails cover a rule applied too hard. For the cases where a rule should
+not have applied at all, see When a rule fights the task, immediately below.
+
+## When a rule fights the task
+
+Every rule here has a case that beats it. When one does, the constraint wins and
+the rest of the shape stays. You relax the single rule in the way, not the skill.
+
+1. **Structure the genre actually requires.** An API reference wants a heading
+   per endpoint. A runbook wants numbered steps. Release notes are a bulleted
+   list by definition and a comparison is a table. What Tier 1 targets is
+   *assistant* shape: the heading every eighty words chopping up a continuous
+   argument, the bold on every noun, the "Key takeaways" close. Structure that
+   carries information stays. Strip the structure that only decorates.
+2. **The user asked for something else.** Translation, summarization, a
+   grammar-only fix, a factual check. Do the job that was asked for. Offer the
+   voice pass afterward if it would help, but never fold it in unannounced: a
+   rewrite hidden inside a translation is a change the user cannot see and did
+   not approve.
+3. **Fidelity beats rhythm.** If the only way to hit the short-sentence ratio is
+   to drop a caveat or round a number, the number wins and the ratio goes unhit.
+   Say so in the audit. Principle 3 outranks every metric in this file, because
+   the metrics are proxies for the thing rather than the thing.
+4. **Required hedging is not hedging.** A safety warning, a legal notice, a
+   clinical statement, a disclosure with regulatory wording: there the qualifier
+   carries the meaning. "May cause drowsiness" is precise. "Causes drowsiness" is
+   a false claim, not a braver sentence. The same protection covers quoted
+   passages, defined terms of art, and any house style guide the author is
+   contractually stuck with.
+5. **Genuine ambiguity about register.** One short question beats guessing and
+   rewriting twice. Ask it once, then commit.
+6. **A change that is hard to undo.** Editing a file in place, touching what git
+   does not track, rewriting a doc someone else owns. Confirm first, or leave a
+   `.bak`. Recoverability outranks finishing in one turn.
+7. **The harness outranks the skill.** A system prompt, a project CLAUDE.md, or a
+   style guide the repo enforces beats this file wherever they collide. Same
+   principle as 1: the constraint wins, the shape stays.
+
+None of these licenses a quiet return to the default voice. Each scopes one rule,
+in one place, for a reason you can state, and the reason belongs in the audit.
+
 ## Workflow
 
 1. **Resolve input.** File-path vs pasted-text vs brief; pick `fix` or
-   `generate`; infer `register`.
+   `generate`; infer `register`. Set the depth here too (Pick the depth of the
+   pass): quick, standard, or full. Steps 3, 6 and 7 are the ones that scale down.
 2. **Author-material intake** (above), before you subtract anything.
 3. **Baseline lint** (skip for `generate`'s first draft):
    ```bash
@@ -726,7 +864,18 @@ that is the marketing-specific failure mode. Worked rules and examples:
    Read the metrics lines, not just the score: `short_sentence_ratio`,
    `mid_band_ratio`, `burstiness CoV`, `headings_per_1k`, `bullet_line_ratio`, and
    the `syntax:` line (cleft count, `,VERBing` tail count, copula per 1k) are the
-   numbers the self-critique targets. `specifics_per_100` is a diagnostic, not a
+   numbers the self-critique targets. Two lines are **diagnostics, never targets**.
+   The `voice:` line reports contractions per 1,000 words: a marketing page at zero
+   reads stiff and is worth fixing, but the same measurement scored as a tell flags
+   careful non-native writers, which is the bias this skill exists to argue against.
+   The `style:` line reports a Burrows's Delta against a committed human
+   function-word profile, and it is **read in the inverted direction**: a *low*
+   delta is the suspicious one, because a model writes near the centroid of the
+   human population while an individual writer departs from it. Below the human
+   minimum the linter says so. Anything inside the range says nothing, and the
+   value is far more useful across a pair than on one document, so use
+   `--baseline`, which prints the movement and which way it went. Full
+   measurements: [`references/competitive-landscape.md`](references/competitive-landscape.md). `specifics_per_100` is a diagnostic, not a
    tell: when it is near zero the draft contains nothing a reader could check, so the
    author-material intake is mandatory rather than optional, because cutting tells
    from a document with no material in it just yields clean generic prose. Quote the before/after score in the
@@ -790,6 +939,38 @@ that is the marketing-specific failure mode. Worked rules and examples:
    the rewrite. Always print the Humanization Audit.
 9. **Confirm invariants** with a diff (`git diff`, or a before/after of numbers,
    code, links).
+10. **Pre-return check** (below) on the response itself, then send.
+
+## Pre-return check
+
+The last gate before anything leaves. The self-critique loop judges the prose;
+this one judges the handoff.
+
+Delete from your response every time:
+
+1. The first sentence, if it announces what you are about to do or compliments
+   the request.
+2. The last sentence, if it recaps what just happened or asks whether there is
+   anything else.
+3. Any sidebar opening "by the way" or "as a side note".
+4. Any hedging adverb carrying no information ("perhaps", "it might be worth").
+   Keep the hedge that names real uncertainty, because cutting that one
+   manufactures confidence, and false confidence is the worse failure.
+
+Then confirm four things. Where one fails, fix it rather than caveat it:
+
+- **Nothing was invented.** Every specific traces back to the draft, the
+  surrounding context, or the user. Gaps are marked, never filled.
+- Invariants survived: numbers, code, links, claims.
+- **The audit names its residual risk**, or says "none". "Some tells may remain"
+  tells a reader nothing they had not already assumed, and vagueness of exactly
+  that kind is what this skill exists to delete.
+- The gate is reported as it ran: clear, flagged, or not run. Exit 2 never
+  gets written up as a pass.
+
+When the linter could not run or the detector was unreachable, give the cause and
+what you did instead, in one line. No "Uh oh", no apology, no hedging around it.
+The tone that suits a broken tool is the tone that suits everything else here.
 
 ## Output templates
 
@@ -797,6 +978,7 @@ that is the marketing-specific failure mode. Worked rules and examples:
 ```text
 ## Humanization Audit: <file or "pasted text">
 Register: <technical|business|marketing|academic|casual|creative|email|release_notes|ux_microcopy|tutorial>
+Depth: <quick|standard|full>   (what was run; a quick pass is shorter, not looser)
 Score: <before> → <after> [<band>]  (linter floor; not ground truth)
 Words: <before> → <after>  (−NN%)
 Passes run: <n>/3
@@ -804,6 +986,7 @@ Passes run: <n>/3
 Shape:  headings/1k <before> → <after>   bullet-line ratio <before> → <after>
 Rhythm: short-sentence ratio <before> → <after>   mid-band <before> → <after>   CoV <before> → <after>
 Syntax: clefts <before> → <after>   ",VERBing" tails <before> → <after>   copula/1k <before> → <after>
+Style:  function-word delta <before> → <after>  (human median <m>; diagnostic, unscored, read inverted)
 
 Tells removed (by category):
 - Shape:       <n>  e.g. cut 4 headings, un-bulleted 2 lists, dropped the recap
@@ -824,8 +1007,15 @@ Detector gate: <clear|flagged|not run>  p(AI) <before> → <after>  (<detector>,
 Dimension scores (0–2): Shape _ · Substance _ · Rhythm _ · Stance _ · Consistency _ · Sourcing _ · Diction _ · Register _
 Invariants preserved: numbers ✓  code ✓  links ✓  claims ✓  PII-safe ✓  (claim diff: +0 added / 0 strengthened / 0 weakened / 0 dropped)
 Placeholders left for author: <list of [SOURCE NEEDED]/[VERIFY], or "none">
+Rules relaxed: <which rule, where, and why, or "none">  (see When a rule fights the task)
 Residual risk: <why a skeptical human might still flag this, or "none">
+Next: <one thing the author does now, or "nothing; this is ready to ship">
 ```
+
+The `Next:` line is one action, not a menu. Usually it is filling a placeholder
+("supply the p99 number in para 3"), answering an intake question the draft still
+needs, or nothing at all. "Let me know if you'd like any changes" is not a next
+action and does not go there.
 
 ### Rewrite (pasted-text mode)
 ```text
@@ -835,3 +1025,7 @@ Residual risk: <why a skeptical human might still flag this, or "none">
 
 For `generate`, skip the "removed" counts (there is no before); report the final
 score, the register, and confirm no fabricated specifics were introduced.
+
+At `quick` depth the audit collapses to one line, or disappears. A Slack message
+does not need a report card. `Depth`, `Rules relaxed` and `Residual risk` are the
+lines that still earn their place at `standard`.

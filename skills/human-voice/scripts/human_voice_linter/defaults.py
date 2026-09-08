@@ -63,6 +63,27 @@ DEFAULTS: dict = {
         "mid_band_low": 12,
         "mid_band_high": 26,
         "short_sentence_max_words": 8,
+        # Copula AVOIDANCE, the mirror image of copula_per_1k. Where 2023-era
+        # prose over-used "is", current models reach for an elaborate substitute
+        # ("serves as", "stands as", "represents", "boasts") to dodge it; the
+        # Wikipedia AI-Cleanup corpus measured a >10% drop in "is"/"are" after
+        # 2022 alongside a rise in these. Measured on this repo's corpus: 0.8
+        # per 1k in the human class (max 7.0), 4.0 in the caricature class, so
+        # the bar sits above every human sample measured here.
+        "copula_avoidance_per_1k": 8.0,
+    },
+    # Per-register threshold multipliers. A register that legitimately runs hot
+    # on one construction used to be handled by MUTING the check outright, which
+    # threw away the signal along with the false positives: creative prose with
+    # `cleft_ok` muted meant a fiction sample could stack ten clefts per 1,000
+    # words and score zero, and two of the three files the floor missed on the
+    # modern-AI class were exactly that. A multiplier says "fiction tolerates
+    # twice the rate" instead of "fiction is exempt", which is what the corpus
+    # actually shows: the human creative samples here carry zero clefts.
+    "register_thresholds": {
+        "creative": {"cleft_per_1k": 1.3, "clause_splice_per_1k": 1.6},
+        "academic": {"passive_per_1k": 1.5, "nominalization_per_1k": 1.4},
+        "casual": {"clause_splice_per_1k": 1.4},
     },
     # How the floor score is assembled. See score.score for why document-level
     # findings cannot share a per-1000-word denominator with instance findings.
@@ -158,6 +179,22 @@ DEFAULTS: dict = {
         "paragraph_openers": 1.5,
         "bullet_openers": 1.0,
         "noun_chain": 0.5,
+        # Tier A, and the highest-precision check in the file. These are strings
+        # no writer types: citation and tool-call residue left in pasted model
+        # output (oaicite, turn0search0, [cite: 1], grok_render_citation_card_json)
+        # and unfilled template placeholders ("[Your Name]"). One hit is proof,
+        # not a whisper, so the weight matches self_identifying.
+        "llm_artifact": 4.0,
+        # The copula-avoidance mirror of copula_density (see thresholds).
+        "copula_avoidance": 1.0,
+        # Markdown scaffolding a person does not produce by hand: skipped heading
+        # levels, several H1s in one document, a heading whose entire body is
+        # another heading, a heading followed straight into a bullet list with no
+        # sentence between them.
+        "heading_structure": 1.0,
+        # Straight and curly quotes mixed in one document: the seam where model
+        # output (curly) was pasted into hand-written text (straight).
+        "quote_style": 0.5,
     },
     # Verdict bands (upper-exclusive): score < 5 reads clean, < 15 worth a look,
     # otherwise a strong floor signal. The top band is open-ended.

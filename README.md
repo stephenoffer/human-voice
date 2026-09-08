@@ -165,6 +165,22 @@ and invoke `/human-voice`.
   rather than guessing a permissive profile that would excuse real tells. An explicit
   `--register` always wins.
 
+The skill sizes its own effort. A commit message gets a quick pass with no audit;
+a landing page gets the intake, the scored critique and the detector gate. Depth
+changes how much runs, never how strictly: the invariant guard and the
+no-fabrication rule hold at every level.
+
+It also stays on. Once invoked it shapes everything you write for the rest of the
+session, including the reply that hands the rewrite back, until you say "stop
+human-voice" or "normal voice". That is deliberate. The usual way a humanized
+document loses its voice is the next document, drafted an hour later, in the
+default one.
+
+Rules that fight the task lose to the task. An API reference keeps its headings
+and a safety notice keeps "may"; the skill relaxes the rule in the way, names it
+in the audit, and holds the rest. See "When a rule fights the task" in
+[`SKILL.md`](skills/human-voice/SKILL.md).
+
 Run it on its own anytime:
 
 ```bash
@@ -318,6 +334,34 @@ lose the thing the metric was measuring.
 human-voice does none of it, on purpose. It has no bypass rate to quote. What it
 has is a measured claim: it makes prose read as though a competent person wrote
 it, which is the only durable version of the same goal.
+
+### The full survey
+
+About a hundred tools and papers were reviewed in September 2026: the humanizer
+market, the open-source anti-slop projects, the prose linters, the editing
+suites, the detectors, the stylometry literature, and Wikipedia's
+[Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing)
+catalog. What each contributes, what was adopted and measured, what was tested
+and thrown out, and where this skill is still behind:
+[`references/competitive-landscape.md`](skills/human-voice/references/competitive-landscape.md).
+
+The most useful part is the rejections. Contraction absence is the widest single
+signal in the published research and it replicates here at nine to one, and it is
+deliberately not scored, because gated to the conversational registers it fires on
+four of the ten careful non-native writers in the corpus. ProWritingAid's glue
+index shows no separation at all on this corpus. Both are reported as diagnostics
+or dropped rather than folded into a score.
+
+The most surprising result is about stylometry. Function-word distance from a
+human reference profile is the standard technique, and on this corpus it runs
+**backwards**: the human class averages 0.769 and current model output 0.690, so
+the machines sit *closer* to the human centroid than the humans do. A reference
+profile built from thirty authors is the centroid of thirty idiosyncrasies, and a
+model writes the centroid. The tell is the absence of distance. It ships as an
+unscored `style:` diagnostic, read inverted, and it is the only number here that
+shows the rewrite procedure moving a distributional property rather than a surface
+one: the twenty rewritten files move 0.690 to 0.739 and land closer to the human
+median in 16 of 20 cases.
 
 ## FAQ
 
