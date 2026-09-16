@@ -1,6 +1,6 @@
 # How human-voice compares
 
-[README](../README.md) · [Install](install.md) · [Usage](usage.md) · [Why it works](evidence.md) · [Comparison](comparison.md)
+[Docs home](README.md) · [Getting started](getting-started.md) · [Install](install.md) · [Usage](usage.md) · [Examples](examples.md) · [Evidence](evidence.md) · **Comparison**
 
 Three different markets get confused with each other. Here is where this sits in
 each.

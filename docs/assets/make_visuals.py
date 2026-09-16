@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate the README graphics from the repository's own data.
+"""Regenerate the README graphics, and the examples table, from the repository's own data.
 
 Every number in a chart is read from the source it describes: sentence lengths
 from the shipped example pair, scores from eval/results.json, detector counts
@@ -9,8 +9,8 @@ rerunning this rebuilds it from the committed results.
     python3 docs/assets/make_visuals.py
     python3 docs/assets/make_visuals.py --check   # exit 1 if a committed chart is stale
 
-Writes a light and a dark variant of each SVG next to this file. Standard
-library only.
+Writes a light and a dark variant of each SVG next to this file, and rewrites the
+score table in docs/examples.md between its marker comments. Standard library only.
 """
 from __future__ import annotations
 
@@ -32,10 +32,10 @@ MONO = "ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace"
 
 THEMES = {
     "light": {"ink": "#1F2328", "muted": "#59636E", "faint": "#D1D9E0", "card": "#F6F8FA",
-              "edge": "#E1E6EB", "machine": "#A5AEB8", "human": "#E8590C", "human_soft": "#FFF1E8",
+              "edge": "#E1E6EB", "machine": "#A5AEB8", "human": "#4F46E5", "human_soft": "#EEF0FF",
               "band": "#EDF0F3", "ok": "#1A7F37", "on_accent": "#FFFFFF"},
     "dark": {"ink": "#E6EDF3", "muted": "#9198A1", "faint": "#3D444D", "card": "#151B23",
-             "edge": "#262C36", "machine": "#5D6570", "human": "#FF8A3D", "human_soft": "#2B1D14",
+             "edge": "#262C36", "machine": "#5D6570", "human": "#8B93FF", "human_soft": "#1D1C45",
              "band": "#1C222A", "ok": "#3FB950", "on_accent": "#0D1117"},
 }
 
@@ -321,6 +321,64 @@ def everywhere(t):
     return svg(W, H, body, "human-voice runs in coding agents, model APIs, MCP clients and chat apps")
 
 
+# ---------------------------------------------------------------------------
+# Examples gallery: live scores for every shipped pair, never typed by hand.
+# ---------------------------------------------------------------------------
+
+EXAMPLES_DOC = os.path.join(ROOT, "docs", "examples.md")
+TABLE_START, TABLE_END = "<!-- examples-table:start -->", "<!-- examples-table:end -->"
+# (stem, register, what the pair shows, annotation file or None)
+PAIRS = (
+    ("modern-ai", "technical", "Fluent prose a current model writes, with no filler at all",
+     "modern-ai-notes.md"),
+    ("syntax-signature", "technical", "No filler, no em-dashes; machine-made through its grammar",
+     "syntax-signature-notes.md"),
+    ("architecture", "technical", "A design doc whose plan gives it away", "architecture-notes.md"),
+    ("", "technical", "2023-era slop in a technical report", "annotated-walkthrough.md"),
+    ("marketing", "marketing", "Puffery, hype and fake attribution on a landing page", None),
+    ("email", "email", "Jargon, padding and a buried ask", None),
+    ("academic", "academic", "Vague attribution, stacked hedges, no commitment", None),
+    ("casual", "casual", "Listicle padding and meta-commentary in a blog post", None),
+    ("cliche-metaphor", "business", "Metaphor frames doing the work of concrete language", None),
+    ("over-corrected", "technical", "The anti-AI costume: forced lowercase, slang, fragments", None),
+)
+
+
+TITLES = {"modern-ai": "Modern AI", "syntax-signature": "Syntax signature",
+          "architecture": "Design doc", "": "Technical report", "marketing": "Landing page",
+          "email": "Email", "academic": "Academic", "casual": "Blog post",
+          "cliche-metaphor": "Cliché metaphors", "over-corrected": "Over-corrected"}
+
+
+def examples_table():
+    ex = os.path.join(ROOT, "skills", "human-voice", "examples")
+    patterns = L.load_patterns()
+    link = "../skills/human-voice/examples/"
+    rows = ["| Pair | Register | Before | After | What it shows |", "|---|---|--:|--:|---|"]
+    for stem, register, what, notes in PAIRS:
+        names = [("%s-%s.md" % (stem, half)) if stem else "%s.md" % half
+                 for half in ("before", "after")]
+        scores = []
+        for name in names:
+            with open(os.path.join(ex, name), encoding="utf-8") as fh:
+                res = L.lint(fh.read(), register, None, patterns)
+            scores.append("%.1f" % res["score"])
+        title = TITLES.get(stem, stem.replace("-", " "))
+        cell = "[%s](%s%s) → [after](%s%s)" % (title, link, names[0], link, names[1])
+        if notes:
+            cell += " · [notes](%s%s)" % (link, notes)
+        rows.append("| %s | `%s` | %s | %s | %s |" % (cell, register, scores[0], scores[1], what))
+    return "\n".join(rows)
+
+
+def render_examples_doc():
+    with open(EXAMPLES_DOC, encoding="utf-8") as fh:
+        doc = fh.read()
+    head, rest = doc.split(TABLE_START, 1)
+    _, tail = rest.split(TABLE_END, 1)
+    return "%s%s\n%s\n%s%s" % (head, TABLE_START, examples_table(), TABLE_END, tail)
+
+
 def main(argv=None):
     check = "--check" in (sys.argv[1:] if argv is None else argv)
     stale = []
@@ -341,6 +399,16 @@ def main(argv=None):
             with open(path, "w", encoding="utf-8") as fh:
                 fh.write(content)
             print(rel)
+    rel = os.path.relpath(EXAMPLES_DOC, ROOT)
+    content = render_examples_doc()
+    if check:
+        with open(EXAMPLES_DOC, encoding="utf-8") as fh:
+            if fh.read() != content:
+                stale.append(rel)
+    else:
+        with open(EXAMPLES_DOC, "w", encoding="utf-8") as fh:
+            fh.write(content)
+        print(rel)
     if stale:
         print("stale charts (run python3 docs/assets/make_visuals.py):\n  " + "\n  ".join(stale))
         return 1

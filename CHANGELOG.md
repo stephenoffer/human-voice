@@ -6,6 +6,17 @@ track `.claude-plugin/plugin.json`.
 
 ## [0.9.0]
 
+### Docs you can start from
+
+The README leads with the evidence now: before and after side by side, the rhythm
+chart, the comparison table and a three-path quick start. The detail moved into
+`docs/`, which has a getting-started guide (an agent, an API key, or a CI gate
+with a GitHub Actions workflow that annotates pull requests), a reorganized
+install and usage reference, and an examples gallery. The gallery's scores come
+from `docs/assets/make_visuals.py`, which also draws every chart from the
+committed eval output. `make visuals-check` fails CI when either goes stale. The
+palette moved from orange to indigo.
+
 ### Any agent, any model
 
 Until this release the skill assumed Claude Code. The instructions never needed

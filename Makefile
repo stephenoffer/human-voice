@@ -41,14 +41,15 @@ dogfood:
 	python3 skills/human-voice/scripts/detect_ai_prose.py --quiet --register technical \
 		README.md CONTRIBUTING.md
 	python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 5 --quiet \
-		--register technical README.md docs/install.md docs/usage.md docs/evidence.md docs/comparison.md
+		--register technical README.md docs/README.md docs/getting-started.md docs/install.md docs/usage.md docs/examples.md docs/evidence.md docs/comparison.md
 	@echo "--- em-dash density in the project's own prose (want 0 outside creative)"
 	python3 skills/human-voice/scripts/detect_ai_prose.py --quiet --enable em_dash \
 		--register technical README.md CONTRIBUTING.md CHANGELOG.md eval/EVAL.md \
 		skills/human-voice/SKILL.md skills/human-voice/STYLE-GUIDE.md
 	python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 0 --quiet \
 		--enable em_dash --register technical README.md CONTRIBUTING.md CHANGELOG.md \
-		docs/install.md docs/usage.md docs/evidence.md docs/comparison.md \
+		docs/README.md docs/getting-started.md docs/install.md docs/usage.md \
+		docs/examples.md docs/evidence.md docs/comparison.md \
 		eval/EVAL.md skills/human-voice/SKILL.md skills/human-voice/STYLE-GUIDE.md \
 		skills/human-voice/references/anti-jargon.md \
 		skills/human-voice/references/cited-vs-matched.md \

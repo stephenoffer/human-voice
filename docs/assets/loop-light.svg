@@ -9,7 +9,7 @@
 <text x="270.0" y="107" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#1F2328" text-anchor="middle">Lint</text>
 <text x="270.0" y="129" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12" font-weight="400" fill="#59636E" text-anchor="middle">68 checks, shape first</text>
 <line x1="173" y1="113" x2="194" y2="113" stroke="#59636E" stroke-width="1.6" marker-end="url(#a)"/>
-<rect x="370" y="74" width="144" height="78" rx="12" fill="#E8590C" stroke="#E8590C" stroke-width="1.5"/>
+<rect x="370" y="74" width="144" height="78" rx="12" fill="#4F46E5" stroke="#4F46E5" stroke-width="1.5"/>
 <text x="442.0" y="107" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#FFFFFF" text-anchor="middle">Rewrite</text>
 <text x="442.0" y="129" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12" font-weight="400" fill="#FFFFFF" text-anchor="middle">any model, full skill</text>
 <line x1="345" y1="113" x2="366" y2="113" stroke="#59636E" stroke-width="1.6" marker-end="url(#a)"/>
@@ -21,8 +21,8 @@
 <text x="786.0" y="107" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#1F2328" text-anchor="middle">Ship</text>
 <text x="786.0" y="129" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12" font-weight="400" fill="#59636E" text-anchor="middle">clean, facts intact</text>
 <line x1="689" y1="113" x2="710" y2="113" stroke="#59636E" stroke-width="1.6" marker-end="url(#a)"/>
-<path d="M614 156 C 614 214, 442 214, 442 158" fill="none" stroke="#E8590C" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#a)"/>
-<text x="528.0" y="232" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#E8590C" text-anchor="middle">not yet: the report goes back to the model</text>
+<path d="M614 156 C 614 214, 442 214, 442 158" fill="none" stroke="#4F46E5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="528.0" y="232" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#4F46E5" text-anchor="middle">not yet: the report goes back to the model</text>
 <text x="32" y="258" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">A pass ships only when the score is clean, every number, link, code span and citation</text>
 <text x="32" y="277" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">survived, and a configured detector clears. Two passes without progress stop the loop.</text>
 </svg>

@@ -80,6 +80,14 @@ thresholds, category weights, and verdict bands from it.
 5. Add positive and negative tests. Confirm `examples/after.md` still scores
    `clean`. New checks must not over-flag good human prose.
 
+## Docs and charts
+
+The README charts and the score table in `docs/examples.md` are generated. After a
+change to the linter, the eval results or an example pair, run
+`python3 docs/assets/make_visuals.py` and commit the output. CI runs it with
+`--check` and fails when anything is stale. The pages in `docs/` go through the
+same prose gate as the README (`make dogfood`), so they have to score clean.
+
 ## Project config
 
 Projects can drop a `.humanvoicerc` (JSON) at their root to set a default

@@ -30,18 +30,18 @@
 <text x="468" y="264.8571428571429" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#9198A1" text-anchor="end">12</text>
 <line x1="476" x2="856" y1="184.9" y2="184.9" stroke="#3D444D" stroke-width="1" stroke-dasharray="3 4"/>
 <text x="468" y="188.85714285714286" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#9198A1" text-anchor="end">26</text>
-<rect x="482.0" y="309.7" width="19.6" height="16.3" rx="3" fill="#FF8A3D"/>
-<rect x="513.7" y="152.3" width="19.6" height="173.7" rx="3" fill="#FF8A3D"/>
-<rect x="545.4" y="168.6" width="19.6" height="157.4" rx="3" fill="#FF8A3D"/>
-<rect x="577.0" y="293.4" width="19.6" height="32.6" rx="3" fill="#FF8A3D"/>
-<rect x="608.7" y="298.9" width="19.6" height="27.1" rx="3" fill="#FF8A3D"/>
-<rect x="640.4" y="250.0" width="19.6" height="76.0" rx="3" fill="#FF8A3D"/>
-<rect x="672.0" y="298.9" width="19.6" height="27.1" rx="3" fill="#FF8A3D"/>
-<rect x="703.7" y="228.3" width="19.6" height="97.7" rx="3" fill="#FF8A3D"/>
-<rect x="735.4" y="282.6" width="19.6" height="43.4" rx="3" fill="#FF8A3D"/>
-<rect x="767.0" y="206.6" width="19.6" height="119.4" rx="3" fill="#FF8A3D"/>
-<rect x="798.7" y="260.9" width="19.6" height="65.1" rx="3" fill="#FF8A3D"/>
-<rect x="830.4" y="222.9" width="19.6" height="103.1" rx="3" fill="#FF8A3D"/>
+<rect x="482.0" y="309.7" width="19.6" height="16.3" rx="3" fill="#8B93FF"/>
+<rect x="513.7" y="152.3" width="19.6" height="173.7" rx="3" fill="#8B93FF"/>
+<rect x="545.4" y="168.6" width="19.6" height="157.4" rx="3" fill="#8B93FF"/>
+<rect x="577.0" y="293.4" width="19.6" height="32.6" rx="3" fill="#8B93FF"/>
+<rect x="608.7" y="298.9" width="19.6" height="27.1" rx="3" fill="#8B93FF"/>
+<rect x="640.4" y="250.0" width="19.6" height="76.0" rx="3" fill="#8B93FF"/>
+<rect x="672.0" y="298.9" width="19.6" height="27.1" rx="3" fill="#8B93FF"/>
+<rect x="703.7" y="228.3" width="19.6" height="97.7" rx="3" fill="#8B93FF"/>
+<rect x="735.4" y="282.6" width="19.6" height="43.4" rx="3" fill="#8B93FF"/>
+<rect x="767.0" y="206.6" width="19.6" height="119.4" rx="3" fill="#8B93FF"/>
+<rect x="798.7" y="260.9" width="19.6" height="65.1" rx="3" fill="#8B93FF"/>
+<rect x="830.4" y="222.9" width="19.6" height="103.1" rx="3" fill="#8B93FF"/>
 <text x="476" y="356.0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="400" fill="#9198A1" text-anchor="start">score 0.0 clean  ·  under 9 words 42%  ·  12 to 26 band 42%</text>
 <text x="848" y="378" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400" fill="#9198A1" text-anchor="end">Shaded: the 12 to 26 word band model prose collapses into. Source: skills/human-voice/examples/modern-ai-*.md</text>
 </svg>

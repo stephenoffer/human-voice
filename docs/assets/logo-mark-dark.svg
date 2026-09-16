@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" role="img" aria-label="human-voice"><title>human-voice</title>
 <g transform="translate(8 12) scale(1.0)">
-<path d="M26 0 H118 A26 26 0 0 1 144 26 V86 A26 26 0 0 1 118 112 H52 L26 136 L30 112 H26 A26 26 0 0 1 0 86 V26 A26 26 0 0 1 26 0 Z" fill="#2B1D14" stroke="#FF8A3D" stroke-width="3"/>
+<path d="M26 0 H118 A26 26 0 0 1 144 26 V86 A26 26 0 0 1 118 112 H52 L26 136 L30 112 H26 A26 26 0 0 1 0 86 V26 A26 26 0 0 1 26 0 Z" fill="#1D1C45" stroke="#8B93FF" stroke-width="3"/>
 <rect x="12.0" y="39.0" width="8" height="34" rx="4" fill="#5D6570"/>
 <rect x="26.0" y="39.0" width="8" height="34" rx="4" fill="#5D6570"/>
 <rect x="40.0" y="39.0" width="8" height="34" rx="4" fill="#5D6570"/>
 <rect x="54.0" y="39.0" width="8" height="34" rx="4" fill="#5D6570"/>
-<rect x="68.0" y="46.0" width="8" height="20" rx="4" fill="#FF8A3D"/>
-<rect x="82.0" y="25.0" width="8" height="62" rx="4" fill="#FF8A3D"/>
-<rect x="96.0" y="37.0" width="8" height="38" rx="4" fill="#FF8A3D"/>
-<rect x="110.0" y="50.0" width="8" height="12" rx="4" fill="#FF8A3D"/>
-<rect x="124.0" y="31.0" width="8" height="50" rx="4" fill="#FF8A3D"/>
+<rect x="68.0" y="46.0" width="8" height="20" rx="4" fill="#8B93FF"/>
+<rect x="82.0" y="25.0" width="8" height="62" rx="4" fill="#8B93FF"/>
+<rect x="96.0" y="37.0" width="8" height="38" rx="4" fill="#8B93FF"/>
+<rect x="110.0" y="50.0" width="8" height="12" rx="4" fill="#8B93FF"/>
+<rect x="124.0" y="31.0" width="8" height="50" rx="4" fill="#8B93FF"/>
 </g>
 </svg>

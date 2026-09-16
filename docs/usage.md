@@ -1,82 +1,185 @@
-# Using human-voice
+# Usage
 
-[README](../README.md) · [Install](install.md) · [Usage](usage.md) · [Why it works](evidence.md) · [Comparison](comparison.md)
+[Docs home](README.md) · [Getting started](getting-started.md) · [Install](install.md) · **Usage** · [Examples](examples.md) · [Evidence](evidence.md) · [Comparison](comparison.md)
+
+- [The skill](#the-skill): modes, registers, depth, and when rules bend
+- [The linter](#the-linter): commands, flags, autofix
+- [The detector gate](#the-detector-gate)
+- [Configuration](#configuration)
+- [How the score works](#how-the-score-works)
+- [When it gets something wrong](#when-it-gets-something-wrong)
+
+## The skill
 
 ```
-/human-voice <file-path | pasted-text> [fix|generate] [register: technical|business|marketing|academic|casual|creative]
+/human-voice <file-path | pasted-text> [fix|generate] [register: <name>]
 ```
 
-- `fix` (default) rewrites an AI-sounding draft.
-- `generate` drafts new copy that reads human from the start.
-- `register` matches the genre's conventions. `--register auto` infers it from the
-  content and prints why: 82% accurate on this repo's labeled corpus versus 19% for
-  the old always-`technical` default, and it falls back to `technical` when unsure
-  rather than guessing a permissive profile that would excuse real tells. An explicit
-  `--register` always wins.
+Arguments go in any order. Leave them out and the skill works them out from the
+text and from what you asked for.
 
-The skill sizes its own effort. A commit message gets a quick pass with no audit;
-a landing page gets the intake, the scored critique and the detector gate. Depth
-changes how much runs, never how strictly: the invariant guard and the
-no-fabrication rule hold at every level.
+### Modes
 
-It also stays on. Once invoked it shapes everything you write for the rest of the
-session, including the reply that hands the rewrite back, until you say "stop
-human-voice" or "normal voice". That is deliberate. The usual way a humanized
-document loses its voice is the next document, drafted an hour later, in the
-default one.
+| Mode | When | What happens |
+|---|---|---|
+| `fix` (default) | you hand it a file or pasted prose | rewrites the draft and keeps every invariant: numbers, code, links, citations, defined terms |
+| `generate` | you hand it a brief, or say "write" or "draft" | writes new copy that reads human from the first pass, then runs the same critique loop on it |
 
-Rules that fight the task lose to the task. An API reference keeps its headings
-and a safety notice keeps "may"; the skill relaxes the rule in the way, names it
-in the audit, and holds the rest. See "When a rule fights the task" in
-[`SKILL.md`](../skills/human-voice/SKILL.md).
+A file gets edited in place only once the rewrite passes, and only if git tracks
+the file or a `.bak` copy exists. Pasted text comes back as text.
 
-Run it on its own anytime:
+### Registers
+
+"Human" depends on the genre. The skill picks the register, fixes a universal
+core of tells in every one of them, and flexes the rest.
+
+| Register | Voice | Allowed here |
+|---|---|---|
+| `technical` (strictest) | professional, direct, present tense | nothing extra |
+| `business` | professional with a little warmth | a brief courteous opener or closer |
+| `marketing` | conversational, talks to "you" | "you" and "we", contractions, light enthusiasm |
+| `academic` | formal, measured | measured hedging, "we", passive voice, citations |
+| `casual` | personal | contractions, "I", rhetorical questions, fragments |
+| `creative` | a narrator | em-dashes, fragments, any vocabulary that serves the voice |
+| `email` | brief and direct, the ask up front | a one-line greeting and sign-off |
+| `release_notes` | terse, user-facing, past tense | fragments, bulleted changes |
+| `ux_microcopy` | minimal and plain | dropped articles, extreme brevity |
+| `tutorial` | instructional, second person | imperatives, numbered steps |
+
+The universal core holds everywhere: vacuity, fabrication, the rule-of-three
+reflex, bold-bullet listicles, puffery, vague attribution, flat rhythm,
+terminology drift, restatement and "not X, it's Y". A register never switches a
+check off. Where a genre legitimately runs hot on a construction, its threshold
+widens instead. In the linter, `--register auto` infers the genre and prints why.
+On the labeled corpus it's right 82% of the time, and when unsure it falls back
+to `technical`.
+
+### Depth
+
+The skill sizes its effort to what a mistake would cost.
+
+| Depth | For | Runs |
+|---|---|---|
+| quick | a commit message, a Slack reply, a code comment | strip the assistant shape, cut empty sentences; no audit |
+| standard | an email, an internal doc, a README section | the full rewrite procedure, one critique pass, the linter, a trimmed audit |
+| full | anything published, graded or customer-facing | author-material intake with questions to you, the scored critique, the detector gate, the complete audit |
+
+Depth changes how much runs, never how strictly. The no-fabrication rule and the
+invariant guard hold at every level.
+
+### It stays on
+
+Once invoked, the skill shapes everything written for the rest of the session,
+starting with the reply that hands back the rewrite.
+That's deliberate. A humanized document usually loses its voice to the one
+drafted an hour later in the default style. Say "stop human-voice" or "normal
+voice" to turn it off. The honesty rules stay on regardless.
+
+### When a rule fights the task
+
+The task wins. An API reference keeps its headings, a safety notice keeps "may",
+and a style guide your repo enforces beats the skill. The skill relaxes the one
+rule in the way, names it in the audit and holds the rest. Details: "When a rule
+fights the task" in [SKILL.md](../skills/human-voice/SKILL.md).
+
+## The linter
+
+`detect_ai_prose.py` is the deterministic floor: 68 checks and no dependencies.
+It needs no model and no network.
 
 ```bash
-python3 skills/human-voice/scripts/detect_ai_prose.py <file>
-python3 skills/human-voice/scripts/detect_ai_prose.py --register marketing <file>
-python3 skills/human-voice/scripts/detect_ai_prose.py --register auto <file>   # infer it
-python3 skills/human-voice/scripts/detect_ai_prose.py --dialect american <file>
-python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 5 <file>   # exit 1 if score > 5 (CI gate)
-python3 skills/human-voice/scripts/detect_ai_prose.py --fix <file>          # rewrite em-dashes/--/spaced hyphens to commas, strip emoji, swap filler
-python3 skills/human-voice/scripts/detect_ai_prose.py --fix-dry-run <file>  # preview the autofix without writing
-printf '%s' "$TEXT" | python3 skills/human-voice/scripts/detect_ai_prose.py -
+L=skills/human-voice/scripts/detect_ai_prose.py
+python3 $L draft.md                              # full report
+python3 $L --register marketing draft.md         # score for a genre
+python3 $L --register auto --recursive docs/     # infer each file's genre
+python3 $L --baseline draft.md rewrite.md        # score movement between two files
+python3 $L --fail-over 5 --quiet docs/*.md       # CI gate: exit 1 if any file scores over 5
+printf '%s' "$TEXT" | python3 $L -               # stdin
 ```
 
-`--fix` applies only the unambiguous, deterministic edits: dash normalization,
-decorative-emoji removal, 1:1 filler/jargon swaps. The dash rewrite varies the
-mark rather than turning every dash into a comma, because a document with one
-punctuation mark everywhere has traded the em-dash signature for a fresh uniform
-one. A paired aside becomes parentheses, an enumeration takes a colon, everything
-else takes a comma. It skips dash and emoji changes in `creative` (and keeps emoji
-in `casual`), and it never edits code, numbers, links, URLs, or table cells: a
-lexical swap inside a link destination produces a 404, not a better sentence. The
-judgment work stays with the rewrite pass: cutting the empty sentences, unstaging
-the clefts, sharpening a stance that won't commit.
+| Flag | Does |
+|---|---|
+| `--register NAME\|auto` | genre profile (default `technical`, or `.humanvoicerc`) |
+| `--dialect american\|british` | also flag spelling that drifts between dialects |
+| `--fail-over SCORE` | exit 1 when any file scores above `SCORE` |
+| `--baseline FILE` | compare the input against `FILE` |
+| `--json`, `--sarif` | machine-readable output; SARIF shows up as code-scanning annotations |
+| `--quiet`, `--explain` | one line per file, or every hit with no per-category cap |
+| `--enable`, `--disable` | keep or drop comma-separated categories |
+| `--threshold KEY=VALUE` | override one threshold for this run |
+| `--recursive` | walk subdirectories |
+| `--no-config` | ignore `.humanvoicerc` |
+| `--fix`, `--fix-dry-run` | apply, or preview, the deterministic autofix |
 
-Verify against a real detector, which is the only thing that can answer "does this
-still read as AI to a classifier". Exit 1 while flagged, 0 when clear, 2 when no
-key is configured:
+### Autofix
+
+`--fix` makes only the edits that need no judgment: dash normalization, removing
+decorative emoji and one-to-one filler swaps. The dash rewrite varies the mark. A
+paired aside becomes parentheses, an enumeration takes a colon, everything else
+takes a comma, because a document with one substitute everywhere trades the
+em-dash signature for a new uniform one. It skips dashes and emoji in `creative`,
+keeps emoji in `casual`, and never touches code, numbers, links or table cells.
+The judgment work stays with the rewrite: cutting empty sentences, unstaging
+clefts, committing to a position.
+
+## The detector gate
+
+The linter is a floor. A document can score 0 and still get flagged by a trained
+classifier. Only a real detector can answer that question, so the skill can ask
+one:
 
 ```bash
-export GPTZERO_API_KEY=...   # or ORIGINALITY_API_KEY / SAPLING_API_KEY / WINSTON_API_KEY
-python3 skills/human-voice/scripts/verify_detector.py rewrite.md
+export GPTZERO_API_KEY=...   # or ORIGINALITY_API_KEY, SAPLING_API_KEY, WINSTON_API_KEY
 python3 skills/human-voice/scripts/verify_detector.py --before draft.md rewrite.md
 python3 skills/human-voice/scripts/verify_detector.py --max-p-ai 0.05 --json rewrite.md
-make verify FILE=rewrite.md BEFORE=draft.md
 ```
 
-Nothing is sent anywhere until you set a key: no default endpoint, no telemetry.
-The request shapes come from each vendor's docs and have not been exercised against
-a live API from this repo, so a stale one surfaces as an error naming the missing
-field rather than a silent wrong answer.
+Exit 0 means clear, 1 means still flagged, and 2 means no detector is configured.
+Exit 2 is not a pass. While the gate returns 1 the skill keeps rewriting, and it
+stops after two passes that can't move it without damaging the prose. Until you
+set a key, nothing leaves your machine. The request shapes come from each vendor's docs
+and haven't been exercised against the live APIs from this repo, so a stale one
+fails with an error naming the missing field. See [Evidence](evidence.md) for
+how to calibrate a detector before trusting it.
 
-On Windows, use the `py` launcher (or `python`) instead of `python3`, and pipe
-text with PowerShell: `$TEXT | py skills/human-voice/scripts/detect_ai_prose.py -`.
+## Configuration
 
-It needs only Python 3 (3.8+), no `pip install`. The word and spelling lists live
-in `skills/human-voice/scripts/ai_prose_patterns.json`; edit them to taste,
-including the category weights and verdict bands.
+A `.humanvoicerc` (JSON) at the root of your repo sets project defaults. The
+linter finds it by walking up from the file being scored.
+
+```json
+{
+  "register": "technical",
+  "dialect": "american",
+  "protected_terms": ["seamless handoff", "Robust Mode"],
+  "context_exceptions": ["key takeaways"],
+  "thresholds": { "burstiness_cov_floor": 0.35 },
+  "category_weights": { "em_dash": 0.5 }
+}
+```
+
+`protected_terms` are product names and required jargon that must never be
+flagged. Every threshold and category weight, with its default, lives in
+[`ai_prose_patterns.json`](../skills/human-voice/scripts/ai_prose_patterns.json).
+If you override `score_bands`, give all three bands (`clean`, `watch` and
+`strong-tell`). A partial set relabels scores.
+
+Silence one finding in place with an HTML comment:
+
+```markdown
+We ship a seamless handoff between regions.  <!-- human-voice: ignore filler -->
+
+<!-- human-voice: ignore-start puffery -->
+A quoted customer testimonial the author can't edit.
+<!-- human-voice: ignore-end -->
+```
+
+A directive on its own line covers the next line. A trailing directive covers
+its own line. Document-level findings, like flat rhythm across the whole text,
+have no single line to attach to. Use `--disable` for those.
+
+On Windows, use `py` in place of `python3`, and pipe with PowerShell:
+`$TEXT | py skills/human-voice/scripts/detect_ai_prose.py -`.
 
 ## How the score works
 
@@ -121,10 +224,8 @@ Those are the numbers the rewrite targets. Treat the score as a floor, not a
 judgment: it catches cheap, regex-able tells but can't see vacuity, weak stance,
 or fabrication. The real test is a skeptical human read.
 
-`skills/human-voice/examples/` has a before/after pair for every register plus the
-modern-AI pair. There is also a generate-mode example, a refusal-to-fabricate
-example, a restraint case, and an annotated walkthrough. Each "after" scores `clean`; run it
-on both halves to confirm.
+Every register has a before/after pair with live scores in [Examples](examples.md).
+Each "after" scores `clean`. Run the linter on both halves to confirm.
 
 The linter is measured, not asserted: `eval/` holds a labeled corpus and
 `run_eval.py`, and [`eval/EVAL.md`](../eval/EVAL.md) reports precision/recall, the
@@ -139,16 +240,17 @@ runs offline with no corpus file. Pointing the linter at it found five real
 false-positive bugs. The median score on that set went from 35.0 to 8.0, and the
 worst module from 43.5 to 15.3.
 
-## Questions
+## When it gets something wrong
 
-**Why did it flag my human-written text?** The linter is a regex floor; it over-
-flags sometimes. Lower a threshold, add a `protected_terms`/`context_exceptions`
-entry, or open a [false-positive issue](../.github/ISSUE_TEMPLATE/false-positive.md).
-Those feed the corpus and the FPR measurement.
+If it flags text a person wrote, remember that the linter is a floor built from
+patterns, and it over-flags sometimes. Lower a threshold, add a `protected_terms`
+or `context_exceptions` entry, or open a
+[false-positive issue](../.github/ISSUE_TEMPLATE/false-positive.md). Those reports
+feed the corpus and the false-positive measurement.
 
-**Does it work on non-English text?** No. The word lists and dialect map are
-English-only today. `--lang` accepts only `en`.
+If it misses something that reads machine-made, the
+[missed-tell](../.github/ISSUE_TEMPLATE/missed-tell.md) template is the way to
+send it.
 
-**Can I tune it per project?** Yes. Drop a `.humanvoicerc` (JSON) at your repo root
-to set a default register/dialect, override thresholds and category weights, and
-add protected terms. See [CONTRIBUTING.md](../CONTRIBUTING.md).
+Other languages aren't supported yet. The word lists and the dialect map are
+English only, and `--lang` accepts only `en`.

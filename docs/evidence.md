@@ -1,6 +1,6 @@
 # Why it works, and how we know
 
-[README](../README.md) · [Install](install.md) · [Usage](usage.md) · [Why it works](evidence.md) · [Comparison](comparison.md)
+[Docs home](README.md) · [Getting started](getting-started.md) · [Install](install.md) · [Usage](usage.md) · [Examples](examples.md) · **Evidence** · [Comparison](comparison.md)
 
 ## What detectors respond to
 

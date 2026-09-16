@@ -9,7 +9,7 @@
   <a href="https://github.com/stephenoffer/human-voice/actions/workflows/test.yml"><img alt="tests" src="https://github.com/stephenoffer/human-voice/actions/workflows/test.yml/badge.svg"></a>
   <img alt="Python 3.8+" src="https://img.shields.io/badge/python-3.8%2B-blue">
   <img alt="zero dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen">
-  <img alt="any model" src="https://img.shields.io/badge/models-any%20major%20provider-E8590C">
+  <img alt="any model" src="https://img.shields.io/badge/models-any%20major%20provider-4F46E5">
   <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-green">
 </p>
 
@@ -17,8 +17,8 @@
   <a href="#see-it-work">See it work</a> ·
   <a href="#why-its-different">Why it's different</a> ·
   <a href="#proof">Proof</a> ·
-  <a href="#install">Install</a> ·
-  <a href="docs/usage.md">Docs</a>
+  <a href="#get-started">Get started</a> ·
+  <a href="docs/README.md">Docs</a>
 </p>
 
 Readers can tell when a machine wrote something. The giveaway stopped being
@@ -37,29 +37,25 @@ and four more agents, or any major model through a plain API key.
 
 ## See it work
 
-A paragraph from a real model, with no filler, no hedging and no em-dashes:
+A paragraph from a real model. No filler, no hedging, not one em-dash, and it
+still reads machine-made:
 
-```text
-BEFORE
-For most teams under ten million vectors, pgvector is the right
-starting point. You already have backups, monitoring, and access
-control for Postgres. Adding a second stateful system is a real cost
-that tends to get underestimated during the prototype phase, when the
-dataset is small and everything is fast.
-```
+<table>
+<tr>
+<th width="50%" align="left">Before &nbsp;·&nbsp; <code>15.0 strong-tell</code></th>
+<th width="50%" align="left">After &nbsp;·&nbsp; <code>0.0 clean</code></th>
+</tr>
+<tr>
+<td valign="top">For most teams under ten million vectors, pgvector is the right starting point. You already have backups, monitoring, and access control for Postgres. Adding a second stateful system is a real cost that tends to get underestimated during the prototype phase, when the dataset is small and everything is fast.</td>
+<td valign="top">Start with pgvector. Under about ten million vectors it wins, and the reason has nothing to do with recall benchmarks: it is the database you already back up, already monitor, already have access control for. A second stateful system is a cost that arrives months after the prototype, when the dataset is small and every query is fast and nobody is thinking about it.</td>
+</tr>
+</table>
 
-```text
-AFTER
-Start with pgvector. Under about ten million vectors it wins, and the
-reason has nothing to do with recall benchmarks: it is the database
-you already back up, already monitor, already have access control
-for. A second stateful system is a cost that arrives months after the
-prototype, when the dataset is small and every query is fast and
-nobody is thinking about it.
-```
-
-The verdict moved to the front. Nothing was invented. And the thing no word list
-can see changed underneath:
+The verdict moved to the front. Nothing was invented. The scores are for the
+whole document each excerpt comes from
+([before](skills/human-voice/examples/modern-ai-before.md),
+[after](skills/human-voice/examples/modern-ai-after.md)), and the change that
+earned them is one no word list can see:
 
 <p align="center">
   <picture>
@@ -68,15 +64,53 @@ can see changed underneath:
   </picture>
 </p>
 
-That chart comes from the full document the excerpt belongs to
-([before](skills/human-voice/examples/modern-ai-before.md),
-[after](skills/human-voice/examples/modern-ai-after.md)). Its score went from 15.0
-to 0. There are before/after pairs for every genre in
-[`examples/`](skills/human-voice/examples/).
+<details>
+<summary><b>Another example: an email with the ask buried in paragraph three</b></summary>
+<br>
+
+<!-- human-voice: ignore-start -->
+
+<table>
+<tr>
+<th width="50%" align="left">Before &nbsp;·&nbsp; <code>66.0 strong-tell</code></th>
+<th width="50%" align="left">After &nbsp;·&nbsp; <code>0.0 clean</code></th>
+</tr>
+<tr>
+<td valign="top">
+<p>Subject: Touching Base re: Synergizing Our Q3 Deliverables</p>
+<p>Hi team,</p>
+<p>I hope this email finds you well! I wanted to circle back and touch base regarding our ongoing efforts to operationalize the Q3 roadmap. As we navigate this ever-evolving landscape, it's important to note that cross-functional alignment will be crucial to moving the needle on our key deliverables.</p>
+<p>Furthermore, I believe we have a real opportunity to leverage our synergies and unlock some low-hanging fruit here. Moreover, it's worth noting that taking a holistic, best-in-class approach to our workflows could really empower the team to deliver actionable, high-impact results that drive value for all stakeholders.</p>
+<p>Additionally, I think it would be mission-critical for us to align on next steps. Could we possibly find some time to sync and ideate on a path forward? I'm thinking maybe sometime next week if that works for everyone's schedule, but I'm flexible and happy to work around whatever is most convenient.</p>
+<p>Looking forward to connecting and driving this forward together!</p>
+<p>Best regards,<br>Jordan</p>
+</td>
+<td valign="top">
+<p>Subject: 30 min next week to lock Q3 priorities?</p>
+<p>Hi team,</p>
+<p>We still haven't agreed on the top three Q3 deliverables. Engineering needs that list before they can plan sprints. Can we meet for 30 minutes next week to settle it?</p>
+<p>I'm free Tuesday or Wednesday afternoon. If neither works, send me a couple of slots and I'll make one fit.</p>
+<p>Before the call, it would help if each of you brought your one must-ship item for the quarter. We can sort priority from there.</p>
+<p>Thanks,<br>Jordan</p>
+</td>
+</tr>
+</table>
+
+<!-- human-voice: ignore-end -->
+
+The ask moved to the subject line. The rewrite runs 87 words against 169, and it
+adds one thing the draft never had: what to bring to the meeting.
+
+</details>
+
+Ten pairs across genres, from landing pages to design docs, each with live scores:
+**[docs/examples.md](docs/examples.md)**.
 
 ## Why it's different
 
 Three kinds of tool get lumped together here. None of them does this job.
+
+<!-- human-voice: ignore-start formatting -->
 
 | | human-voice | Humanizer apps | Prose linters | AI detectors |
 |---|:-:|:-:|:-:|:-:|
@@ -89,6 +123,8 @@ Three kinds of tool get lumped together here. None of them does this job.
 | Works with your model and your agent | ✓ | ✗ | ✓ | ✗ |
 | Open source, free, runs offline | ✓ | ✗ | ✓ | ✗ |
 | Published eval on prose a current model writes | ✓ | ✗ | ✗ | ◐ |
+
+<!-- human-voice: ignore-end -->
 
 ✓ yes · ◐ partly or sometimes · ✗ no
 
@@ -155,7 +191,7 @@ anywhere. The honest limits: n is small, the corpus has one author,
 and no tool can promise a text is undetectable. This one checks instead of
 promising. Details and caveats: [docs/evidence.md](docs/evidence.md).
 
-## Install
+## Get started
 
 <p align="center">
   <picture>
@@ -164,53 +200,45 @@ promising. Details and caveats: [docs/evidence.md](docs/evidence.md).
   </picture>
 </p>
 
-**Claude Code**
+**1. In your coding agent.** For Claude Code:
 
 ```
 /plugin marketplace add stephenoffer/human-voice
 /plugin install human-voice@human-voice
 ```
 
-**Codex, Cursor, Copilot, Gemini CLI, Windsurf, Cline, opencode, Aider**
+For Codex, Cursor, Copilot, Gemini CLI, Windsurf, Cline, opencode or Aider:
 
 ```bash
 git clone https://github.com/stephenoffer/human-voice.git && cd human-voice
-python3 install.py            # finds your agents and installs for each one
+python3 install.py
 ```
 
-**Any model, no agent** (CI jobs, scripts, batch rewrites)
+Then point it at a draft, or just ask it to humanize something:
+
+```
+/human-voice docs/launch-post.md
+```
+
+You get the rewrite and an audit listing what changed, what it couldn't verify
+and anything left for you to fill in. It stays on for the rest of the session.
+
+**2. With any model's API.** No agent needed, which suits scripts and batch jobs.
 
 ```bash
-export OPENAI_API_KEY=...     # or Anthropic, Gemini, Bedrock, Mistral, xAI, a local Ollama...
+export ANTHROPIC_API_KEY=...   # or OpenAI, Gemini, Bedrock, Mistral, xAI, a local Ollama...
 python3 skills/human-voice/scripts/humanize.py draft.md -o draft.human.md
 ```
 
-MCP clients, Gemini extensions, ChatGPT projects, the Python API and all
-seventeen providers: [docs/install.md](docs/install.md). Everything runs on the
-Python standard library.
-
-## Use it
-
-In an agent, invoke `/human-voice` or just ask it to humanize something:
-
-```
-/human-voice launch-post.md
-/human-voice generate register: marketing  "announce the new export API"
-```
-
-It picks the genre, sizes the effort to the job (a commit message gets a quick
-pass, a landing page gets the full treatment) and hands back the rewrite with an
-audit. Then it stays on for the rest of the session, so the next document doesn't
-slide back into the default voice.
-
-Gate prose in CI with the linter on its own:
+**3. As a CI gate.** No model, no key, no network.
 
 ```bash
-python3 skills/human-voice/scripts/detect_ai_prose.py --register auto --fail-over 5 docs/
+python3 skills/human-voice/scripts/detect_ai_prose.py --register auto --recursive --fail-over 5 docs/
 ```
 
-Flags, autofix, the detector gate, per-project config and how the score works:
-[docs/usage.md](docs/usage.md).
+**[The getting-started guide](docs/getting-started.md)** walks through all three,
+including a GitHub Actions workflow that annotates pull requests. MCP clients,
+chat apps and all seventeen providers are in [docs/install.md](docs/install.md).
 
 ## What it won't do
 
@@ -223,6 +251,8 @@ side effect of good writing, not the objective.
 
 | | |
 |---|---|
+| [Getting started](docs/getting-started.md) | three paths, five minutes each |
+| [Examples](docs/examples.md) | ten before/after pairs with live scores |
 | [Install](docs/install.md) | every agent, every provider, MCP, chat apps, Python |
 | [Usage](docs/usage.md) | modes, registers, the linter, autofix, detector gate, scoring |
 | [Evidence](docs/evidence.md) | what detectors respond to, and the measured results |
