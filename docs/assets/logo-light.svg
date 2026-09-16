@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="180" viewBox="0 0 760 180" role="img" aria-label="human-voice"><title>human-voice</title>
+<g transform="translate(8 22) scale(1.0)">
+<path d="M26 0 H118 A26 26 0 0 1 144 26 V86 A26 26 0 0 1 118 112 H52 L26 136 L30 112 H26 A26 26 0 0 1 0 86 V26 A26 26 0 0 1 26 0 Z" fill="#FFF1E8" stroke="#E8590C" stroke-width="3"/>
+<rect x="12.0" y="39.0" width="8" height="34" rx="4" fill="#A5AEB8"/>
+<rect x="26.0" y="39.0" width="8" height="34" rx="4" fill="#A5AEB8"/>
+<rect x="40.0" y="39.0" width="8" height="34" rx="4" fill="#A5AEB8"/>
+<rect x="54.0" y="39.0" width="8" height="34" rx="4" fill="#A5AEB8"/>
+<rect x="68.0" y="46.0" width="8" height="20" rx="4" fill="#E8590C"/>
+<rect x="82.0" y="25.0" width="8" height="62" rx="4" fill="#E8590C"/>
+<rect x="96.0" y="37.0" width="8" height="38" rx="4" fill="#E8590C"/>
+<rect x="110.0" y="50.0" width="8" height="12" rx="4" fill="#E8590C"/>
+<rect x="124.0" y="31.0" width="8" height="50" rx="4" fill="#E8590C"/>
+</g>
+<text x="182" y="104" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="68" font-weight="700" letter-spacing="-1.5"><tspan fill="#1F2328">human</tspan><tspan fill="#A5AEB8">-</tspan><tspan fill="#E8590C">voice</tspan></text>
+<text x="185" y="142" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="20" font-weight="400" fill="#59636E" text-anchor="start">Writing that reads like a person wrote it. Every fact intact.</text>
+</svg>

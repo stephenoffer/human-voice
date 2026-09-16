@@ -1,0 +1,11 @@
+{
+  "name": "human-voice",
+  "version": "0.9.0",
+  "description": "Rewrite or generate prose so it does not read as AI-written, without altering facts, numbers, code, or citations. Bundles the human-voice skill and an MCP server with the floor linter and invariant check.",
+  "mcpServers": {
+    "human-voice": {
+      "command": "python3",
+      "args": ["${extensionPath}/skills/human-voice/scripts/mcp_server.py"]
+    }
+  }
+}

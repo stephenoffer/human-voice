@@ -247,11 +247,23 @@ scores the docstrings of 26 Python standard-library modules, written by hundreds
 of people over three decades, none of whom had heard of this tool. It needs no
 network and no corpus file, because the text ships with the interpreter.
 
-| | v0.5 | v0.6 |
-|---|---|---|
-| median floor score | 35.0 | **8.7** |
-| worst module | 43.5 | **17.7** |
-| largest single category's share of all findings | 44% (`dash_style`) | 42% (`ngram_repetition`) |
+| | v0.5 | v0.6 | v0.9 |
+|---|---|---|---|
+| median floor score | 35.0 | 8.7 | **8.0** |
+| worst module | 43.5 | 17.7 | **15.3** |
+| largest single category's share of all findings | 44% (`dash_style`) | 42% (`ngram_repetition`) | **25%** (`ngram_repetition`) |
+
+The v0.5 and v0.6 columns were measured on partly wrong input. Until v0.9 the
+sweep collected every attribute's `__doc__`, which pulled in the docstrings of
+imported modules and, for every constant, the docstring of its type (`int`'s text
+172 times inside `sqlite3`). The result also depended on import order: under
+pytest `email` scored 34.2 against 17.7 in a plain run, which failed CI on every
+push. The sweep now reads function and class docstrings once each and agrees in
+and out of pytest on Python 3.8 through 3.13. On that clean input, two-word
+n-grams made up 49% of all false-positive score points, nearly all of them terms
+of art, so `ngram_repetition` now counts trigrams only. The labeled eval did not
+move. v0.9 figures are from Python 3.14; the sweep's module set varies a little by
+version, and the gate holds on every one CI runs.
 
 Five real defects were found by pointing the linter at this set, and each one
 also fires on ordinary technical documentation:
@@ -336,6 +348,65 @@ supply another 43%.
 
 This is the empirical justification for the skill's edit order. A humanizer pass
 that starts with vocabulary is optimizing against text nobody was fooled by.
+
+### Content architecture: restatement, section balance, depth drift
+
+The corpus above cannot measure these three checks. Every sample in it is one
+short section, and the checks read a document's sections against each other. So
+they have their own script, `eval/structure_eval.py`, and their own calibration.
+
+**Positives.** `eval/structure/ai/` holds six multi-section documents in the shape
+an agent produces for a design doc, a postmortem, a README, an options analysis, a
+migration plan and an onboarding guide. Each is labeled with the finding it
+carries, and all six are caught. They are authored like the rest of the corpus, so
+this shows the checks see what they describe. It says nothing about how often
+agents write this way.
+
+**In-repo negatives.** The human and ESL corpus classes, the project's own README,
+CONTRIBUTING, CHANGELOG and EVAL, the skill and its references, and every shipped
+"after" example: 64 files, none fire. CI runs both sets with `--check`.
+
+**Independent negatives.** The in-repo set is short or written here, so the
+thresholds were set against long markdown nobody wrote for this project: every
+file of 400 to 6,000 words with four or more headings under seven local trees.
+None of it can be vendored, so the script takes a path, and anyone can repeat the
+sweep on their own machine with `--human-dir`.
+
+| Tree | Files | Fired | restatement | section_balance | depth_drift |
+|---|---|---|---|---|---|
+| Homebrew Cellar (formula READMEs and manuals) | 250 | 1 | 1 | 0 | 0 |
+| Homebrew docs | 46 | 0 | 0 | 0 | 0 |
+| Homebrew vendored Ruby gems | 28 | 0 | 0 | 0 | 0 |
+| global npm packages | 80 | 0 | 0 | 0 | 0 |
+| npx package cache | 72 | 2 | 2 | 0 | 0 |
+| Rust crates (cargo registry) | 387 | 2 | 2 | 0 | 0 |
+| Python site-packages | 6 | 1 | 0 | 0 | 1 |
+| **Total** | **869** | **6 (0.7%)** | **5** | **0** | **1** |
+
+Two of the six hits are the same concatenated third-party LICENSE file in two npx
+caches. One is a generated permissions reference. The depth-drift hit is a mypyc
+developer guide whose "Key Differences from Python" section is a conceptual
+discussion beside a dense implementation section, which is the closest a human
+document came to the pattern.
+
+The first thresholds fired on 35% of these files. Four rules closed most of the
+gap, and each describes a real difference between reference docs and agent output:
+
+- a short section with a link, a command, code or a list is a pointer, not a stub;
+- restatement ignores verbatim copies, entries under headings that name code, and
+  anything under a version or year heading;
+- restatement needs 2.5 pairs per thousand words, so a 3,000-word manual that
+  repeats one note is not a 400-word design doc that says four things twice;
+- a hollow section has to be written in abstract benefit words ("ensures",
+  "reliability", "flexibility"), not merely lack numbers.
+
+Framing share also requires a recap section among the framing (or over half the
+words), after a Rust README with a long Motivation section and no summary fired.
+
+**Scope.** The main eval numbers above did not move, because nothing in the main
+corpus has sections. The recall claim rests on six authored documents. The
+false-positive claim rests on 869 real ones, all of them technical documentation,
+none of them business or academic prose.
 
 ## Limitations (read this before trusting any number above)
 

@@ -50,6 +50,12 @@ def render_text(target, register, dialect, hits, report, word_count, floor_score
     out.append("syntax:  clefts %s   ',VERBing' tails %s   copula/1k %s   passive/1k %s" % (
         _m("cleft_count"), _m("participial_tail_count"), _m("copula_per_1k"),
         _m("passive_per_1k")))
+    out.append("structure: sections %s   section-length CoV %s   framing share %s   "
+               "restated pairs %s   depth %s/100w by section %s" % (
+        _m("sections"), _m("section_len_cov"), _m("framing_share"),
+        _m("restated_pairs"), _m("depth_per_100"),
+        "[" + ", ".join(str(d) for d in report["section_depth"]) + "]"
+        if report.get("section_depth") else "n/a"))
     out.append("lexicon: TTR %s   Yule's K %s   copula-avoid/1k %s" % (
         _m("ttr"), _m("yules_k"), _m("copula_avoidance_per_1k")))
     # Reported, never scored: see checks.report_contraction_rate. A conversational

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="494" viewBox="0 0 880 494" role="img" aria-label="human-voice runs in coding agents, model APIs, MCP clients and chat apps"><title>human-voice runs in coding agents, model APIs, MCP clients and chat apps</title>
+<rect x="0.5" y="0.5" width="879" height="493" rx="14" fill="#F6F8FA" stroke="#E1E6EB"/>
+<text x="32" y="46" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#1F2328" text-anchor="start">One skill. Every major agent and model.</text>
+<line x1="368.0" y1="162.0" x2="440.0" y2="277.0" stroke="#D1D9E0" stroke-width="1.5" stroke-dasharray="4 4"/>
+<line x1="512.0" y1="162.0" x2="440.0" y2="277.0" stroke="#D1D9E0" stroke-width="1.5" stroke-dasharray="4 4"/>
+<line x1="368.0" y1="374.0" x2="440.0" y2="277.0" stroke="#D1D9E0" stroke-width="1.5" stroke-dasharray="4 4"/>
+<line x1="512.0" y1="374.0" x2="440.0" y2="277.0" stroke="#D1D9E0" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="380.0" y="245.0" width="120" height="64" rx="32" fill="#E8590C"/>
+<text x="440.0" y="274.0" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle">SKILL.md</text>
+<text x="440.0" y="294.0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400" fill="#FFFFFF" text-anchor="middle">one set of rules</text>
+<rect x="28" y="70" width="340" height="184" rx="12" fill="#F6F8FA" stroke="#D1D9E0"/>
+<text x="46" y="100" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="16" font-weight="700" fill="#1F2328" text-anchor="start">Coding agents</text>
+<text x="46" y="124" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">Claude Code · Codex · Gemini CLI · Cursor</text>
+<text x="46" y="143" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">GitHub Copilot · Windsurf · Cline · opencode</text>
+<text x="46" y="162" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">Aider</text>
+<rect x="42" y="216" width="312" height="26" rx="6" fill="#EDF0F3"/>
+<text x="52" y="234" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="12" font-weight="400" fill="#1F2328" text-anchor="start">python3 install.py</text>
+<rect x="512" y="70" width="340" height="184" rx="12" fill="#F6F8FA" stroke="#D1D9E0"/>
+<text x="530" y="100" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="16" font-weight="700" fill="#1F2328" text-anchor="start">Model APIs</text>
+<text x="530" y="124" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">Anthropic · OpenAI · Azure · Gemini</text>
+<text x="530" y="143" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">Vertex AI · Bedrock · Mistral · Groq</text>
+<text x="530" y="162" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">DeepSeek · xAI · OpenRouter · Together</text>
+<text x="530" y="181" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">Fireworks · Cohere · Ollama · LM Studio</text>
+<text x="530" y="200" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">any OpenAI-compatible server</text>
+<rect x="526" y="216" width="312" height="26" rx="6" fill="#EDF0F3"/>
+<text x="536" y="234" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="12" font-weight="400" fill="#1F2328" text-anchor="start">humanize.py draft.md -m &lt;provider/model&gt;</text>
+<rect x="28" y="282" width="340" height="184" rx="12" fill="#F6F8FA" stroke="#D1D9E0"/>
+<text x="46" y="312" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="16" font-weight="700" fill="#1F2328" text-anchor="start">MCP clients</text>
+<text x="46" y="336" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">Cursor · VS Code · Windsurf · Cline · Zed</text>
+<text x="46" y="355" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">Claude Desktop · Gemini CLI · Codex</text>
+<text x="46" y="374" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">opencode</text>
+<rect x="42" y="428" width="312" height="26" rx="6" fill="#EDF0F3"/>
+<text x="52" y="446" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="12" font-weight="400" fill="#1F2328" text-anchor="start">install.py --mcp &lt;client&gt;</text>
+<rect x="512" y="282" width="340" height="184" rx="12" fill="#F6F8FA" stroke="#D1D9E0"/>
+<text x="530" y="312" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="16" font-weight="700" fill="#1F2328" text-anchor="start">Chat apps</text>
+<text x="530" y="336" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">ChatGPT projects · custom GPTs · Gemini Gems</text>
+<text x="530" y="355" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" fill="#59636E" text-anchor="start">Claude projects</text>
+<rect x="526" y="428" width="312" height="26" rx="6" fill="#EDF0F3"/>
+<text x="536" y="446" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="12" font-weight="400" fill="#1F2328" text-anchor="start">humanize.py --print-prompt chat</text>
+</svg>

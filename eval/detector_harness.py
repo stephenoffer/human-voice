@@ -72,6 +72,7 @@ def call_detector(text, api_key, key_var="GPTZERO_API_KEY", timeout=30):
 PAIR_REGISTER = {"academic": "academic", "casual": "casual", "email": "email",
                  "marketing": "marketing", "modern-ai": "technical",
                  "syntax-signature": "technical",
+                 "architecture": "technical",
                  "cliche-metaphor": "technical", "over-corrected": "technical"}
 
 

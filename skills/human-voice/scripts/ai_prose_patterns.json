@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "updated": "2026-09-08",
   "_notes": [
     "Lexical lists are a FLOOR, not proof. Banned-word lists age: the PubMed study (arXiv 2406.07016) measured a ~25x jump in 'delves' in 2024 abstracts, and writers have since learned to avoid it. A hit raises suspicion; it never proves AI authorship, and a clean lexical pass never proves human authorship.",
@@ -1008,7 +1008,8 @@
       "fragments",
       "name_signal",
       "assistant_format_ok",
-      "templated_lists_ok"
+      "templated_lists_ok",
+      "fixed_sections_ok"
     ],
     "ux_microcopy": [
       "warmth",
@@ -1017,7 +1018,8 @@
       "fragments",
       "name_signal",
       "assistant_format_ok",
-      "templated_lists_ok"
+      "templated_lists_ok",
+      "fixed_sections_ok"
     ],
     "tutorial": [
       "you_address",
@@ -1086,6 +1088,9 @@
     ],
     "templated_lists_ok": [
       "bullet_openers"
+    ],
+    "fixed_sections_ok": [
+      "section_balance"
     ]
   },
   "dialect": {
@@ -1203,7 +1208,6 @@
     "ttr_floor": 0.38,
     "ngram_min_count": 4,
     "ngram_sizes": [
-      2,
       3
     ],
     "bold_bullet_ratio": 0.5,
@@ -1231,7 +1235,16 @@
     "copula_per_1k": 78.0,
     "clause_splice_per_1k": 8.0,
     "semicolon_per_1k_max": 7.0,
-    "copula_avoidance_per_1k": 8.0
+    "copula_avoidance_per_1k": 8.0,
+    "restatement_jaccard": 0.5,
+    "restatement_min_pairs": 2,
+    "restatement_per_1k": 2.5,
+    "section_stub_words": 30,
+    "section_even_cov_floor": 0.15,
+    "framing_share_max": 0.35,
+    "depth_dense_per_100": 5.0,
+    "depth_hollow_per_100": 0.5,
+    "depth_expert_per_100": 4.0
   },
   "_protected_terms_note": "Project-specific terms that must NEVER be flagged or rewritten — product names, required jargon, defined terms. Matched as whole words. Empty by default; set per project via a .humanvoicerc file at the repo root.",
   "protected_terms": [],
@@ -1437,7 +1450,10 @@
     "llm_artifact": 4.0,
     "copula_avoidance": 1.0,
     "heading_structure": 1.0,
-    "quote_style": 0.5
+    "quote_style": 0.5,
+    "restatement": 1.5,
+    "section_balance": 1.5,
+    "depth_drift": 1.0
   },
   "_score_bands_note": "Upper-exclusive verdict bands for the floor score (weighted tells / 1k words). score < clean reads clean; < watch is worth a look; at/above watch is a strong floor signal (the open-ended top band uses a large threshold). A FLOOR only — never ground truth.",
   "score_bands": {
@@ -1463,6 +1479,9 @@
     },
     "casual": {
       "clause_splice_per_1k": 1.4
+    },
+    "tutorial": {
+      "depth_expert_per_100": 2.0
     }
   }
 }

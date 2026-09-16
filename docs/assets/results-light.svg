@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" role="img" aria-label="human-voice evaluation results"><title>human-voice evaluation results</title>
+<rect x="0.5" y="0.5" width="879" height="379" rx="14" fill="#F6F8FA" stroke="#E1E6EB"/>
+<text x="32" y="48" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#1F2328" text-anchor="start">Measured on the repo's own eval, not asserted</text>
+<text x="32" y="72" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="14" font-weight="400" fill="#59636E" text-anchor="start">Before and after the rewrite. Lower is better.</text>
+<text x="32" y="118" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#1F2328" text-anchor="start">Current-model drafts the linter flags</text>
+<rect x="96" y="132" width="640" height="18" rx="4" fill="#EDF0F3"/>
+<rect x="96" y="132" width="576.0" height="18" rx="4" fill="#A5AEB8"/>
+<text x="86" y="146" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12" font-weight="400" fill="#59636E" text-anchor="end">before</text>
+<text x="748" y="146" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13.5" font-weight="400" fill="#59636E" text-anchor="start">18 of 20</text>
+<rect x="96" y="158" width="640" height="18" rx="4" fill="#EDF0F3"/>
+<rect x="96" y="158" width="3.0" height="18" rx="4" fill="#E8590C"/>
+<text x="86" y="172" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12" font-weight="400" fill="#59636E" text-anchor="end">after</text>
+<text x="748" y="172" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13.5" font-weight="700" fill="#1F2328" text-anchor="start">0 of 20</text>
+<text x="32" y="218" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#1F2328" text-anchor="start">Documents an independent AI classifier flags</text>
+<rect x="96" y="232" width="640" height="18" rx="4" fill="#EDF0F3"/>
+<rect x="96" y="232" width="235.8" height="18" rx="4" fill="#A5AEB8"/>
+<text x="86" y="246" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12" font-weight="400" fill="#59636E" text-anchor="end">before</text>
+<text x="748" y="246" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13.5" font-weight="400" fill="#59636E" text-anchor="start">7 of 19</text>
+<rect x="96" y="258" width="640" height="18" rx="4" fill="#EDF0F3"/>
+<rect x="96" y="258" width="3.0" height="18" rx="4" fill="#E8590C"/>
+<text x="86" y="272" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12" font-weight="400" fill="#59636E" text-anchor="end">after</text>
+<text x="748" y="272" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="13.5" font-weight="700" fill="#1F2328" text-anchor="start">0 of 19</text>
+<text x="32" y="314" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="14" font-weight="400" fill="#1F2328" text-anchor="start">Mean linter score on those drafts: 17.3 before, 1.3 after.</text>
+<text x="32" y="338" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="14" font-weight="400" fill="#1F2328" text-anchor="start">Careful non-native writers wrongly flagged: 0 of 10. AI detectors are known to over-flag them.</text>
+<text x="848" y="360" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400" fill="#59636E" text-anchor="end">Sources: eval/results.json, eval/detector_local_results.json</text>
+</svg>

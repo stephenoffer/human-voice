@@ -20,7 +20,11 @@ DEFAULTS: dict = {
         "burstiness_cov_floor": 0.4,
         "ttr_floor": 0.38,
         "ngram_min_count": 4,
-        "ngram_sizes": [2, 3],
+        # Trigrams only. A repeated two-word phrase is almost always a term of art
+        # ("event loop", "type variables"), and holding a term steady is principle 6.
+        # Bigrams were 49% of all false-positive points on the stdlib docstring
+        # sweep and moved no eval metric at all when removed.
+        "ngram_sizes": [3],
         "bold_bullet_ratio": 0.5,
         "uniform_opener_ratio": 0.3,
         "section_rule_max": 2,
@@ -71,6 +75,30 @@ DEFAULTS: dict = {
         # per 1k in the human class (max 7.0), 4.0 in the caricature class, so
         # the bar sits above every human sample measured here.
         "copula_avoidance_per_1k": 8.0,
+        # Content architecture: what the document spends its words on. Calibrated
+        # on 311 long human READMEs and manuals (see eval/structure_eval.py): at
+        # these values restatement and depth_drift each fired on one of them and
+        # section_balance on none.
+        #   restatement: a sentence or list item whose stemmed content words
+        #   overlap an earlier one in another section at this Jaccard or more.
+        #   Needs min_pairs pairs AND per_1k pairs per 1,000 words, so a long
+        #   manual that repeats one note is not a short design doc that says
+        #   four things twice.
+        "restatement_jaccard": 0.5,
+        "restatement_min_pairs": 2,
+        "restatement_per_1k": 2.5,
+        #   section_balance: hollow stubs under this many words; section-length
+        #   CoV below the even floor across five or more real sections; framing
+        #   sections (overview, background, summary) above this share of words.
+        "section_stub_words": 30,
+        "section_even_cov_floor": 0.15,
+        "framing_share_max": 0.35,
+        #   depth_drift: checkable technical markers per 100 words. A section at
+        #   or under `hollow` beside one at or over `dense`; beginner explanations
+        #   in a document at or over `expert`.
+        "depth_dense_per_100": 5.0,
+        "depth_hollow_per_100": 0.5,
+        "depth_expert_per_100": 4.0,
     },
     # Per-register threshold multipliers. A register that legitimately runs hot
     # on one construction used to be handled by MUTING the check outright, which
@@ -84,6 +112,9 @@ DEFAULTS: dict = {
         "creative": {"cleft_per_1k": 1.3, "clause_splice_per_1k": 1.6},
         "academic": {"passive_per_1k": 1.5, "nominalization_per_1k": 1.4},
         "casual": {"clause_splice_per_1k": 1.4},
+        # A tutorial explains the basics to a reader it also hands commands to;
+        # that is the genre, so the expert bar for explainer whiplash doubles.
+        "tutorial": {"depth_expert_per_100": 2.0},
     },
     # How the floor score is assembled. See score.score for why document-level
     # findings cannot share a per-1000-word denominator with instance findings.
@@ -195,6 +226,12 @@ DEFAULTS: dict = {
         # Straight and curly quotes mixed in one document: the seam where model
         # output (curly) was pasted into hand-written text (straight).
         "quote_style": 0.5,
+        # Content architecture (architecture.py). Tier B: restatement and section
+        # balance are what an editor marks first on an agent-written report, and
+        # depth_drift is the looser proxy, so it weighs least.
+        "restatement": 1.5,
+        "section_balance": 1.5,
+        "depth_drift": 1.0,
     },
     # Verdict bands (upper-exclusive): score < 5 reads clean, < 15 worth a look,
     # otherwise a strong floor signal. The top band is open-ended.

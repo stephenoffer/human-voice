@@ -72,11 +72,20 @@ def module_prose(name):
     parts = []
     if isinstance(mod.__doc__, str) and mod.__doc__.strip():
         parts.append(inspect.cleandoc(mod.__doc__))
+    seen = set()
     for attr, obj in vars(mod).items():
-        if attr.startswith("_"):
+        # Only functions and classes carry prose of their own. Two other kinds of
+        # attribute used to leak in, and both made the sweep measure the wrong text:
+        # - an imported module (`logging.os`, `email.message`) contributed that
+        #   module's docstring, so the result depended on import order; under pytest
+        #   `email` scored 34.2 against 17.7 in a plain run;
+        # - a constant (`socket.AF_INET`, `argparse.SUPPRESS`) answers `__doc__` with
+        #   its type's docstring, so `int`'s text was scored 172 times in `sqlite3`.
+        if attr.startswith("_") or not (inspect.isclass(obj) or inspect.isroutine(obj)):
             continue
         doc = getattr(obj, "__doc__", None)
-        if isinstance(doc, str) and len(doc) >= MIN_DOCSTRING_CHARS:
+        if isinstance(doc, str) and len(doc) >= MIN_DOCSTRING_CHARS and doc not in seen:
+            seen.add(doc)
             parts.append(inspect.cleandoc(doc))
     return "\n\n".join(parts)
 
@@ -88,9 +97,14 @@ def sweep():
     per_category = collections.Counter()
     for name in MODULES:
         text = module_prose(name)
-        if not text or len(text.split()) < MIN_WORDS:
+        if not text:
             continue
         res = dap.lint(text, register="technical", dialect=None, patterns=patterns)
+        # Filter on the words the linter scored, not on raw whitespace tokens: a
+        # docstring heavy with signatures and examples can pass a raw count while
+        # leaving too little prose for any density to mean something.
+        if res["words"] < MIN_WORDS:
+            continue
         rows.append({"module": name, "score": res["score"], "words": res["words"],
                      "verdict": res["verdict"]})
         for hit in res["hits"]:

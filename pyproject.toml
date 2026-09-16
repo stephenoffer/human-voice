@@ -27,7 +27,7 @@ ignore = ["UP006", "UP007", "E501", "F405", "UP031"]
 [tool.mypy]
 # Runtime targets 3.8 (enforced by ruff target-version); mypy itself needs a
 # newer version string, so we leave python_version unset and let it default.
-files = ["skills/human-voice/scripts/human_voice_linter", "eval/lib.py"]
+files = ["skills/human-voice/scripts/human_voice_linter", "skills/human-voice/scripts/human_voice_llm", "eval/lib.py"]
 ignore_missing_imports = true
 # Start lenient: the split package is not fully annotated yet. Tighten per-module
 # over time by adding stricter overrides here.

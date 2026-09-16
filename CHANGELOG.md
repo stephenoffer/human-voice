@@ -4,6 +4,129 @@ All notable changes to the human-voice skill and its linter are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/); versions
 track `.claude-plugin/plugin.json`.
 
+## [0.9.0]
+
+### Any agent, any model
+
+Until this release the skill assumed Claude Code. The instructions never needed
+Claude. The packaging did, and so did three frontmatter fields. This release
+removes the assumption and changes none of the rules.
+
+`SKILL.md` now passes the open Agent Skills spec. `when_to_use` merged into
+`description`. `argument-hint` moved under `metadata`. `user-invokable` was
+misspelled, so no agent ever read it, and it is gone. `skills-ref validate`
+rejects unknown top-level fields, and at least one strict loader drops a skill
+that fails it. A portability test now holds the frontmatter to the spec, so the
+drift cannot come back quietly. The Workflow section also says how to find the
+tools when the agent is not Claude Code: the script, then the MCP tools, then the
+no-tool checklist.
+
+`install.py` puts the skill where each agent looks: Claude Code, Codex, Gemini
+CLI, Cursor, GitHub Copilot, Windsurf, Cline and opencode. Aider has no skill
+support, so it gets a conventions file. The installer writes the fewest copies
+that cover the request. Five of those agents read `.agents/skills` and three read
+`.claude/skills`, and a naive copy per agent made Cursor load the skill twice.
+`gemini-extension.json` makes the repository installable as a Gemini CLI
+extension, with the MCP server bundled.
+
+`humanize.py` runs the procedure against a model API directly, for CI and batch
+jobs with no agent in the loop. It covers Anthropic, OpenAI, Gemini, Vertex AI,
+Bedrock, Azure OpenAI, xAI, Mistral, DeepSeek, Cohere, Groq, Together, Fireworks,
+OpenRouter, Ollama, LM Studio and any OpenAI-compatible server. That is four wire
+formats on the standard library, with SigV4 checked against botocore. The loop
+does what the agent would: lint, rewrite, re-lint, feed the report back. The
+stopping condition is no longer the model's opinion of its own pass.
+
+The loop adds one gate the agent version leaves to the model's diligence. A
+deterministic invariant check compares numbers, versions, links, inline code,
+code blocks and citations between the source and every rewrite. A pass that loses
+one, or states one the source and `--context` never supplied, is not accepted
+however well it scores. Run over the twenty `ai_modern` rewrites and the shipped
+examples, it flags six of 29 pairs. Five are real: m13 dropped "March 13", and
+four example "afters" carry author-supplied figures their "before" never had,
+which is what the gate exists to question. The sixth was an HTML comment, and
+comments are now ignored.
+
+`mcp_server.py` serves the skill over MCP (stdio, standard library) with
+`lint_prose`, `check_invariants`, `get_skill`, `humanize` and `verify_detector`,
+plus every reference file as a resource. `humanize.py --print-prompt chat`
+compiles the skill for ChatGPT projects, Gemini Gems and Claude projects.
+
+### What a document spends its words on
+
+Every check before this release read a sentence, a paragraph or the markdown on
+the page. None read the document as a plan, which is where an agent-written report
+still gives itself away once its sentences are clean. It says its point in the
+overview, again in the body, and a third time in the summary. It gives the schema
+four hundred words and rollback one line. One section quotes
+`min.insync.replicas=2` and the next says the system scales to handle increased
+load.
+
+Three new checks in `architecture.py` cover it, all document-level and all
+count-gated. `restatement` compares every sentence and list item with the ones in
+other sections by stemmed content words and flags two or more near-duplicates at
+2.5 per thousand words. Each finding names any number or word the repeat carries
+that appears nowhere else in the source, and in that case the suggested fix is a
+merge, not a cut. `section_balance` flags hollow stub sections beside a bloated
+one, five or more sections of near-identical length, framing sections (overview,
+background, summary) over 35% of the words with a recap among them, and four or
+more lists all cut to one length. `depth_drift` measures checkable detail per
+hundred words by section. It flags a long section built from abstract benefit
+words beside a dense one, and beginner explanations in a technical document. A new
+`structure:` metrics line reports the numbers behind all three.
+
+The skill gained a matching step. The rewrite procedure now builds a section map
+right after stripping the assistant shape, with a column for what each section
+alone says. **A structure pass never cuts distinct information without approval.**
+A fact, number, name, commitment, decision, caveat or owner that appears once moves
+or gets reworded. If it should go, the agent asks, or leaves it and lists it under
+the new "Proposed cuts" line in the audit. The hallucination pass restores
+anything the architecture step dropped without that approval. The long version is
+`references/content-architecture.md`, and `examples/architecture-*.md` walks a
+design doc from 48.9 to 0.0 with every distinct claim accounted for. The first
+draft of that example deleted a claim and reworded three commitments into
+something the author never said, and the notes keep that mistake on the record.
+
+Calibration came from 869 long, sectioned markdown files written by people (the
+READMEs and manuals shipped with Homebrew formulae, npm packages, Rust crates and
+Python packages). The first thresholds fired on 35% of them. What separated agent
+output from human reference docs was specific, and each became a rule. Human
+stubs are pointers carrying a link or a command. Human repeats are verbatim notes
+or parallel API entries under code-named headings. Human conceptual sections talk
+about particular things rather than in benefit words. Changelogs repeat by design.
+At the shipped values the checks fire on 6 of the 869 (0.7%), section balance on
+none. `eval/structure_eval.py --check` runs in CI over six authored positives and
+64 in-repo negatives. `--human-dir` repeats the sweep on any local tree. The main
+corpus is single-section, so no existing eval number moved.
+
+Thresholds and weights live in the pattern file like every other knob.
+`release_notes` and `ux_microcopy` mute `section_balance` through the new
+`fixed_sections_ok` token. `tutorial` doubles the expert bar for explainers rather
+than muting it.
+
+### A negative set that was measuring the wrong text
+
+CI had failed on every push since August, in one test: the stdlib-docstring
+false-positive sweep. It scored `email` at 34.2 under pytest and 17.7 in a plain
+run. The sweep collected every attribute's `__doc__`, and that picked up two kinds
+of text the module never wrote. Imported modules contributed their own
+docstrings, so the result depended on what happened to be imported first; pytest
+imports nine `email` submodules. Constants answered with their type's docstring,
+so `int`'s text was scored 172 times inside `sqlite3`. The sweep now reads
+function and class docstrings only, each once, and gives the same answer in and
+out of pytest on every Python from 3.8 to 3.13.
+
+Honest input exposed a real false positive that the noise had hidden.
+`ngram_repetition` owned 49% of all score points on human reference prose, almost
+all of it two-word terms of art repeated the way principle 6 asks: "event loop",
+"type variables". The check now counts trigrams only. The labeled eval and the
+ablation are unchanged to four decimal places, so bigrams were catching nothing
+the other checks missed. On clean input the sweep median fell from about 10 to
+8.0 and the worst module from 18.6 to 15.3. Two smaller fixes rode along: the
+sweep's minimum-length filter now counts the words the linter actually scored,
+and `tests/test_llm.py` runs as a script, because `python -m unittest <path>`
+fails to import it on Python 3.9.
+
 ## [0.8.0]
 
 ### What the other hundred tools do, and what survived the measurement

@@ -20,6 +20,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run linter stress + correctness suite
         run: python3 tests/stress_test.py
+      - name: Providers, prompt compiler, invariants, loop, MCP server, installer (offline)
+        run: python3 tests/test_llm.py
+      - name: Smoke-check the model-agnostic front ends (no network)
+        run: |
+          python3 skills/human-voice/scripts/humanize.py --list-providers
+          python3 skills/human-voice/scripts/humanize.py --print-prompt chat > /dev/null
+          python3 install.py --all --project "$RUNNER_TEMP/hv-install"
+          printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | python3 skills/human-voice/scripts/mcp_server.py | grep -q '"serverInfo"'
       - name: Smoke-check the CLI on the example pair
         run: |
           python3 skills/human-voice/scripts/detect_ai_prose.py skills/human-voice/examples/after.md
@@ -28,6 +36,10 @@ jobs:
         run: |
           python3 eval/run_eval.py --check
           python3 eval/ablation.py --check
+      # Content architecture (restatement, section balance, depth drift) has its
+      # own positives and negatives: the main corpus has no multi-section documents.
+      - name: Content-architecture gate
+        run: python3 eval/structure_eval.py --check
       # Independent negative set: human prose nobody wrote for this repository.
       - name: False-positive sweep over stdlib docstrings
         run: python3 eval/human_baseline.py --check
@@ -35,6 +47,8 @@ jobs:
         run: python3 eval/detector_harness.py
       # A skill that tells writers to drop the em-dash must not ship docs full of
       # them. SKILL.md had 66 before v0.6. This gate keeps that from returning.
+      - name: README charts match the committed eval output
+        run: python3 docs/assets/make_visuals.py --check
       - name: Dogfood the linter on the project's own prose
         run: make dogfood
 
@@ -49,7 +63,7 @@ jobs:
       - name: Install dev tooling
         run: pip install ruff mypy pytest
       - name: Ruff (lint)
-        run: ruff check skills/human-voice/scripts/human_voice_linter eval tests
+        run: ruff check skills/human-voice/scripts/human_voice_linter skills/human-voice/scripts/human_voice_llm install.py eval tests
       - name: Mypy (type-check the package + eval/lib.py)
         run: mypy
       - name: Pytest (eval unit tests + stress wrapper)

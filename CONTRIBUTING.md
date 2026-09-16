@@ -12,10 +12,27 @@ orchestrator), `score`, `report`, `autofix`, `config`, `schema` (config
 validation), `directives` (inline ignore comments), `cli`, and `api`.
 `detect_ai_prose.py` is a thin shim that re-exports the package.
 
+The **model-agnostic layer** sits beside the linter in `scripts/human_voice_llm/`:
+`providers` (one `chat()` call, every provider, four wire formats), `prompt`
+(compiles SKILL.md for a model with no tools), `invariants` (the fact-preservation
+diff), `loop` (lint, rewrite, check, feed back), `cli` (`humanize.py`) and
+`mcp_server`. Also stdlib-only. `install.py` at the repo root knows where each
+coding agent loads skills from.
+
+To add a provider that speaks OpenAI chat completions, add one entry to
+`PROVIDERS` in `providers.py` with its base URL, key variable and a default model,
+then add a resolution test in `tests/test_llm.py`. A provider with its own wire
+format needs a body builder and a parser beside the four that exist, plus a
+`Recorder` branch in the tests. No test may touch the network.
+
+Keep `SKILL.md` frontmatter inside the [Agent Skills spec](https://agentskills.io/specification):
+`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools`.
+Agent-specific fields go under `metadata`. The portability test fails otherwise.
+
 ## Run the tests
 
 ```bash
-make test          # stress suite (500+ checks); must print "all green"
+make test          # stress suite (500+ checks) + the provider/MCP/installer unit tests
 make eval-check    # fail if eval metrics drift from the committed golden JSON
 make eval          # regenerate the golden metrics after an intentional change
 make quality       # dev-only: ruff + mypy + pytest (needs `pip install ruff mypy pytest`)
@@ -73,8 +90,10 @@ flagged). See the README.
 ## Versioning
 
 `.claude-plugin/plugin.json` is the **canonical** version. When you bump it,
-update the matching `version` in `.claude-plugin/marketplace.json`; the stress
-suite has a drift guard that fails if they disagree. Add a `CHANGELOG.md` entry.
+update the matching `version` in `.claude-plugin/marketplace.json`,
+`scripts/ai_prose_patterns.json`, `gemini-extension.json`, the `metadata.version`
+in `SKILL.md`, and `SERVER_INFO` in `human_voice_llm/mcp_server.py`. Drift guards
+in the stress suite and `tests/test_llm.py` fail if any disagree. Add a `CHANGELOG.md` entry.
 
 ## Verify install
 

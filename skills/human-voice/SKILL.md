@@ -1,10 +1,11 @@
 ---
 name: human-voice
-description: Use when generating or rewriting reports, documentation, or any prose so it does not read as AI-written. Removes hedging, em-dash overuse, filler ("delve", "leverage", "seamless"), rule-of-three padding, bold-bullet listicles, meta-commentary, sycophancy, and vacuity, without altering facts, numbers, code, or citations. Accepts a file path or pasted text.
-when_to_use: When prose "sounds like AI" or "sounds like ChatGPT", when humanizing or de-slopping a draft, when a report/email/README/landing-page reads robotic, or when drafting copy that should read human from the start. Not for: translation, summarization, or grammar-only fixes.
-user-invokable: true
-argument-hint: <file-path | pasted-text> [fix|generate] [register: technical|business|marketing|academic|casual|creative]
+description: Use when generating or rewriting reports, documentation, or any prose so it does not read as AI-written. Removes hedging, em-dash overuse, filler ("delve", "leverage", "seamless"), rule-of-three padding, bold-bullet listicles, meta-commentary, sycophancy, and vacuity, without altering facts, numbers, code, or citations. Accepts a file path or pasted text. Trigger when prose "sounds like AI" or "sounds like ChatGPT", when humanizing or de-slopping a draft, when a report, email, README or landing page reads robotic, or when drafting copy that should read human from the start. Not for translation, summarization, or grammar-only fixes.
 license: MIT
+compatibility: Model-agnostic Agent Skill. Works in any agent that loads SKILL.md (Claude Code, Codex, Gemini CLI, Cursor, GitHub Copilot, Windsurf, Cline, opencode). The optional linter needs Python 3.8+ and no packages or network.
+metadata:
+  argument-hint: "<file-path | pasted-text> [fix|generate] [register: technical|business|marketing|academic|casual|creative]"
+  version: "0.9.0"
 ---
 
 # Human Voice: de-AI-ify reports and docs
@@ -16,19 +17,23 @@ reports, documentation, marketing and web copy, blog posts, emails, academic
 prose, and fiction. It matches the conventions of that genre (see Register
 profiles). A universal core of AI tells is fixed in every genre; the rest flex.
 
-The job is not to swap a few words. AI text gives itself away at four depths, and
+The job is not to swap a few words. AI text gives itself away at five depths, and
 they are not equally loud:
 
 1. **Shape**: the document is a chat answer in a document's clothes: a heading
    every eighty words, a third of the lines bulleted, bold on every term, a "Key
    takeaways" close. This is the loudest signal and the one most passes skip.
-2. **Rhythm**: sentences collapsed into the 12-26 word band with no short
+2. **Architecture**: what the document spends its words on. The overview comes
+   back as the summary, one section runs four hundred words while three hold a
+   sentence each, and the depth swings from a p99 to "in simple terms, a cache
+   is". No sentence is wrong, so a sentence-level pass never sees it.
+3. **Rhythm**: sentences collapsed into the 12-26 word band with no short
    punches and no long runs; paragraphs all the same size.
-3. **Substance**: vacuity, restatement, meta-commentary, fabricated
+4. **Substance**: vacuity, restatement, meta-commentary, fabricated
    specificity, a survey where a verdict belongs.
-4. **Diction**: delve, leverage, seamless. Real, and least important.
+5. **Diction**: delve, leverage, seamless. Real, and least important.
 
-Fix them in that order. A pass that starts at 4 ships text that is still
+Fix them in that order. A pass that starts at 5 ships text that is still
 obviously machine-written, which is most of what "humanizer" tools do.
 
 It draws on the same ideas as the public linters (proselint, write-good, Vale)
@@ -104,7 +109,9 @@ rationale and the weight tiers: [`references/cited-vs-matched.md`](references/ci
 
 1. **Shape beats structure beats substance beats vocabulary.** Fix in this
    order: strip the assistant shape (heading/bullet/bold density, the recap
-   section) → delete vacuous sentences → fix the sentence-length *distribution*,
+   section) → fix the architecture (merge restated points, weigh sections by what
+   the reader needs, hold one depth throughout, never cutting a distinct claim
+   without the author's approval) → delete vacuous sentences → fix the sentence-length *distribution*,
    not just its variance → dismantle rule-of-three and bold-bullet templates →
    cut meta-commentary → *then* fix diction. Diction is last and least. This
    order is not a preference; it is what the measurement says (see What
@@ -190,7 +197,8 @@ switch them off.
 
 ## Modes
 
-Parse `$ARGUMENTS` for a mode token and an optional `register:` token. Parsing is
+Parse the invocation arguments (`$ARGUMENTS` where the agent substitutes it,
+otherwise the user's message) for a mode token and an optional `register:` token. Parsing is
 order-independent and case-insensitive: accept `fix`/`generate` in any position,
 `register: marketing`, `register=marketing`, or a bare register name; treat
 anything that resolves to an existing path as the input file, not a mode.
@@ -202,7 +210,10 @@ anything that resolves to an existing path as the input file, not a mode.
   through the same self-critique loop before returning it. Load
   [`references/structural-craft.md`](references/structural-craft.md) for the
   generative moves (vary length and density, don't follow the outline, get
-  specific). The linter catches tells but can't teach voice.
+  specific). Before drafting anything with sections, budget the words by what the
+  reader needs rather than by the outline, and decide the reader's depth once
+  ([`references/content-architecture.md`](references/content-architecture.md)).
+  The linter catches tells but can't teach voice.
 
 **Resolution decision tree:**
 
@@ -231,7 +242,7 @@ genuinely ambiguous and it changes the voice materially, ask one short question.
 
 ## Pick the depth of the pass
 
-The procedure below runs eleven steps, plus an intake, a three-angle critique and
+The procedure below runs twelve steps, plus an intake, a three-angle critique and
 a detector gate. Spend all of that on a two-line Slack message and you have spent
 more than the message is worth, which in practice means the skill gets skipped
 entirely the next time it would have helped. Use the fewest steps that still fix
@@ -368,6 +379,14 @@ rewrite.
 - **Assembled heading trees** (a level skipped, a second H1, a heading whose whole
   body is the next heading, a heading running straight into a bullet list) →
   write the section, or merge the headings. Linter: `heading_structure`.
+- **Content architecture** (the overview reworded as the summary; stub sections
+  beside a bloated one; five sections of identical length; framing that outweighs
+  the subject; a hollow "Scalability" section next to one quoting config keys;
+  "in simple terms" in a document for experts) → build a section map, merge
+  restatements, weigh sections by the reader's questions, and hold one depth.
+  Anything a section alone says moves; it is not cut without the author's
+  approval. Linter: `restatement`, `section_balance`, `depth_drift`. Full pass:
+  [`references/content-architecture.md`](references/content-architecture.md).
 - **The "second dialect"**: what's left after the obvious slop is gone: a uniform
   ", and" splice rhythm, stacked "[noun] is [noun]" copulas, "[thing] lives in
   [place]" locatives. Trade the slop signature for a *voice*, not a tidier
@@ -576,9 +595,22 @@ Work in this order (principle 1). Do not jump to diction first.
    linter measures this as `assistant_shape`; the metrics line reports headings
    per 1k words, the bullet-line ratio, and bold spans per 1k. This single move
    changes more than every diction fix combined. See What detectors actually see.
-4. **Cut vacuity.** Delete sentences and paragraphs that carry no information.
+4. **Fix the architecture.** Still before any sentence work. Build the section map
+   from [`references/content-architecture.md`](references/content-architecture.md):
+   one line per section with its word count, the one thing it says, its depth
+   (0 framing to 3 implementation), what it repeats, and what it alone says. Then
+   merge restated points into the copy that does the most work, fold stubs into
+   their neighbours, give the most words to what a reviewer will ask about, bring
+   hollow sections to the depth of the rest, and move the decision to the top.
+   **Distinct information is never cut without approval.** A fact, number, name,
+   commitment, decision, caveat or owner that appears in only one place moves or
+   gets reworded. It does not get deleted. If it should go, ask the author (in an
+   interactive session, before editing), or leave it and list it under Proposed
+   cuts in the audit. The linter reports `restatement` (naming what a repeat alone
+   carries), `section_balance` and `depth_drift`, plus a `structure:` metrics line.
+5. **Cut vacuity.** Delete sentences and paragraphs that carry no information.
    This usually removes 15–25% of the words and most of the remaining "AI feel".
-5. **Fix the sentence-length distribution.** Not just its variance. Its shape.
+6. **Fix the sentence-length distribution.** Not just its variance. Its shape.
    Model prose collapses into the 12–26 word band; human prose reaches past both
    ends. Coefficient of variation misses this because one long sentence inflates
    it while everything else stays uniform, so aim at the tails directly: at least
@@ -586,7 +618,7 @@ Work in this order (principle 1). Do not jump to diction first.
    a four-word sentence against a forty-word one. Read it aloud in your head;
    flat cadence is the tell. The linter reports CoV, the short-sentence ratio,
    and the mid-band ratio (`burstiness` and `sentence_shape`).
-6. **Dismantle templates.** De-triadic the rule-of-three; convert bold-bullet
+7. **Dismantle templates.** De-triadic the rule-of-three; convert bold-bullet
    listicles to a mix of prose and plain bullets; cut reflexive transitions and
    antithesis ("not only… but also").
    Then take a pass for the **syntactic signature** (Tier 1): unstage the clefts
@@ -596,19 +628,19 @@ Work in this order (principle 1). Do not jump to diction first.
    sentences. The linter's `syntax:` metrics line reports all four counts. These
    are the constructions a current model produces most reliably, and a draft can
    pass every diction check while still being written entirely in them.
-7. **Cut stance tells.** Remove meta-commentary, throat-clearing, reflexive
+8. **Cut stance tells.** Remove meta-commentary, throat-clearing, reflexive
    hedges, false balance, empty conclusions, and chatbot warmth.
-8. **Sharpen the evaluation.** This is what most separates human from AI. Make
+9. **Sharpen the evaluation.** This is what most separates human from AI. Make
    the text take a position: commit to a recommendation instead of surveying
    options, weight real (lopsided) tradeoffs instead of false balance, lead with
    the verdict, give the mechanism (the "why"), and call a wrong choice wrong.
    Name genuine limits ("not tested on multi-node"). That is honest stance, not
    hedging. See category 8 in `references/ai-tells.md`.
-9. **Unify voice and materials.** Hold one author voice end to end; use one term
+10. **Unify voice and materials.** Hold one author voice end to end; use one term
    per concept (no renaming "the model" → "the LLM" → "the network"); keep one
    dialect, one heading-case convention, one tense for findings, and consistent
    number/term/list formatting. See category 7.
-10. **Fix diction, jargon, and mechanics.** Replace filler words, clichés, and
+11. **Fix diction, jargon, and mechanics.** Replace filler words, clichés, and
    business jargon with the plain word the meaning needs, or cut. Apply the
    Anti-jargon rules: keep necessary technical terms, cut empty buzzwords, never
    stack them. Fix punctuation and dashes here too: outside `creative`, replace
@@ -618,7 +650,7 @@ Work in this order (principle 1). Do not jump to diction first.
    linter with `--fix` clears the mechanical ones (em-dashes, `--`, spaced
    hyphens, emoji) before you do the judgment work. Skip swaps that leave the
    sentence vague. See category 9.
-11. **Calibrate to the register.** Match the genre's conventions (Register
+12. **Calibrate to the register.** Match the genre's conventions (Register
     profiles) and hold them end to end: professional for a report, conversational
     for marketing, narrative for fiction. Add what the genre wants (contractions
     in casual; "you" in marketing); never bolt on a voice the genre rejects.
@@ -635,13 +667,15 @@ classes of tells. Read the rewrite as each of:
 - the **domain expert**: vacuity, weak stance, wrong or unsupported claims (the
   substance);
 - the **genre editor**: register fit, length, format conventions (does it read
-  like real writing in this genre?);
+  like real writing in this genre?), and the architecture: does every section
+  earn its length, is anything said twice, is every section pitched at the same
+  reader?;
 - the **author's colleague**: is there anything here only this author could have
   written? If every specific could have come from a search summary, the intake
   did not do its job.
 
 **Score each dimension 0–2**, where 0 = clearly AI, 1 = passable, 2 = genuinely
-human: Shape, Substance, Rhythm, Stance, Consistency, Sourcing, Diction, Register. The
+human: Shape, Architecture, Substance, Rhythm, Stance, Consistency, Sourcing, Diction, Register. The
 bar to return: no dimension below 1, and the mechanical ones (Rhythm, Diction)
 not the only thing carrying it. This makes "good enough" measurable instead of a
 vibe.
@@ -656,6 +690,9 @@ metrics line, so check them rather than guessing:
 - **no `assistant_shape` hits**: heading density, bullet ratio, bold density all
   under threshold, and no recap section;
 - **paragraph-length CoV ≥ 0.3**: paragraphs are not all the same size;
+- **no `restatement`, `section_balance` or `depth_drift` hits** on a sectioned
+  document, and every "only here" item from the section map still present in the
+  rewrite (the `structure:` metrics line has the counts);
 - em-dash density ≈0 outside `creative` (replace nearly all with varied marks);
 - **no `cleft` or `participial_tail` hits**: the syntactic signature is Tier 1
   and it survives every diction fix, so check the `syntax:` metrics line
@@ -673,14 +710,18 @@ three consecutive sentences sharing a shape (all Subject-Verb-Object)? break one
 > 1 outside `creative`? replace the extras; (e) any sycophancy, "in conclusion"
 recap, or "not X, it's Y"? cut it; (f) one concrete detail a generic model
 wouldn't have written? (g) would this document have this much markdown in it if a
-person had typed it? If a Reddit commenter would call it slop, it isn't done.
+person had typed it? (h) read only the headings and the first sentence under
+each: does any point come round twice, and does the hardest topic get the most
+room? If a Reddit commenter would call it slop, it isn't done.
 
 Then:
 
 1. **Run the hallucination pass.** Diff the rewrite's claim inventory against the
    source's (Anti-hallucination protocol, step 6). Any new, strengthened,
    weakened, or re-numbered claim is a regression. Revert that span. Check for
-   *dropped* claims too: a cut caveat is silent information loss.
+   *dropped* claims too: a cut caveat is silent information loss. Anything the
+   architecture step removed that existed nowhere else in the source must be
+   restored, unless the author approved that cut.
 2. **A/B against the original.** Did I lose any real content? Is the rewrite
    genuinely *better*, or merely *different*? Trading the AI signature for a new
    uniform signature (everything de-listed, every em-dash gone) is a failure
@@ -808,7 +849,9 @@ the rest of the shape stays. You relax the single rule in the way, not the skill
    list by definition and a comparison is a table. What Tier 1 targets is
    *assistant* shape: the heading every eighty words chopping up a continuous
    argument, the bold on every noun, the "Key takeaways" close. Structure that
-   carries information stays. Strip the structure that only decorates.
+   carries information stays. Strip the structure that only decorates. The same
+   holds for architecture: a template with a mandatory Security section keeps the
+   section, and an API reference keeps its parallel entries.
 2. **The user asked for something else.** Translation, summarization, a
    grammar-only fix, a factual check. Do the job that was asked for. Offer the
    voice pass afterward if it would help, but never fold it in unannounced: a
@@ -829,7 +872,7 @@ the rest of the shape stays. You relax the single rule in the way, not the skill
 6. **A change that is hard to undo.** Editing a file in place, touching what git
    does not track, rewriting a doc someone else owns. Confirm first, or leave a
    `.bak`. Recoverability outranks finishing in one turn.
-7. **The harness outranks the skill.** A system prompt, a project CLAUDE.md, or a
+7. **The harness outranks the skill.** A system prompt, a project CLAUDE.md, AGENTS.md or GEMINI.md, a rules file, or a
    style guide the repo enforces beats this file wherever they collide. Same
    principle as 1: the constraint wins, the shape stays.
 
@@ -837,6 +880,14 @@ None of these licenses a quiet return to the default voice. Each scopes one rule
 in one place, for a reason you can state, and the reason belongs in the audit.
 
 ## Workflow
+
+Script paths below are relative to this skill's own directory, the folder that
+holds this SKILL.md, not to the user's working directory. Resolve them from there.
+The skill does not depend on any one agent or model. Whichever agent loaded it,
+the tools fall back in the same order: run the script if you have a shell and
+Python 3; otherwise call the `lint_prose`, `check_invariants` and
+`verify_detector` tools if the human-voice MCP server is connected; otherwise use
+the no-tool checklist in step 3 and say in the audit that the linter did not run.
 
 1. **Resolve input.** File-path vs pasted-text vs brief; pick `fix` or
    `generate`; infer `register`. Set the depth here too (Pick the depth of the
@@ -891,7 +942,9 @@ in one place, for a reason you can state, and the reason belongs in the audit.
    crucial, comprehensive, landscape); (f) count em-dashes, since outside
    `creative` essentially any is a tell; (g) check every list for the
    `- **Term:**` pattern; (h) count sentences that open "What …" or "The reason
-   …" and sentences carrying a ", VERB-ing …" tail, and cut most of both.
+   …" and sentences carrying a ", VERB-ing …" tail, and cut most of both; (i) for
+   a document with headings, write the section map: words per section, the one
+   thing each says, what repeats, what each alone says.
 4. **Optional autofix.** Clear the mechanical tells before the judgment work:
    `python3 scripts/detect_ai_prose.py --fix --register <reg> <file>` rewrites
    em-dashes, `--`, spaced hyphens and non-numeric en-dashes to commas, strips
@@ -984,12 +1037,14 @@ Words: <before> → <after>  (−NN%)
 Passes run: <n>/3
 
 Shape:  headings/1k <before> → <after>   bullet-line ratio <before> → <after>
+Struct: sections <before> → <after>   framing share <before> → <after>   restated pairs <before> → <after>   depth/100w by section <before> → <after>
 Rhythm: short-sentence ratio <before> → <after>   mid-band <before> → <after>   CoV <before> → <after>
 Syntax: clefts <before> → <after>   ",VERBing" tails <before> → <after>   copula/1k <before> → <after>
 Style:  function-word delta <before> → <after>  (human median <m>; diagnostic, unscored, read inverted)
 
 Tells removed (by category):
 - Shape:       <n>  e.g. cut 4 headings, un-bulleted 2 lists, dropped the recap
+- Architecture: <n> e.g. merged summary into overview; folded 3 stubs into rollout; levelled "Scalability"
 - Substance:   <n>  e.g. cut 2 vacuous paragraphs; removed restated conclusion
 - Rhythm:      <n>  e.g. added 3 short sentences; mid-band 0.81→0.55
 - Structure:   <n>  e.g. de-triadic 4 sentences; 6 em-dashes → varied marks
@@ -1004,9 +1059,10 @@ Author material added: <specifics sourced from the draft/context/user, or "none"
 Detector gate: <clear|flagged|not run>  p(AI) <before> → <after>  (<detector>, gate <threshold>)
   "not run" means no detector was configured. It is not a pass.
 
-Dimension scores (0–2): Shape _ · Substance _ · Rhythm _ · Stance _ · Consistency _ · Sourcing _ · Diction _ · Register _
+Dimension scores (0–2): Shape _ · Architecture _ · Substance _ · Rhythm _ · Stance _ · Consistency _ · Sourcing _ · Diction _ · Register _
 Invariants preserved: numbers ✓  code ✓  links ✓  claims ✓  PII-safe ✓  (claim diff: +0 added / 0 strengthened / 0 weakened / 0 dropped)
 Placeholders left for author: <list of [SOURCE NEEDED]/[VERIFY], or "none">
+Proposed cuts (awaiting approval): <each distinct claim the rewrite would drop, kept in place until the author says, or "none">
 Rules relaxed: <which rule, where, and why, or "none">  (see When a rule fights the task)
 Residual risk: <why a skeptical human might still flag this, or "none">
 Next: <one thing the author does now, or "nothing; this is ready to ship">

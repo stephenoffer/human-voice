@@ -1,0 +1,8 @@
+description = "Rewrite (fix) or draft (generate) prose so it reads as written by a skilled person, without changing any fact."
+prompt = """
+Activate the human-voice skill and follow it exactly for this request.
+
+If the skill is not available, call the human-voice MCP server's `get_skill` tool and follow what it returns.
+
+Request: {{args}}
+"""

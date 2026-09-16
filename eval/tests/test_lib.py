@@ -197,6 +197,34 @@ def test_rewrites_change_nothing_numeric():
         assert not invented, "%s invented numbers: %s" % (name, invented)
 
 
+def test_human_baseline_scores_only_own_prose():
+    """The sweep must score a module's own docstrings, not imports or constants.
+
+    Counting module-typed attributes made the result depend on import order: pytest
+    imports `email.message` and friends, and `email` then scored 34.2 in CI against
+    17.7 in a plain run, which failed the gate on every push.
+    """
+    import types
+
+    import human_baseline as hb
+
+    fake = types.ModuleType("fake_mod", "Fake module.")
+    fake.helper = types.ModuleType("fake_mod.helper", "x " * 300)
+    fake.CONSTANT = 42  # int instance: its __doc__ is int's docstring
+    fake.func = lambda: None
+    fake.func.__doc__ = "own prose " * 30
+    fake.alias = fake.func
+    sys.modules["fake_mod"] = fake
+    try:
+        text = hb.module_prose("fake_mod")
+    finally:
+        del sys.modules["fake_mod"]
+    assert text.count("own prose own prose") >= 1
+    assert text.count("own prose " * 30) <= 1, "an alias must not double-count prose"
+    assert "x x x" not in text
+    assert (int.__doc__ or "")[:40] not in text
+
+
 def test_human_baseline_sweep_runs_and_gates():
     """The independent negative set must run offline and stay inside its ceilings.
 

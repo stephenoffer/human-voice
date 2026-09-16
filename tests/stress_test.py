@@ -2179,6 +2179,272 @@ check("stylometry_survives_zero_stdev",
 
 
 # ---------------------------------------------------------------------------
+# 13. Content architecture: restatement, section balance, depth drift
+# ---------------------------------------------------------------------------
+def _arch(text, register="technical"):
+    hits, report, _wc = dap.analyze(text, register, None, PAT)
+    return hits, report
+
+
+def _arch_cats(hits):
+    return {h.category for h in hits} & {"restatement", "section_balance", "depth_drift"}
+
+
+_ARCH_RESTATE = """# Ingestion Service
+
+## Overview
+
+The new ingestion service replaces the nightly batch pipeline with a streaming path that delivers events to consumers within a minute. Product teams can register new event types themselves without waiting on the platform team.
+
+## Architecture
+
+Clients post events to the ingestion API, which writes each payload to a Kafka topic partitioned by tenant. Stateless validators read the topic, check each payload against the registered schema, and forward valid events. Invalid events go to a dead-letter topic with the error attached.
+
+## Delivery
+
+Kafka Connect sinks flush validated events to object storage every thirty seconds and to the warehouse every ten. In the load test the p99 from ingestion to warehouse was forty-one seconds at forty thousand events per second.
+
+## Summary
+
+In summary, the ingestion service replaces the nightly batch pipeline with a streaming path delivering events to consumers within a minute. New event types can be registered by product teams themselves without waiting on the platform team.
+"""
+_h, _r = _arch(_ARCH_RESTATE)
+check("arch_restatement_fires", "restatement" in _arch_cats(_h),
+      "summary re-words the overview: %s" % _r.get("restated_pairs"))
+_rl = sorted(h.line for h in _h if h.category == "restatement")
+check("arch_restatement_points_at_the_repeat", _rl and _rl[0] == 17,
+      "the hit belongs on the summary line, got %s" % _rl)
+
+# A "duplicate" that carries one fact the original lacks must say so, and the fix
+# it suggests is a merge. Deleting that copy would delete the fact.
+_EXTRA = _ARCH_RESTATE.replace(
+    "New event types can be registered by product teams themselves without waiting on the platform team.",
+    "New event types can be registered by product teams themselves without waiting on the platform team, starting March 3.")
+_h, _r = _arch(_EXTRA)
+_sug = [h.suggestion for h in _h if h.category == "restatement"]
+check("arch_restatement_names_distinct_detail",
+      any("merge, don't cut" in x and "March" in x and "3" in x for x in _sug), _sug)
+check("arch_restatement_plain_copy_says_so",
+      any("stated elsewhere" in x for x in _sug), _sug)
+
+# Delete the summary and the same document is quiet.
+_h, _r = _arch(_ARCH_RESTATE.split("## Summary")[0])
+check("arch_restatement_quiet_without_recap", "restatement" not in _arch_cats(_h),
+      "pairs=%s" % _r.get("restated_pairs"))
+
+# Parallel reference entries under function headings are not restatement.
+_API = "# lib\n\n" + "\n\n".join(
+    "## `%s(value)`\n\nReturns true if the provided value is a valid %s token under "
+    "the current parser configuration, and false otherwise for every other input." % (n, n)
+    for n in ("isIdentifier", "isKeyword", "isPunctuator", "isNumeric", "isString")) + "\n"
+_h, _r = _arch(_API)
+check("arch_restatement_quiet_on_api_reference", "restatement" not in _arch_cats(_h),
+      "pairs=%s" % _r.get("restated_pairs"))
+
+# Verbatim copies (a pasted note) are not the agent's re-wording.
+_NOTE = "Note that this option is ignored when the cache directory is mounted read-only on the host."
+_COPY = "# Tool\n\n" + "\n\n".join(
+    "## Option %s\n\nThe %s option controls how entries are written.\n\n%s" % (c, c, _NOTE)
+    for c in "ABCDE") + "\n"
+_h, _r = _arch(_COPY)
+check("arch_restatement_quiet_on_verbatim_copies", "restatement" not in _arch_cats(_h),
+      "pairs=%s" % _r.get("restated_pairs"))
+
+_ARCH_STUBS = """# Migration Plan
+
+## Schema Design
+
+The profiles collection holds 18.4M documents averaging 3.1 KB. A 1% sample found 212 distinct top-level key combinations, and 7% of documents store the address as a string instead of an embedded object. The target schema normalizes the stable fields into users and user_addresses tables and keeps the long tail in a jsonb column called extra. The legacy object id is kept in legacy_oid so services can dual-read during cutover. String addresses are parsed with libpostal during the backfill; the 0.4% that fail parsing land in extra under raw_address for support to review. Emails are lowercased and deduplicated before insert, keeping the document with the latest login. The backfill reads from a hidden secondary in 500k-document chunks keyed by id range and writes through COPY into staging tables before an upsert on legacy_oid. A change stream consumer started before the backfill replays writes made during it, so the two converge without a write freeze.
+
+Cutover happens per service. Each reader switches from Mongo to Postgres behind the profile_store_backend flag, starting with the notification worker because it only reads display_name and email. The account API goes last: it writes, so it runs dual-write for 72 hours with a nightly diff job comparing 50,000 random users between the stores, and the flag flips only after three consecutive clean diffs. At 9k documents per second the full backfill takes about 35 minutes, so a failed diff costs one evening rather than one week.
+
+## Testing
+
+We will test the migration thoroughly.
+
+## Rollback
+
+If something goes wrong, we will roll back.
+
+## Risks
+
+There are some risks involved.
+
+## Timeline
+
+The work will be completed next quarter.
+"""
+_h, _r = _arch(_ARCH_STUBS)
+check("arch_stub_sections_fire", any(h.category == "section_balance" and "stub" in h.text for h in _h),
+      [h.text for h in _h if h.category == "section_balance"])
+
+# The same thin sections as pointers (a link, a command) are a README, not a quota.
+_POINTERS = _ARCH_STUBS.replace("We will test the migration thoroughly.",
+                                "See [the test plan](docs/testing.md).") \
+    .replace("If something goes wrong, we will roll back.", "Run `make rollback STAGE=prod`.") \
+    .replace("There are some risks involved.", "Tracked in [RISKS.md](RISKS.md).") \
+    .replace("The work will be completed next quarter.", "See the [milestones](https://example.com/m).")
+_h, _r = _arch(_POINTERS)
+check("arch_pointer_sections_are_not_stubs",
+      not any(h.category == "section_balance" and "stub" in h.text for h in _h),
+      [h.text for h in _h if h.category == "section_balance"])
+
+# release_notes: fixed sections are the genre, so section_balance is muted there.
+_h, _r = _arch(_ARCH_STUBS, register="release_notes")
+check("arch_section_balance_muted_in_release_notes", "section_balance" not in _arch_cats(_h))
+
+_ARCH_FRAMING = """# Choosing a Queue
+
+## Overview
+
+Choosing the right message queue is an important decision that will shape how our services communicate for years to come. This document looks at the options and the considerations involved so that the team can make an informed and confident choice going forward. It is intended to give everyone a shared understanding of the landscape before any commitments are made.
+
+## Background
+
+As the platform has grown, more services need to exchange messages reliably. Different teams have adopted different approaches over time, which has created inconsistency and made it harder to reason about how the system behaves as a whole under load. A consistent approach would help teams collaborate more effectively and reduce the operational burden over time.
+
+## Options
+
+SQS gives us at-least-once delivery with a 256 KB message cap and no ordering outside FIFO queues, which cap at 3,000 messages per second with batching. Kafka keeps ordering per partition and lets consumers replay from an offset, at the cost of running brokers ourselves. Billing events need neither replay nor strict ordering. The largest invoice payload we emit today is 41 KB, well under the SQS cap, and peak volume last quarter was 180 events per second.
+
+## Recommendation
+
+Use SQS for the billing events.
+
+## Summary
+
+In summary, choosing a message queue is an important decision. By weighing the considerations described in this document carefully, the team can select the approach that best fits its needs and sets the platform up for long-term success. A thoughtful decision now will pay dividends as the platform continues to grow and evolve in the years ahead.
+"""
+_h, _r = _arch(_ARCH_FRAMING)
+check("arch_framing_share_fires", any(h.category == "section_balance" and "framing" in h.text for h in _h),
+      "framing_share=%s" % _r.get("framing_share"))
+
+_EVEN = "# Report\n\n" + "\n\n".join(
+    "## Part %s\n\n%s" % (t, " ".join(("%s%d" % (t.lower(), i)) for i in range(55)) + ".")
+    for t in ("Alpha", "Bravo", "Charlie", "Delta", "Echo")) + "\n"
+_h, _r = _arch(_EVEN)
+check("arch_even_sections_fire", any(h.category == "section_balance" and "within a few words" in h.text for h in _h),
+      "section_len_cov=%s" % _r.get("section_len_cov"))
+
+_SYM = "# Options\n\n" + "\n\n".join(
+    "## Option %d\n\nThis option is described below in some detail for the reader.\n\n"
+    "- first point about option %d\n- second point about option %d\n- third point about option %d"
+    % (i, i, i, i) for i in range(1, 5)) + "\n\n## Notes\n\n" + ("More words here. " * 70) + "\n"
+_h, _r = _arch(_SYM)
+check("arch_list_symmetry_fires", any(h.category == "section_balance" and "exactly 3 items" in h.text for h in _h),
+      [h.text for h in _h if h.category == "section_balance"])
+
+_ARCH_HOLLOW = """# Postmortem: Checkout Outage
+
+## Impact
+
+The outage had a meaningful impact on customers and on the business. Many customers who attempted to check out during the incident window were unable to complete their purchases, which led to frustration and a significant loss of trust. Some customers contacted support, increasing the load on the support team during an already busy period. From a business perspective the incident resulted in lost revenue and may have affected retention. The reputational impact is harder to measure but should not be underestimated, since reliability is an essential expectation for any shopping experience. Internal teams were affected as well, since engineers across several groups were pulled away from planned work to help with the investigation and the recovery effort. Overall, the impact highlights the importance of a resilient checkout flow.
+
+## Timeline
+
+- 14:02 UTC: PR 4812 merged, lowering DB_POOL_MAX from 80 to 20.
+- 14:13 UTC: checkout_db_pool_wait_seconds p99 rises from 0.02 to 9.8.
+- 14:16 UTC: PagerDuty fires CheckoutErrorRateHigh at 31% 5xx.
+- 14:24 UTC: on-call finds pool saturation in pg_stat_activity.
+- 14:31 UTC: revert merged as PR 4815; 5xx back under 0.2% by 14:38.
+
+## Root Cause
+
+With DB_POOL_MAX=20 and 12 pods the service held at most 240 connections while peak traffic needed about 610. Requests queued on pool.acquire() with a 10-second timeout and the gateway gave up at 8 seconds, so most failures surfaced as 504s. PR 4812 was meant for the staging overlay but edited checkout-api/config/prod.yaml, and the config linter checks types but not ranges.
+"""
+_h, _r = _arch(_ARCH_HOLLOW)
+_dd = [h for h in _h if h.category == "depth_drift"]
+check("arch_hollow_section_fires", len(_dd) == 1 and _dd[0].line == 3,
+      [(h.line, h.text) for h in _dd])
+
+# A conceptual section that talks about particular things without the abstract
+# benefit vocabulary is a person explaining, not a section written from outside.
+_CONCEPT = _ARCH_HOLLOW.split("## Impact")[0] + """## How Checkout Differs From Cart
+
+Cart writes are cheap and forgiving. A shopper who loses an item from the cart adds it back and rarely notices, so the cart service retries quietly and drops writes under pressure. Checkout cannot do that. Once the card is charged the order has to exist, which means the payment call and the order insert either both happen or the charge is voided by the reconciler that runs behind them. That asymmetry is why checkout holds database connections longer than any other service and why a pool change that cart would shrug off takes checkout down within minutes of deploying.
+""" + "## Timeline" + _ARCH_HOLLOW.split("## Timeline")[1]
+_h, _r = _arch(_CONCEPT)
+check("arch_conceptual_section_is_not_hollow", "depth_drift" not in _arch_cats(_h),
+      [(h.line, h.text) for h in _h if h.category == "depth_drift"])
+
+_ARCH_EXPLAIN = """# fastcache
+
+In-process LRU cache for Python with TTL support and async-safe locking.
+
+## What is a cache?
+
+In simple terms, a cache is a place where you keep answers you already worked out. Think of it as a notebook you check before doing the work again. Simply put, it trades memory for speed. Your browser keeps one, your operating system keeps several, and the processor running this code keeps three of its own.
+
+## Usage
+
+```python
+from fastcache import LRUCache
+cache = LRUCache(maxsize=10_000, ttl=300)
+```
+
+`maxsize` bounds entries; eviction is O(1) via an intrusive list. `ttl` is checked lazily on `get()` and by a sweeper every `sweep_interval` seconds (default 30). `AsyncLRUCache` uses one `asyncio.Lock` per shard (16 by default, set with `shards=`) and holds p99 `get` under 1.1 µs with 32 tasks on an M2 Pro running Python 3.12.
+
+Entries are stored in 16 dicts keyed by `hash(key) & 0xF`, each with its own intrusive list, so eviction touches one shard. The sweeper walks at most `sweep_batch` entries (default 512) per tick to cap pause time at roughly 40 µs. Set `ttl=None` to disable expiry entirely; `on_evict(key, value)` fires synchronously inside the shard lock, so keep it short. Benchmarked against cachetools 5.3 with 1M operations at a 90/10 read/write mix and `maxsize=100_000`, `get` p50 is 88 ns against 240 ns, and resident memory is 61 MB against 74 MB. Keys must be hashable; unhashable keys raise `TypeError` at `set()` rather than at eviction, so a bad key fails where it was written.
+
+## Configuration
+
+| Option | Default |
+|---|---|
+| `maxsize` | 1024 |
+| `ttl` | `None` |
+| `shards` | 16 |
+"""
+_h, _r = _arch(_ARCH_EXPLAIN)
+check("arch_explainer_whiplash_fires", any(h.category == "depth_drift" and "beginner" in h.text for h in _h),
+      "explainers=%s depth=%s" % (_r.get("explainers"), _r.get("depth_per_100")))
+# A tutorial explains basics by design: the expert bar doubles there. Wider, not
+# exempt, so a moderately technical page passes as a tutorial and still fires as
+# a technical doc, while the dense README above would fire in either.
+_TUTORIAL = """# Your first deploy
+
+## Before you start
+
+In simple terms, a container is a packaged copy of your app and everything it needs. Think of it as a lunchbox: the same meal, whichever table you open it on. At its core, deploying means handing that lunchbox to a server and asking it to keep the app running for you while you get on with your day.
+
+## Build the image
+
+Open a terminal in the project folder and run `docker build -t myapp:1.0 .` to build the image. The first build downloads the base layers, so expect it to take a few minutes on a home connection. Later builds reuse those layers and usually finish in under 30 seconds. When it finishes, run `docker images` and check that `myapp` appears with the tag `1.0`.
+
+## Push and run
+
+Log in with `docker login`, push with `docker push myapp:1.0`, and start it on the server with `docker run -p 8080:8080 myapp:1.0`. Open the server address in a browser. If the page does not load, run `docker logs` first; nine times out of ten the app is listening on a different port than the one you exposed. Fix the port in your app settings, rebuild, and push again; the server picks up the new image the next time you start it.
+"""
+_h, _r = _arch(_TUTORIAL)
+check("arch_explainer_fires_on_technical_page", any(h.category == "depth_drift" and "beginner" in h.text for h in _h),
+      "depth=%s explainers=%s" % (_r.get("depth_per_100"), _r.get("explainers")))
+_h, _r = _arch(_TUTORIAL, register="tutorial")
+check("arch_explainer_tolerated_in_tutorial", not any(h.category == "depth_drift" and "beginner" in h.text for h in _h),
+      "depth=%s" % _r.get("depth_per_100"))
+
+# Every new metric is reported, and the text report renders a structure line.
+_h, _r = _arch(_ARCH_STUBS)
+check("arch_metrics_reported",
+      all(k in _r for k in ("sections", "section_words", "section_len_cov", "framing_share",
+                            "restated_pairs", "depth_per_100", "explainers")),
+      sorted(k for k in ("sections", "section_words", "section_len_cov", "framing_share",
+                         "restated_pairs", "depth_per_100", "explainers") if k not in _r))
+check("arch_structure_line_rendered",
+      "structure:" in dap.render_text("x", "technical", None, _h, _r, 300, 1.0))
+
+# A document with no headings reports no sections and never raises.
+_h, _r = _arch("Plain prose without any headings at all. " * 60)
+check("arch_no_sections_is_quiet", _r.get("sections") == 0 and not _arch_cats(_h))
+
+# Hostile input: thousands of near-identical sentences stay bounded.
+_t0 = time.time()
+_h, _r = _arch("# T\n\n" + "\n\n".join("## S%d\n\nThe cache service stores user session tokens for fast lookup number %d." % (i, i)
+                                         for i in range(1500)))
+check("arch_bounded_on_hostile_input",
+      time.time() - _t0 < 30 and sum(1 for h in _h if h.category == "restatement") <= 40,
+      "took %.1fs" % (time.time() - _t0))
+
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 total = passed + failed

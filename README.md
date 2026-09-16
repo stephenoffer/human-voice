@@ -1,64 +1,46 @@
-# human-voice
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img alt="human-voice: writing that reads like a person wrote it, every fact intact" src="docs/assets/logo-light.svg" width="640">
+  </picture>
+</p>
 
-![tests](https://github.com/stephenoffer/human-voice/actions/workflows/test.yml/badge.svg)
-![python](https://img.shields.io/badge/python-3.8%2B-blue)
-![license](https://img.shields.io/badge/license-MIT-green)
+<p align="center">
+  <a href="https://github.com/stephenoffer/human-voice/actions/workflows/test.yml"><img alt="tests" src="https://github.com/stephenoffer/human-voice/actions/workflows/test.yml/badge.svg"></a>
+  <img alt="Python 3.8+" src="https://img.shields.io/badge/python-3.8%2B-blue">
+  <img alt="zero dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen">
+  <img alt="any model" src="https://img.shields.io/badge/models-any%20major%20provider-E8590C">
+  <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-green">
+</p>
 
-**Make AI-drafted docs read like a person wrote them, without changing a single fact.**
+<p align="center">
+  <a href="#see-it-work">See it work</a> ·
+  <a href="#why-its-different">Why it's different</a> ·
+  <a href="#proof">Proof</a> ·
+  <a href="#install">Install</a> ·
+  <a href="docs/usage.md">Docs</a>
+</p>
 
-`human-voice` is a Claude Code skill that rewrites or generates prose so it
-doesn't read as AI-written. Most "humanizer" tools swap a few words and call it
-done. The text still reads like a machine, because the giveaways aren't lexical.
+Readers can tell when a machine wrote something. The giveaway stopped being
+"delve" a while ago. A current model writes fluent prose with no filler at all,
+and it still reads machine-made, because its sentences all land in the same
+length band and its documents come out shaped like chat answers.
 
-The best available evidence on what trained detectors respond to says they track
-the artifacts of *instruction tuning*, not machine-ness: base models, which never
-went through it, get classified human more than 96% of the time. The named
-artifacts are markdown formatting preference, response-length and structural
-conventions, and sycophancy. Measured on this repo's own corpus, the categories
-that catch 2023-era slop are `filler` and `meta_commentary`, both word-level, and
-they contribute **0%** to catching prose a current model writes. What catches that
-is syntax and shape: `participial_tail` (the ", making it easier to…" tail) at
-21%, `sentence_shape` at 17%, `paragraph_uniformity` at 10%, `burstiness` at 9%,
-and `cleft` ("What actually mattered was…") at 8%.
+**human-voice** rewrites for what actually gives AI away. It fixes shape and
+rhythm first, substance next, word choice last. Every number, link, code span and
+citation gets checked against your source, so a rewrite can't quietly change a
+fact. When a draft needs a specific it doesn't have, you get `[SOURCE NEEDED]`,
+never an invented one.
 
-So this skill fixes shape and syntax first, then rhythm, then substance. Word
-choice is the last and shallowest pass. See
-[`references/what-detectors-see.md`](skills/human-voice/references/what-detectors-see.md)
-and the measured breakdown in [`eval/EVAL.md`](eval/EVAL.md).
+It runs where you already work: Claude Code, Codex, Cursor, Copilot, Gemini CLI
+and four more agents, or any major model through a plain API key.
 
-## See the difference
+## See it work
 
-### The easy case (2023-era slop)
-
-```text
-BEFORE   score 354 · strong-tell · 16 tells
-─────────────────────────────────────────────────────────────────
-In today's fast-paced digital landscape, leveraging cutting-edge
-solutions is crucial for success. Our robust, scalable, and seamless
-platform empowers teams to delve into actionable insights, unlock
-their full potential, and move the needle. It's not just a tool, it's
-a game-changer that stands as a testament to innovation.
-```
-
-```text
-AFTER    score 0 · clean
-─────────────────────────────────────────────────────────────────
-Your team keeps its notes in six different tools. By Friday nobody
-remembers which thread held the real decision. Put the chat right
-next to the files, in one place, so "wait, where did we land on this?"
-stops being a question anyone has to ask.
-```
-
-Nobody is fooled by the "before". Fixing it is mostly a diction exercise.
-
-### The hard case (what a current model actually writes)
-
-This is the one that matters. Fluent, takes a position, carries concrete detail.
-No filler, no hedging stack, not one em-dash. It still reads machine-written.
+A paragraph from a real model, with no filler, no hedging and no em-dashes:
 
 ```text
-BEFORE   score 19.9 · strong-tell
-─────────────────────────────────────────────────────────────────
+BEFORE
 For most teams under ten million vectors, pgvector is the right
 starting point. You already have backups, monitoring, and access
 control for Postgres. Adding a second stateful system is a real cost
@@ -67,8 +49,7 @@ dataset is small and everything is fast.
 ```
 
 ```text
-AFTER    score 0 · clean
-─────────────────────────────────────────────────────────────────
+AFTER
 Start with pgvector. Under about ten million vectors it wins, and the
 reason has nothing to do with recall benchmarks: it is the database
 you already back up, already monitor, already have access control
@@ -77,384 +58,188 @@ prototype, when the dataset is small and every query is fast and
 nobody is thinking about it.
 ```
 
-Every sentence in that "before" is between ten and thirty words. Not one is
-short. That is the whole tell, and no word list can see it: sentences ≤8 words
-went 0% → 42%, the 12–26 word band went 73% → 42%, length CoV 0.33 → 0.65. The
-verdict moved to the front. The both-sides concession got short and lopsided.
-Nothing was invented. Full annotation in
-[`examples/modern-ai-notes.md`](skills/human-voice/examples/modern-ai-notes.md).
+The verdict moved to the front. Nothing was invented. And the thing no word list
+can see changed underneath:
 
-## Why use it
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/rhythm-dark.svg">
+    <img alt="Sentence lengths of the full example before and after. Before, every sentence falls between 10 and 29 words and 73% sit in the 12 to 26 word band. After, lengths run from 3 to 32 words and 42% are under 9 words." src="docs/assets/rhythm-light.svg" width="100%">
+  </picture>
+</p>
 
-- It fixes the tells that actually give AI away, in evidence order. Strip the
-  assistant shape (heading density, bulleted answers, ornamental bold, the "Key
-  takeaways" recap). Then the syntactic signature a current model leaves once the
-  slop diction is gone: clefts that stage the subject ("What actually mattered
-  was…"), resultative tails bolted onto every sentence (", making it easier
-  to…"), copula-only paragraphs where nothing happens. Then the sentence-length
-  *distribution*, not just its variance: model prose collapses into the 12–26
-  word band and human prose reaches past both ends. Then vacuity, then the
-  templates, then stance. Diction last.
-- Nothing gets fabricated to sound human. Numbers, quotes, citations, defined
-  terms, code: all invariant. When a draft needs a fact it doesn't have, the
-  skill writes `[SOURCE NEEDED]` instead of inventing one. The anti-hallucination
-  protocol is built in.
-- The genre comes first, never one default voice. A technical report stays
-  professional. Marketing copy addresses "you". A blog post gets a personality.
-  Ten register profiles share one universal core of tells fixed everywhere.
-- It adds, not only subtracts. A rewrite that can only delete produces clean,
-  generic, unowned prose, which is why most humanized text still reads humanized.
-  The skill runs an author-material intake first: pull the real specifics out of
-  the draft, the repo, or four short questions to you. Nothing invented. Gaps get
-  marked `[SOURCE NEEDED]`.
-- It verifies instead of claiming, and it distinguishes the two. Configure a
-  detector API key and `verify_detector.py` becomes the rewrite's stopping
-  condition: exit 1 while the text is still flagged, 0 when it clears, 2 when the
-  gate could not run. The floor score cannot substitute for that, because a
-  document can score 0.0 and still be flagged. And the detector claims are measured:
-  `eval/detector_local.py` runs real GPT-2 surprisal and a real classifier locally,
-  and the numbers below come from that run, not from a vendor's marketing page.
-- A bundled linter gates your CI. The dependency-free Python script scores the
-  regex-able tells and prints a verdict; past a threshold you set with
-  `--fail-over`, it exits non-zero. It says plainly what it can't see.
-- No detector games, because they lose on their own terms. The vendor with the
-  strongest published numbers on humanized text reports that *the more fluent a
-  humanizer's output, the more reliably it is detected*. The tools that evade do
-  it by damaging the text, and the damage is the signature. Homoglyphs, zero-width
-  characters, tortured synonyms, injected typos: each trivially detected, each
-  makes the writing worse. AI detectors also misclassify non-native-English
-  writing as machine-made (Liang et al. 2023), so no detector is ground truth in
-  either direction.
+That chart comes from the full document the excerpt belongs to
+([before](skills/human-voice/examples/modern-ai-before.md),
+[after](skills/human-voice/examples/modern-ai-after.md)). Its score went from 15.0
+to 0. There are before/after pairs for every genre in
+[`examples/`](skills/human-voice/examples/).
+
+## Why it's different
+
+Three kinds of tool get lumped together here. None of them does this job.
+
+| | human-voice | Humanizer apps | Prose linters | AI detectors |
+|---|:-:|:-:|:-:|:-:|
+| Rewrites the text | ✓ | ✓ | ✗ | ✗ |
+| Fixes structure and rhythm, not just words | ✓ | ◐ | ✗ | ✗ |
+| Proves numbers, links and citations survived | ✓ | ✗ | ✗ | ✗ |
+| Marks a missing fact instead of inventing one | ✓ | ✗ | ✗ | ✗ |
+| Never uses homoglyphs, typos or synonym mangling | ✓ | ◐ | ✓ | ✓ |
+| Writes to the genre: docs, marketing, email, fiction | ✓ | ◐ | ◐ | ✗ |
+| Works with your model and your agent | ✓ | ✗ | ✓ | ✗ |
+| Open source, free, runs offline | ✓ | ✗ | ✓ | ✗ |
+| Published eval on prose a current model writes | ✓ | ✗ | ✗ | ◐ |
+
+✓ yes · ◐ partly or sometimes · ✗ no
+
+**Humanizer apps sell a bypass rate.** When one detector vendor tested 19 of
+them, five were caught every time. The ones that slip through do it by damaging
+the text: odd synonyms, invisible characters, planted typos. That damage is its
+own fingerprint, and the reader pays for it. human-voice has no bypass rate to
+sell. It makes the prose better, which is the only version of the goal that lasts.
+
+**Prose linters nitpick sentences.** proselint, write-good, Vale and Hemingway
+catch weak words and long sentences. None has a theory of what gives a model
+away, and none rewrites. human-voice ships a linter too (68 checks, zero
+dependencies, ready for CI), but the linter is the floor, not the product.
+
+**Detectors only judge.** They can't fix anything, and they misfire on careful
+non-native writers. human-voice treats a detector as a gate, never as ground
+truth. Point it at GPTZero, Originality, Sapling or Winston and the rewrite loops
+until the text clears or stops improving.
+
+The full survey covers about a hundred tools and papers, including what got
+tested and thrown out: [docs/comparison.md](docs/comparison.md).
+
+## How it works
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/loop-dark.svg">
+    <img alt="The rewrite loop: draft, lint, rewrite with any model, then check score, facts and detector. A pass that falls short sends its report back to the model." src="docs/assets/loop-light.svg" width="100%">
+  </picture>
+</p>
+
+The order comes from the evidence. Detectors respond to what instruction tuning
+leaves behind, which is formatting habits and reply-shaped structure. Base models
+that never went through it pass as human more than 96% of the time. So the
+rewrite strips the assistant shape first: the heading every eighty words, the
+bulleted answer, the "Key takeaways" close. Then it fixes the sentence-length
+distribution. Diction comes last, because swapping "delve" for "explore" barely
+moves anything. More in [docs/evidence.md](docs/evidence.md).
+
+Longer documents get a structure pass before any sentence is touched. An agent
+fills an outline to quota, so its overview comes back as the summary, the easy
+section runs four hundred words while rollback gets one line, and one section
+quotes config keys while the next could describe any system. The pass maps what
+each section says, merges repeats, weighs sections by what a reviewer will ask,
+and holds one depth throughout. It never deletes a claim that appears only once
+without asking you first.
+
+Genre comes first too. A technical report stays professional and a landing page
+talks to "you". Ten register profiles share one core of tells that get fixed
+everywhere.
+
+## Proof
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/results-dark.svg">
+    <img alt="Evaluation results. Current-model drafts flagged by the linter: 18 of 20 before, 0 of 20 after. Documents flagged by an independent AI classifier: 7 of 19 before, 0 of 19 after. Mean score 17.3 before, 1.3 after. Non-native writers wrongly flagged: 0 of 10." src="docs/assets/results-light.svg" width="100%">
+  </picture>
+</p>
+
+The chart is generated from the committed eval output, and CI fails if those
+metrics drift. The classifiers run locally on open models, with nothing sent
+anywhere. The honest limits: n is small, the corpus has one author,
+and no tool can promise a text is undetectable. This one checks instead of
+promising. Details and caveats: [docs/evidence.md](docs/evidence.md).
 
 ## Install
 
-### 1. Plugin marketplace (one command)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/everywhere-dark.svg">
+    <img alt="One SKILL.md reaches coding agents, model APIs, MCP clients and chat apps." src="docs/assets/everywhere-light.svg" width="100%">
+  </picture>
+</p>
+
+**Claude Code**
 
 ```
 /plugin marketplace add stephenoffer/human-voice
 /plugin install human-voice@human-voice
 ```
 
-Then run `/human-voice` in any session.
-
-### 2. Manual skill copy
+**Codex, Cursor, Copilot, Gemini CLI, Windsurf, Cline, opencode, Aider**
 
 ```bash
-git clone https://github.com/stephenoffer/human-voice.git
-cp -r human-voice/skills/human-voice ~/.claude/skills/        # user scope
-# or, for one project only:
-cp -r human-voice/skills/human-voice <your-project>/.claude/skills/
+git clone https://github.com/stephenoffer/human-voice.git && cd human-voice
+python3 install.py            # finds your agents and installs for each one
 ```
 
-### 3. Use it from this repo directly
-
-The skill already lives at `skills/human-voice/`. Open this repo in Claude Code
-and invoke `/human-voice`.
-
-## Use
-
-```
-/human-voice <file-path | pasted-text> [fix|generate] [register: technical|business|marketing|academic|casual|creative]
-```
-
-- `fix` (default) rewrites an AI-sounding draft.
-- `generate` drafts new copy that reads human from the start.
-- `register` matches the genre's conventions. `--register auto` infers it from the
-  content and prints why: 82% accurate on this repo's labeled corpus versus 19% for
-  the old always-`technical` default, and it falls back to `technical` when unsure
-  rather than guessing a permissive profile that would excuse real tells. An explicit
-  `--register` always wins.
-
-The skill sizes its own effort. A commit message gets a quick pass with no audit;
-a landing page gets the intake, the scored critique and the detector gate. Depth
-changes how much runs, never how strictly: the invariant guard and the
-no-fabrication rule hold at every level.
-
-It also stays on. Once invoked it shapes everything you write for the rest of the
-session, including the reply that hands the rewrite back, until you say "stop
-human-voice" or "normal voice". That is deliberate. The usual way a humanized
-document loses its voice is the next document, drafted an hour later, in the
-default one.
-
-Rules that fight the task lose to the task. An API reference keeps its headings
-and a safety notice keeps "may"; the skill relaxes the rule in the way, names it
-in the audit, and holds the rest. See "When a rule fights the task" in
-[`SKILL.md`](skills/human-voice/SKILL.md).
-
-Run it on its own anytime:
+**Any model, no agent** (CI jobs, scripts, batch rewrites)
 
 ```bash
-python3 skills/human-voice/scripts/detect_ai_prose.py <file>
-python3 skills/human-voice/scripts/detect_ai_prose.py --register marketing <file>
-python3 skills/human-voice/scripts/detect_ai_prose.py --register auto <file>   # infer it
-python3 skills/human-voice/scripts/detect_ai_prose.py --dialect american <file>
-python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 5 <file>   # exit 1 if score > 5 (CI gate)
-python3 skills/human-voice/scripts/detect_ai_prose.py --fix <file>          # rewrite em-dashes/--/spaced hyphens to commas, strip emoji, swap filler
-python3 skills/human-voice/scripts/detect_ai_prose.py --fix-dry-run <file>  # preview the autofix without writing
-printf '%s' "$TEXT" | python3 skills/human-voice/scripts/detect_ai_prose.py -
+export OPENAI_API_KEY=...     # or Anthropic, Gemini, Bedrock, Mistral, xAI, a local Ollama...
+python3 skills/human-voice/scripts/humanize.py draft.md -o draft.human.md
 ```
 
-`--fix` applies only the unambiguous, deterministic edits: dash normalization,
-decorative-emoji removal, 1:1 filler/jargon swaps. The dash rewrite varies the
-mark rather than turning every dash into a comma, because a document with one
-punctuation mark everywhere has traded the em-dash signature for a fresh uniform
-one. A paired aside becomes parentheses, an enumeration takes a colon, everything
-else takes a comma. It skips dash and emoji changes in `creative` (and keeps emoji
-in `casual`), and it never edits code, numbers, links, URLs, or table cells: a
-lexical swap inside a link destination produces a 404, not a better sentence. The
-judgment work stays with the rewrite pass: cutting the empty sentences, unstaging
-the clefts, sharpening a stance that won't commit.
+MCP clients, Gemini extensions, ChatGPT projects, the Python API and all
+seventeen providers: [docs/install.md](docs/install.md). Everything runs on the
+Python standard library.
 
-Verify against a real detector, which is the only thing that can answer "does this
-still read as AI to a classifier". Exit 1 while flagged, 0 when clear, 2 when no
-key is configured:
+## Use it
+
+In an agent, invoke `/human-voice` or just ask it to humanize something:
+
+```
+/human-voice launch-post.md
+/human-voice generate register: marketing  "announce the new export API"
+```
+
+It picks the genre, sizes the effort to the job (a commit message gets a quick
+pass, a landing page gets the full treatment) and hands back the rewrite with an
+audit. Then it stays on for the rest of the session, so the next document doesn't
+slide back into the default voice.
+
+Gate prose in CI with the linter on its own:
 
 ```bash
-export GPTZERO_API_KEY=...   # or ORIGINALITY_API_KEY / SAPLING_API_KEY / WINSTON_API_KEY
-python3 skills/human-voice/scripts/verify_detector.py rewrite.md
-python3 skills/human-voice/scripts/verify_detector.py --before draft.md rewrite.md
-python3 skills/human-voice/scripts/verify_detector.py --max-p-ai 0.05 --json rewrite.md
-make verify FILE=rewrite.md BEFORE=draft.md
+python3 skills/human-voice/scripts/detect_ai_prose.py --register auto --fail-over 5 docs/
 ```
 
-Nothing is sent anywhere until you set a key: no default endpoint, no telemetry.
-The request shapes come from each vendor's docs and have not been exercised against
-a live API from this repo, so a stale one surfaces as an error naming the missing
-field rather than a silent wrong answer.
-
-On Windows, use the `py` launcher (or `python`) instead of `python3`, and pipe
-text with PowerShell: `$TEXT | py skills/human-voice/scripts/detect_ai_prose.py -`.
-
-It needs only Python 3 (3.8+), no `pip install`. The word and spelling lists live
-in `skills/human-voice/scripts/ai_prose_patterns.json`; edit them to taste,
-including the category weights and verdict bands.
-
-## How the score works
-
-The score is **floor points**, with a band attached: below 5 reads **clean**, 5
-to 15 is **watch**, and 15+ is a **strong-tell**. Lower is better.
-
-Two kinds of finding cannot share one denominator, and conflating them was a real
-bug here until v0.5. An *instance* tell (a filler word, an em-dash) recurs with
-length, so it belongs in a per-1000-word density. A *document* tell (flat
-burstiness, even paragraphs, an assistant heading shape) fires at most once no
-matter how long the text is, so dividing it by word count made the same defect
-worth 13 points in a 150-word note and 1 point in a 2000-word report. Document
-findings now contribute fixed points and only instance findings are normalized by
-length, and each category's density contribution is capped so one runaway check
-can't swamp the rest. The regression test asserts a 10× length change moves the
-score less than 40%.
-
-Read the metrics lines, not just the number:
-
-```text
-rhythm:  CoV 0.30 (want >=0.40)   short<=8w 0.0 (want >=0.12)   mid-band 0.64 (want <=0.72)   mean 21.5 w
-shape:   headings/1k 4.2   bullet-line ratio 0.0   bold/1k 0.0   em-dash/1k 0.0
-syntax:  clefts 5   ',VERBing' tails 3   copula/1k 67.5   passive/1k 8.4
-lexicon: TTR 0.79   Yule's K 177.7
-detail:  0.84 specifics/100w (1 numbers, 1 proper nouns)
-```
-
-The `syntax:` line is the v0.6 addition and it is the one most rewrites need.
-Every construction it counts is ordinary English used well by human writers, so
-each check fires on the *stacking* rather than on a single instance. The document
-above is fluent, has no filler and no em-dashes, and is machine-written: five
-clefts and three resultative tails in 237 words is the giveaway.
-
-Those are the numbers the rewrite targets. Treat the score as a floor, not a
-judgment: it catches cheap, regex-able tells but can't see vacuity, weak stance,
-or fabrication. The real test is a skeptical human read.
-
-`skills/human-voice/examples/` has a before/after pair for every register plus the
-modern-AI pair. There is also a generate-mode example, a refusal-to-fabricate
-example, a restraint case, and an annotated walkthrough. Each "after" scores `clean`; run it
-on both halves to confirm.
-
-The linter is measured, not asserted: `eval/` holds a labeled corpus and
-`run_eval.py`, and [`eval/EVAL.md`](eval/EVAL.md) reports precision/recall, the
-false-positive rate on human-written text, and the number that actually matters:
-how it does against prose a *current* model writes rather than 2023-era
-caricature.
-
-One of those negative sets is not authored here at all. `eval/human_baseline.py`
-scores the docstrings of 26 Python standard-library modules, written by hundreds
-of people who never saw this repository and shipped with every interpreter, so it
-runs offline with no corpus file. Pointing the linter at it found five real
-false-positive bugs, and the median score on that set went from 35.0 to 8.7.
-
-## How it compares
-
-Three different markets get confused with each other. Here is where this sits in
-each.
-
-### Prose linters (what human-voice is closest to)
-
-| Tool | Catches | Misses |
-|---|---|---|
-| proselint | weak diction, clichés, usage rules drawn from Get and Pinker | structure, shape, stance, register, AI signature |
-| write-good | passive voice, weasel words, "so"/"there is" openers | everything above |
-| Vale | exactly the style rules you configure, fast, markup-aware | everything you didn't encode; no AI theory |
-| textlint / alex / blocklint | plugin rules; insensitive and exclusionary wording | style, structure, AI signature |
-| LanguageTool | grammar and spelling in 25+ languages | style beyond grammar |
-| Hemingway / readability scores | long sentences, adverbs, a grade level | grade level is not humanness; rewards flatness |
-| **human-voice** | assistant shape, sentence-length distribution, substance, stance, register drift, and it **rewrites** | it's a floor, not a detector (no perplexity model) |
-
-The category difference: those tools score or nitpick a sentence. This one has a
-theory of what gives AI away, ranks its checks by measured evidence, and hands the
-rewrite to a model with the priority order attached.
-
-### AI detectors (what human-voice is measured *against*, not competing with)
-
-Roughly in order of independently-reported accuracy: Pangram, Originality.ai,
-GPTZero, Copyleaks, Winston AI, Turnitin, Sapling, ZeroGPT, and the zero-shot
-research family (DetectGPT, FastDetectGPT, Binoculars). They fall into three
-groups that behave very differently on rewritten text. Statistical and zero-shot
-detectors move a lot, general trained classifiers move partly, and classifiers
-trained on humanizer output barely move. The table and the numbers are in
-[`references/what-detectors-see.md`](skills/human-voice/references/what-detectors-see.md).
-None is ground truth: reported false-positive rates run from ~0.004% to ~10%
-depending on the tool and the text, and they are systematically worse on
-non-native-English writing.
-
-### "Humanizers" (what human-voice deliberately is not)
-
-The commercial humanizer market sells a bypass rate. Undetectable AI, StealthGPT,
-Phrasly, Walter Writes, QuillBot Humanizer, HIX/BypassGPT, GPTinf, Humanize AI
-Pro, Smodin, Writesonic, Ghost AI, TwainGPT, Just Done, Ahrefs' and Grammarly's
-paraphrasers, and a long tail of clones. When one vendor tested 19 of
-them, five were caught 100% of the time and most of the rest above 90%.
-
-The reason is worth internalizing: **the more fluent a humanizer's output, the
-more reliably it is detected.** The ones that do evade work by damaging the text.
-Tortured synonyms ("counterfeit consciousness" for "artificial intelligence"),
-homoglyphs and zero-width characters, thin-space padding, injected typos: every
-one of those is itself a detectable artifact. They optimize the metric and
-lose the thing the metric was measuring.
-
-human-voice does none of it, on purpose. It has no bypass rate to quote. What it
-has is a measured claim: it makes prose read as though a competent person wrote
-it, which is the only durable version of the same goal.
-
-### The full survey
-
-About a hundred tools and papers were reviewed in September 2026: the humanizer
-market, the open-source anti-slop projects, the prose linters, the editing
-suites, the detectors, the stylometry literature, and Wikipedia's
-[Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing)
-catalog. What each contributes, what was adopted and measured, what was tested
-and thrown out, and where this skill is still behind:
-[`references/competitive-landscape.md`](skills/human-voice/references/competitive-landscape.md).
-
-The most useful part is the rejections. Contraction absence is the widest single
-signal in the published research and it replicates here at nine to one, and it is
-deliberately not scored, because gated to the conversational registers it fires on
-four of the ten careful non-native writers in the corpus. ProWritingAid's glue
-index shows no separation at all on this corpus. Both are reported as diagnostics
-or dropped rather than folded into a score.
-
-The most surprising result is about stylometry. Function-word distance from a
-human reference profile is the standard technique, and on this corpus it runs
-**backwards**: the human class averages 0.769 and current model output 0.690, so
-the machines sit *closer* to the human centroid than the humans do. A reference
-profile built from thirty authors is the centroid of thirty idiosyncrasies, and a
-model writes the centroid. The tell is the absence of distance. It ships as an
-unscored `style:` diagnostic, read inverted, and it is the only number here that
-shows the rewrite procedure moving a distributional property rather than a surface
-one: the twenty rewritten files move 0.690 to 0.739 and land closer to the human
-median in 16 of 20 cases.
-
-## FAQ
-
-**Will this make my text undetectable?** Nobody can promise that, so instead of
-promising it, the skill *checks*. Point it at a detector and the rewrite gets a
-hard stopping condition:
-
-```bash
-export GPTZERO_API_KEY=...     # or ORIGINALITY / SAPLING / WINSTON
-python3 skills/human-voice/scripts/verify_detector.py --before draft.md rewrite.md
-```
-
-The gate exits **1 while the detector still flags the text**, 0 when it clears, 2
-when no detector is configured (which is *not* a pass, and the audit has to say so).
-The skill keeps looping from the rewrite while the gate returns 1. So against
-whichever detector you actually care about, the answer is not a claim in a README,
-it is an exit code you can check.
-
-**Measured, not asserted.** `make detector-local` runs five real detectors locally on
-open models: no API key, nothing leaving the machine. Two statistical (perplexity,
-Binoculars) and three supervised classifiers.
-
-First, calibration, because a detector that cannot pass human writing tells you
-nothing about a rewrite. One candidate labels **34 of 34** hand-written human files as
-AI at p(AI)=1.000, so it is excluded from every count. Among those that pass, one is
-genuinely discriminating: **0 of 34** human files flagged, **24 of 24** caricature-AI
-files flagged.
-
-Against that panel, all 12 realistic modern-AI samples put through the skill:
-
-| | before | after |
-|---|---|---|
-| flagged by a usable classifier | 3 of 12 | **0 of 12** |
-| median perplexity multiplier | n/a | **x2.46** (all 12 rose) |
-| Binoculars | n/a | rose in all 12 |
-
-The seven shipped example pairs: **4 of 7 flagged before, 0 of 7 after.** Across both
-sets, **7 of 19 documents flagged before, 0 of 19 after**, and "flagged" is each
-classifier's own argmax label, not a threshold anyone picked.
-
-The control that makes the rest believable: the anti-AI costume pair already scores
-perplexity 113.7, *higher* than real human writing, and the rewrite brings it **down**
-to 60.6. A tool chasing the metric would have banked the 113.7.
-
-The same run produced the finding that matters more. Realistic model output is nearly
-indistinguishable from human already: perplexity 30.1 against 29.5, Binoculars 0.794
-against 0.780, and the classifier that catches 24 of 24 caricature files catches 3 of
-12 of it. The distributional tells are gone. What is left is structural, which is what
-this skill fixes.
-
-What this does **not** establish is undetectability, and nothing could. No commercial
-API was queried from this repo. A classifier trained specifically on humanizer output
-is reported by its vendor at ~97% on rewritten text, a figure about *other tools'*
-output that has not been tested either way against this one. The models here are small,
-so trust direction over absolute values, and n is 19 documents from one author. Set a
-key and run the gate for your own number on your own text.
-
-Two limits are built into the loop rather than footnoted. It is capped, and it stops
-early if two passes cannot move the detector without damaging the prose. And a
-`clear` is evidence about one detector at one threshold.
-
-**Why did it flag my human-written text?** The linter is a regex floor; it over-
-flags sometimes. Lower a threshold, add a `protected_terms`/`context_exceptions`
-entry, or open a [false-positive issue](.github/ISSUE_TEMPLATE/false-positive.md).
-Those feed the corpus and the FPR measurement.
-
-**Does it work on non-English text?** No. The word lists and dialect map are
-English-only today. `--lang` accepts only `en`.
-
-**Can I tune it per project?** Yes. Drop a `.humanvoicerc` (JSON) at your repo root
-to set a default register/dialect, override thresholds and category weights, and
-add protected terms. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Flags, autofix, the detector gate, per-project config and how the score works:
+[docs/usage.md](docs/usage.md).
 
 ## What it won't do
 
-It improves writing; it does not disguise machine text. No Unicode homoglyphs,
-no zero-width characters, no deliberate typos, no meaning-degrading synonym
-swaps, and never an invented fact or a faked quote to seem human. Passing a
-detector is a side effect of good writing, not the objective.
+It improves writing. It does not disguise machine text. No Unicode homoglyphs, no
+zero-width characters, no deliberate typos, no synonym swaps that degrade meaning.
+It never invents a fact or fakes a quote to seem human. Passing a detector is a
+side effect of good writing, not the objective.
+
+## Docs
+
+| | |
+|---|---|
+| [Install](docs/install.md) | every agent, every provider, MCP, chat apps, Python |
+| [Usage](docs/usage.md) | modes, registers, the linter, autofix, detector gate, scoring |
+| [Evidence](docs/evidence.md) | what detectors respond to, and the measured results |
+| [Comparison](docs/comparison.md) | humanizers, linters, detectors, and the full survey |
+| [SKILL.md](skills/human-voice/SKILL.md) | the rules themselves |
+| [Eval](eval/EVAL.md) | corpus, method, and every number |
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md). Tests:
-`python3 tests/stress_test.py` (also run on Python 3.8–3.13 in CI).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md). Run
+`make test`. The suite runs on Python 3.8 through 3.13 in CI. Regenerate the charts
+with `python3 docs/assets/make_visuals.py`.
 
-## Credits
+The v0.4 recalibration ranks tells by what readers *cite* as AI rather than what a
+scanner *matches*. It draws on two MIT-licensed projects,
+[vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells)
+and [oberskills](https://github.com/ryanthedev/oberskills), plus the ~90k-post
+study behind them.
 
-The v0.4 recalibration ranks tells by what readers *cite* as AI, not by what a
-scanner *matches*. It draws on two MIT-licensed projects and the ~90k-post Reddit
-study behind them: [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells)
-and [ryanthedev/oberskills](https://github.com/ryanthedev/oberskills). See
-[`references/cited-vs-matched.md`](skills/human-voice/references/cited-vs-matched.md).
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+MIT licensed. See [LICENSE](LICENSE).

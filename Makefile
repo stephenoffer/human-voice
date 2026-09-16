@@ -1,8 +1,9 @@
-.PHONY: test eval eval-check lint dogfood human-baseline profile profile-check detector detector-local detector-check verify quality all
+.PHONY: visuals visuals-check providers prompt test eval eval-check lint dogfood human-baseline profile profile-check detector detector-local detector-check verify quality all
 
 # Full robustness + correctness suite (also runs in CI on Python 3.8-3.13).
 test:
 	python3 tests/stress_test.py
+	python3 tests/test_llm.py
 
 # Evaluation harness: regenerate the golden metrics (run after intentional changes).
 eval:
@@ -16,6 +17,7 @@ eval-check:
 	python3 eval/run_eval.py --check
 	python3 eval/ablation.py --check
 	python3 eval/human_baseline.py --check
+	python3 eval/structure_eval.py --check
 
 # False-positive sweep over human prose nobody wrote for this repo: the Python
 # standard library's own docstrings. Offline, no dependencies, no network. It is
@@ -39,19 +41,21 @@ dogfood:
 	python3 skills/human-voice/scripts/detect_ai_prose.py --quiet --register technical \
 		README.md CONTRIBUTING.md
 	python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 5 --quiet \
-		--register technical README.md
+		--register technical README.md docs/install.md docs/usage.md docs/evidence.md docs/comparison.md
 	@echo "--- em-dash density in the project's own prose (want 0 outside creative)"
 	python3 skills/human-voice/scripts/detect_ai_prose.py --quiet --enable em_dash \
 		--register technical README.md CONTRIBUTING.md CHANGELOG.md eval/EVAL.md \
 		skills/human-voice/SKILL.md skills/human-voice/STYLE-GUIDE.md
 	python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 0 --quiet \
 		--enable em_dash --register technical README.md CONTRIBUTING.md CHANGELOG.md \
+		docs/install.md docs/usage.md docs/evidence.md docs/comparison.md \
 		eval/EVAL.md skills/human-voice/SKILL.md skills/human-voice/STYLE-GUIDE.md \
 		skills/human-voice/references/anti-jargon.md \
 		skills/human-voice/references/cited-vs-matched.md \
 		skills/human-voice/references/discourse-and-structure.md \
 		skills/human-voice/references/over-correction.md \
 		skills/human-voice/references/structural-craft.md \
+		skills/human-voice/references/content-architecture.md \
 		skills/human-voice/references/what-detectors-see.md \
 		skills/human-voice/references/competitive-landscape.md
 	# references/ai-tells.md is exempt: its dash-mechanics section cannot teach the
@@ -74,6 +78,11 @@ lint:
 		skills/human-voice/examples/syntax-signature-after.md
 	python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 5 \
 		--register technical skills/human-voice/examples/syntax-signature-after.md
+	python3 skills/human-voice/scripts/detect_ai_prose.py --register technical \
+		--baseline skills/human-voice/examples/architecture-before.md \
+		skills/human-voice/examples/architecture-after.md
+	python3 skills/human-voice/scripts/detect_ai_prose.py --fail-over 5 \
+		--register technical skills/human-voice/examples/architecture-after.md
 
 # Optional: measure the shipped pairs against a real external detector. Offline
 # and exit-0 with no API key set; see eval/detector_harness.py.
@@ -105,11 +114,26 @@ detector-check:
 verify:
 	python3 skills/human-voice/scripts/verify_detector.py $(if $(BEFORE),--before $(BEFORE)) $(FILE)
 
+# README charts, rebuilt from the committed eval output. visuals-check fails if stale.
+visuals:
+	python3 docs/assets/make_visuals.py
+
+visuals-check:
+	python3 docs/assets/make_visuals.py --check
+
+# The model-agnostic front ends. Neither calls a model.
+providers:
+	python3 skills/human-voice/scripts/humanize.py --list-providers
+
+# The skill compiled for a chat app with no tools (ChatGPT, Gemini, Claude projects).
+prompt:
+	python3 skills/human-voice/scripts/humanize.py --print-prompt chat > human-voice-system-prompt.md
+
 # Dev-only tooling (needs `pip install ruff mypy pytest`). Never required at
 # runtime — the linter and eval run on the standard library alone.
 quality:
-	ruff check skills/human-voice/scripts/human_voice_linter eval tests
+	ruff check skills/human-voice/scripts/human_voice_linter skills/human-voice/scripts/human_voice_llm install.py eval tests
 	mypy
 	pytest -q
 
-all: test eval-check profile-check lint dogfood
+all: test eval-check profile-check visuals-check lint dogfood

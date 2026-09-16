@@ -84,6 +84,12 @@ The linter targets this category directly:
 - `parallel_structure`: over-regular parallelism across sentences or bullets.
 - `hypophora`: the pose-a-question-then-answer-it reflex, repeated.
 
+One level up from the paragraph, the document as a plan has its own checks:
+`restatement` (a point made again in another section), `section_balance` (stubs,
+quota-even sections, framing that outweighs the subject) and `depth_drift` (a
+hollow section beside a dense one, or primers in an expert document). See
+[`content-architecture.md`](content-architecture.md).
+
 ## Sources
 
 - JCarterJohnson/vibecoded-design-tells (MIT): cited-tell frequencies.

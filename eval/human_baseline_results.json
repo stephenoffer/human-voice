@@ -1,190 +1,181 @@
 {
   "category_counts": {
-    "bullet_openers": 4,
-    "chatbot_scaffold": 2,
-    "dash_style": 36,
+    "assistant_shape": 1,
+    "chatbot_scaffold": 1,
+    "copula_avoidance": 4,
+    "copula_density": 2,
+    "dash_style": 22,
     "doubled_word": 1,
-    "filler": 19,
+    "filler": 10,
     "hedging": 2,
     "jargon": 5,
-    "list_uniformity": 8,
-    "mechanics": 10,
-    "ngram_repetition": 109,
-    "nominalization": 1,
-    "over_correction": 4,
-    "parallel_structure": 19,
+    "list_uniformity": 4,
+    "mechanics": 4,
+    "ngram_repetition": 34,
+    "nominalization": 4,
+    "over_correction": 1,
+    "parallel_structure": 10,
+    "passive_voice": 1,
     "redundancy": 5,
-    "rule_of_three": 21,
-    "sentence_shape": 3,
+    "rule_of_three": 9,
+    "sentence_shape": 4,
     "soft_filler": 7,
-    "svo_monotony": 5,
-    "uniform_openers": 1,
+    "svo_monotony": 1,
+    "uniform_openers": 3,
     "wh_opener": 1
   },
-  "flagged_at_5": 24,
-  "mean_score": 9.68,
-  "median_score": 8.7,
-  "modules": 26,
+  "flagged_at_5": 15,
+  "mean_score": 7.12,
+  "median_score": 8.0,
+  "modules": 24,
   "python": "3.14",
   "rows": [
     {
       "module": "argparse",
-      "score": 17.7,
+      "score": 15.3,
       "verdict": "strong-tell",
-      "words": 1485
-    },
-    {
-      "module": "csv",
-      "score": 17.0,
-      "verdict": "strong-tell",
-      "words": 1174
-    },
-    {
-      "module": "tempfile",
-      "score": 15.0,
-      "verdict": "strong-tell",
-      "words": 1008
-    },
-    {
-      "module": "random",
-      "score": 14.0,
-      "verdict": "watch",
-      "words": 915
-    },
-    {
-      "module": "re",
-      "score": 13.2,
-      "verdict": "watch",
-      "words": 1185
+      "words": 1101
     },
     {
       "module": "decimal",
-      "score": 13.1,
+      "score": 14.3,
       "verdict": "watch",
-      "words": 1593
+      "words": 374
+    },
+    {
+      "module": "random",
+      "score": 13.3,
+      "verdict": "watch",
+      "words": 813
+    },
+    {
+      "module": "functools",
+      "score": 12.6,
+      "verdict": "watch",
+      "words": 473
+    },
+    {
+      "module": "subprocess",
+      "score": 11.3,
+      "verdict": "watch",
+      "words": 1238
+    },
+    {
+      "module": "dataclasses",
+      "score": 11.0,
+      "verdict": "watch",
+      "words": 545
+    },
+    {
+      "module": "ssl",
+      "score": 10.4,
+      "verdict": "watch",
+      "words": 794
+    },
+    {
+      "module": "tempfile",
+      "score": 10.2,
+      "verdict": "watch",
+      "words": 842
     },
     {
       "module": "json",
-      "score": 12.8,
+      "score": 10.0,
       "verdict": "watch",
       "words": 1201
     },
     {
+      "module": "csv",
+      "score": 8.6,
+      "verdict": "watch",
+      "words": 562
+    },
+    {
+      "module": "re",
+      "score": 8.2,
+      "verdict": "watch",
+      "words": 1138
+    },
+    {
       "module": "hashlib",
-      "score": 12.7,
+      "score": 8.0,
       "verdict": "watch",
       "words": 372
     },
     {
-      "module": "subprocess",
-      "score": 11.5,
-      "verdict": "watch",
-      "words": 2850
-    },
-    {
-      "module": "fractions",
-      "score": 11.1,
-      "verdict": "watch",
-      "words": 1471
-    },
-    {
-      "module": "pathlib",
-      "score": 9.7,
-      "verdict": "watch",
-      "words": 12304
-    },
-    {
-      "module": "socket",
-      "score": 9.5,
-      "verdict": "watch",
-      "words": 18840
-    },
-    {
-      "module": "dataclasses",
-      "score": 8.7,
-      "verdict": "watch",
-      "words": 2572
-    },
-    {
-      "module": "ssl",
-      "score": 8.5,
-      "verdict": "watch",
-      "words": 2571
-    },
-    {
-      "module": "textwrap",
-      "score": 8.4,
-      "verdict": "watch",
-      "words": 1466
-    },
-    {
       "module": "shutil",
-      "score": 8.3,
+      "score": 8.0,
       "verdict": "watch",
-      "words": 2561
-    },
-    {
-      "module": "sqlite3",
-      "score": 8.3,
-      "verdict": "watch",
-      "words": 18353
-    },
-    {
-      "module": "logging",
-      "score": 7.9,
-      "verdict": "watch",
-      "words": 4424
+      "words": 1496
     },
     {
       "module": "statistics",
-      "score": 7.9,
+      "score": 6.7,
       "verdict": "watch",
-      "words": 3509
-    },
-    {
-      "module": "collections",
-      "score": 7.5,
-      "verdict": "watch",
-      "words": 722
+      "words": 2913
     },
     {
       "module": "asyncio",
-      "score": 6.5,
+      "score": 5.9,
       "verdict": "watch",
-      "words": 3656
+      "words": 2857
+    },
+    {
+      "module": "collections",
+      "score": 3.9,
+      "verdict": "clean",
+      "words": 520
+    },
+    {
+      "module": "logging",
+      "score": 2.5,
+      "verdict": "clean",
+      "words": 1356
     },
     {
       "module": "unittest",
-      "score": 5.9,
-      "verdict": "watch",
+      "score": 2.3,
+      "verdict": "clean",
       "words": 645
     },
     {
-      "module": "functools",
-      "score": 5.7,
-      "verdict": "watch",
-      "words": 549
+      "module": "socket",
+      "score": 2.1,
+      "verdict": "clean",
+      "words": 1426
     },
     {
       "module": "typing",
-      "score": 5.5,
-      "verdict": "watch",
-      "words": 7904
+      "score": 2.1,
+      "verdict": "clean",
+      "words": 3580
+    },
+    {
+      "module": "difflib",
+      "score": 1.8,
+      "verdict": "clean",
+      "words": 1901
+    },
+    {
+      "module": "textwrap",
+      "score": 1.6,
+      "verdict": "clean",
+      "words": 621
     },
     {
       "module": "itertools",
-      "score": 2.8,
+      "score": 0.8,
       "verdict": "clean",
       "words": 623
     },
     {
-      "module": "difflib",
-      "score": 2.4,
+      "module": "sqlite3",
+      "score": 0.0,
       "verdict": "clean",
-      "words": 1901
+      "words": 221
     }
   ],
   "top_category": "ngram_repetition",
-  "top_category_share": 0.4144,
-  "worst_score": 17.7
+  "top_category_share": 0.25,
+  "worst_score": 15.3
 }

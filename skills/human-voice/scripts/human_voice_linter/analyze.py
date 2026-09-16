@@ -1,6 +1,7 @@
 """analyze — part of human_voice_linter (split from detect_ai_prose.py)."""
 from __future__ import annotations
 
+from .architecture import run_architecture_checks
 from .checks import *  # noqa: F401,F403
 from .defaults import *  # noqa: F401,F403
 from .directives import *  # noqa: F401,F403
@@ -151,6 +152,10 @@ def analyze(text: str, register: str, dialect: str | None,
                          thr("short_sentence_ratio_floor"), int(thr("mid_band_low")),
                          int(thr("mid_band_high")), thr("mid_band_ratio_max"),
                          hits, report)
+    # Content architecture: restated points, section balance, and technical depth
+    # held level across sections. Reads the section tree, so it needs the source
+    # text as well as the code-stripped copy (fenced code counts as depth).
+    run_architecture_checks(text, code_stripped, word_count, thr, hits, report)
     adj_prose = prose_for_adjacency(text)
     lm_adj = LineMap(adj_prose)
     check_dash_style(adj_prose, hits, report, lm_adj)

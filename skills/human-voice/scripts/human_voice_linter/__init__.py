@@ -5,6 +5,7 @@ import importlib
 
 # Submodules in dependency order (low layers first).
 _MODS = ["util", "defaults", "hit", "patterns", "textutil", "directives", "checks",
+         "architecture",
          "score", "infer", "analyze", "report", "autofix", "config", "schema", "api",
          "cli"]
 
@@ -22,6 +23,7 @@ del _name, _mod
 
 from .analyze import *  # noqa: E402,F401,F403
 from .api import *  # noqa: E402,F401,F403
+from .architecture import *  # noqa: E402,F401,F403
 from .autofix import *  # noqa: E402,F401,F403
 from .checks import *  # noqa: E402,F401,F403
 from .cli import *  # noqa: E402,F401,F403
