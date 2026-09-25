@@ -1,14 +1,14 @@
-<!-- Register: marketing. Linter: before 253.3 strong-tell -> after clean. -->
+<!-- Register: marketing. Linter: before strong-tell -> after clean. -->
 <!-- This is the AFTER: conversational, addresses "you", concrete, no hype. -->
 <!-- Also avoids the "second AI dialect": no ", and" splice rhythm, no stacked -->
 <!-- "X is Y" copulas, no triads, no "[thing] lives in [place]" locative. -->
 
 # Your team's work, in one place
 
-Your team runs one project through five tools at once. The brief went out by email last week. The files got buried in some chat thread nobody can dig up now, which is the whole problem with spreading work across apps that never talk to each other. So we built one place to end the hunting.
+The brief is sitting in somebody's email, the files are buried in a chat thread from last week, and the one person who knows which version is current is on holiday. That isn't a discipline problem, it's a handful of apps that can't see each other.
 
-Put your tasks and files on one board. Keep the conversation right beside them. A teammate updates something? You see it. A due date moves? So does the calendar. No more pinging three people to find out which version is the latest.
+So put it all on one board instead: tasks, files, and the conversation about them, right where everyone is already looking. Move a due date and it moves on the calendar too. If you drop in a new version of a file, the person who was about to open the old one gets yours instead.
 
-Already work in Slack, Drive, or GitHub? They plug in. You keep the workflow you have instead of learning ours.
+You keep what you already use. Slack, Drive and GitHub plug straight in, and the board works the same whether you're a startup or an enterprise.
 
-Start free with up to five people. Add the rest whenever you're ready.
+Try it on one project. If people stop asking each other where things are, keep it.

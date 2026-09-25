@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import re
 
-from .textutil import CODE_FENCE_RE
+from ..text.markdown import CODE_FENCE_RE
 
 DIRECTIVE_RE = re.compile(
     r"<!--\s*human-voice:\s*(ignore(?:-start|-end)?)\b([^>]*?)-->", re.IGNORECASE)

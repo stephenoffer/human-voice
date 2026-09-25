@@ -8,7 +8,7 @@ typo or a malformed value gets real feedback instead of being swallowed.
 
 Severity model: everything here is a *warning* (recoverable — the linter still
 runs). The one hard error, "the file is not a JSON object", is handled earlier in
-load_patterns, which exits 2.
+load_patterns (config/patterns.py), which exits 2.
 """
 from __future__ import annotations
 

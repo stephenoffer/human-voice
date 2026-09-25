@@ -41,8 +41,9 @@ import os
 import re
 from collections import Counter
 
-_PROFILE_PATH = os.path.join(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))), "human_reference_profile.json")
+# The profile ships beside the package, in scripts/.
+_PROFILE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "human_reference_profile.json")
 
 _WORD_RE = re.compile(r"[a-z][a-z'’-]*")
 

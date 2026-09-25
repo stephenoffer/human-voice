@@ -299,7 +299,7 @@ def test_detector_local_declares_both_families():
 def _infer_accuracy():
     """(correct, total, safe_fallbacks, unsafe) over the labeled corpus."""
     sys.path.insert(0, lib.SKILL_DIR)
-    from human_voice_linter.infer import infer_register
+    from human_voice_linter.config.inference import infer_register
 
     labels = lib.load_labels()
     correct = safe = unsafe = 0
@@ -349,7 +349,7 @@ def test_register_inference_fails_safe():
 
 def test_register_inference_is_deterministic_and_explains_itself():
     sys.path.insert(0, lib.SKILL_DIR)
-    from human_voice_linter.infer import infer_register
+    from human_voice_linter.config.inference import infer_register
 
     text = ("Subject: Q3 numbers\n\nHi team,\n\nRetention moved from 71% to 76% "
             "this quarter and churn in mid-market is still twice enterprise.\n\n"
@@ -365,7 +365,7 @@ def test_register_inference_is_deterministic_and_explains_itself():
 
 def test_register_inference_empty_and_tiny_inputs():
     sys.path.insert(0, lib.SKILL_DIR)
-    from human_voice_linter.infer import infer_register
+    from human_voice_linter.config.inference import infer_register
 
     for text in ("", "   \n\n", "Hello.", "x"):
         reg, conf, why = infer_register(text)

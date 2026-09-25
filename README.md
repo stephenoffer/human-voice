@@ -38,11 +38,50 @@ and four more agents, or any major model through a plain API key.
 
 ## See it work
 
-Five paragraphs on running one-on-ones, written by a current model. No filler in
-it and not one em-dash, so every word check in the linter passes. Read the
-sentence lengths instead. Fifteen sentences running from nine words to
-twenty-nine, eleven of them in the middle of that range, one tempo held for five
-paragraphs. Nothing lands.
+Start with the version everybody already recognizes. A landing page, drafted by a
+model, rocket included:
+
+<!-- human-voice: ignore-start -->
+
+<table>
+<tr>
+<th width="50%" align="left">Before &nbsp;·&nbsp; <code>105.0 strong-tell</code></th>
+<th width="50%" align="left">After &nbsp;·&nbsp; <code>0.0 clean</code></th>
+</tr>
+<tr>
+<td valign="top">
+<p><b>Unlock the Power of Effortless Team Collaboration</b></p>
+<p>In today's fast-paced digital landscape, teams need a robust, seamless, and scalable solution that empowers them to work smarter, not harder. Our cutting-edge platform stands as a testament to innovation, delivering a comprehensive suite of best-in-class tools designed to move the needle for every stakeholder.</p>
+<p>Furthermore, studies suggest that teams using collaborative software are significantly more productive. Moreover, it's worth noting that experts believe the future of work is already here. Additionally, our vibrant ecosystem of integrations leverages synergies to operationalize actionable workflows across the entire organization.</p>
+<p>It's not just a tool — it's a complete solution. Whether you're a scrappy startup or a global enterprise, our revolutionary technology unlocks new opportunities and elevates your team to new heights. 🚀</p>
+</td>
+<td valign="top">
+<p><b>Your team's work, in one place</b></p>
+<p>The brief is sitting in somebody's email, the files are buried in a chat thread from last week, and the one person who knows which version is current is on holiday. That isn't a discipline problem, it's a handful of apps that can't see each other.</p>
+<p>So put it all on one board instead: tasks, files, and the conversation about them, right where everyone is already looking. Move a due date and it moves on the calendar too. If you drop in a new version of a file, the person who was about to open the old one gets yours instead.</p>
+<p>You keep what you already use. Slack, Drive and GitHub plug straight in, and the board works the same whether you're a startup or an enterprise.</p>
+<p>Try it on one project. If people stop asking each other where things are, keep it.</p>
+</td>
+</tr>
+</table>
+
+<!-- human-voice: ignore-end -->
+
+<!-- human-voice: ignore-start vague_attribution -->
+164 words became 145, and the pitch got harder to argue with rather than louder.
+Notice what is missing: "studies suggest that teams are significantly more
+productive" is gone, not restated with a number attached, because there was no
+study. That rule holds everywhere in the rewrite. Full pair:
+[before](skills/human-voice/examples/marketing-before.md),
+[after](skills/human-voice/examples/marketing-after.md).
+<!-- human-voice: ignore-end -->
+
+That one is easy, though. Any word list catches it, and nobody was fooled by it
+in the first place. Here is the case that matters, five paragraphs on running
+one-on-ones from a current model. No filler in it and not one em-dash, so every
+word check in the linter passes. Read the sentence lengths instead. Fifteen
+sentences running from nine words to twenty-nine, eleven of them in the middle of
+that range, one tempo held for five paragraphs. Nothing lands.
 
 <table>
 <tr>

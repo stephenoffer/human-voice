@@ -18,11 +18,8 @@ extend-exclude = ["eval/corpus", "skills/human-voice/examples"]
 select = ["E", "F", "W", "I", "UP", "B"]
 # UP006/UP007: keep 3.8-friendly typing in any runtime-evaluated annotations.
 # E501: long lines are tolerated (the codebase favors readable single-line calls).
-# F405: the package wires its internal modules with intentional, controlled
-#   `from .X import *` (so the code split from the monolith stays verbatim); the
-#   names are defined, just via star-import, so this check is noise here.
 # UP031: the codebase consistently uses %-formatting; not converting to f-strings.
-ignore = ["UP006", "UP007", "E501", "F405", "UP031"]
+ignore = ["UP006", "UP007", "E501", "UP031"]
 
 [tool.mypy]
 # Runtime targets 3.8 (enforced by ruff target-version); mypy itself needs a

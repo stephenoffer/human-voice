@@ -34,7 +34,7 @@ ROOT = os.path.dirname(HERE)
 SCRIPTS = os.path.join(ROOT, "skills", "human-voice", "scripts")
 sys.path.insert(0, SCRIPTS)
 
-from human_voice_linter import textutil as tu  # noqa: E402
+from human_voice_linter import text as tu  # noqa: E402
 
 CORPUS = os.path.join(HERE, "corpus", "human")
 OUT = os.path.join(SCRIPTS, "human_reference_profile.json")

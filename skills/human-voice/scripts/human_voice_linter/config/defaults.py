@@ -116,7 +116,7 @@ DEFAULTS: dict = {
         # that is the genre, so the expert bar for explainer whiplash doubles.
         "tutorial": {"depth_expert_per_100": 2.0},
     },
-    # How the floor score is assembled. See score.score for why document-level
+    # How the floor score is assembled. See scoring/floor.py for why document-level
     # findings cannot share a per-1000-word denominator with instance findings.
     "scoring": {
         "doc_hit_points": 2.0,
@@ -126,7 +126,7 @@ DEFAULTS: dict = {
         # toward the score. Today no check emits more than four, so this changes
         # nothing; it stops a future check from turning one finding into ten.
         "doc_cap_per_category": 4,
-        # Minimum denominator for per-1000-word instance density. See score.score:
+        # Minimum denominator for per-1000-word instance density. See scoring/floor.py:
         # a 150-word note with two hits is not "13 per 1000 words" in any sense a
         # reader would recognize, and treating it that way made short documents
         # score higher than long ones carrying the same defect more often.
@@ -134,7 +134,7 @@ DEFAULTS: dict = {
     },
     # Category weights feed the single "floor" score. Document-level findings
     # contribute weight * doc_hit_points; instance findings a per-1000-word
-    # density capped at category_cap. See score.score.
+    # density capped at category_cap. See scoring/floor.py.
     # Weights are tiered by what readers actually *cite* as an AI tell, not by
     # what a keyword scanner *matches* (the ~90k-post Reddit study found these
     # diverge: generic words like "however/thus/nuanced/comprehensive" match
@@ -226,7 +226,7 @@ DEFAULTS: dict = {
         # Straight and curly quotes mixed in one document: the seam where model
         # output (curly) was pasted into hand-written text (straight).
         "quote_style": 0.5,
-        # Content architecture (architecture.py). Tier B: restatement and section
+        # Content architecture (checks/architecture/). Tier B: restatement and section
         # balance are what an editor marks first on an agent-written report, and
         # depth_drift is the looser proxy, so it weighs least.
         "restatement": 1.5,

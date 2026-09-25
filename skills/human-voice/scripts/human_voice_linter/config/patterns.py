@@ -1,14 +1,13 @@
-"""patterns — part of human_voice_linter (split from detect_ai_prose.py)."""
+"""patterns — loading the pattern file and reading its values defensively."""
 from __future__ import annotations
 
 import json
 import os
 import sys
 
-from .util import *  # noqa: F401,F403
-
+# The pattern file ships beside the package, in scripts/.
 PATTERNS_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     "ai_prose_patterns.json")
 
 

@@ -2134,7 +2134,7 @@ check("register_thresholds_name_real_registers",
 # v0.8: the stylometric delta (reported, never scored, read inverted)
 # ---------------------------------------------------------------------------
 
-from human_voice_linter import stylometry as _sty  # noqa: E402
+from human_voice_linter.checks import stylometry as _sty  # noqa: E402
 
 _prof = _sty.load_profile()
 check("stylometry_profile_loads", isinstance(_prof, dict) and _prof.get("features"),

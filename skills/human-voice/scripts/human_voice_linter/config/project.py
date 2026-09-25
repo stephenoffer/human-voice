@@ -1,15 +1,16 @@
-"""config — part of human_voice_linter (split from detect_ai_prose.py)."""
+"""project — .humanvoicerc discovery and the overrides layered on the pattern file."""
 from __future__ import annotations
 
 import json
 import os
 
-from .defaults import *  # noqa: F401,F403
-from .patterns import *  # noqa: F401,F403
-from .util import *  # noqa: F401,F403
+from ..core.log import warn
+
+CONFIG_NAME = ".humanvoicerc"
 
 
 def apply_threshold_overrides(patterns, overrides):
+    """Apply `--threshold key=value` overrides on top of the loaded patterns."""
     if not overrides:
         return patterns
     th = dict(patterns.get("thresholds", {})) if isinstance(patterns.get("thresholds"), dict) else {}
@@ -25,9 +26,6 @@ def apply_threshold_overrides(patterns, overrides):
     patterns = dict(patterns)
     patterns["thresholds"] = th
     return patterns
-
-
-CONFIG_NAME = ".humanvoicerc"
 
 
 def find_project_config(start):
@@ -77,57 +75,9 @@ def merge_config(patterns, cfg):
     return patterns
 
 
-TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".mdx", ".rst")
-
-# Directories a prose walk should never descend into: they hold generated output
-# and dependencies, not writing, and linting them buries the real findings.
-SKIP_DIRS = frozenset({
-    ".git", ".hg", ".svn", ".venv", "venv", "node_modules", "__pycache__",
-    ".mypy_cache", ".pytest_cache", ".ruff_cache", ".tox", "dist", "build",
-    "site-packages", ".next", ".cache",
-})
-
-
-def collect_targets(inputs, recursive):
-    """Expand inputs into a flat list of file paths (or '-'), walking dirs.
-
-    Deduplicates while preserving order, so `lint docs/ docs/intro.md` does not
-    analyze and print intro.md twice, and prunes vendor/build directories on a
-    recursive walk.
-    """
-    targets = []
-    seen = set()
-
-    def add(path):
-        key = path if path == "-" else os.path.normpath(path)
-        if key in seen:
-            return
-        seen.add(key)
-        targets.append(path)
-
-    for inp in inputs:
-        if inp == "-":
-            add(inp)
-        elif os.path.isdir(inp):
-            for root, dirs, files in os.walk(inp):
-                dirs[:] = sorted(d for d in dirs
-                                 if d not in SKIP_DIRS and not d.startswith("."))
-                for fn in sorted(files):
-                    if fn.endswith(TEXT_SUFFIXES):
-                        add(os.path.join(root, fn))
-                if not recursive:
-                    break
-        else:
-            add(inp)
-    return targets
-
-
 __all__ = [
-    'TEXT_SUFFIXES',
-    'SKIP_DIRS',
-    'apply_threshold_overrides',
-    'CONFIG_NAME',
-    'find_project_config',
-    'merge_config',
-    'collect_targets',
+    "CONFIG_NAME",
+    "apply_threshold_overrides",
+    "find_project_config",
+    "merge_config",
 ]

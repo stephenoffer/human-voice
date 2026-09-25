@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import re
 
-from .textutil import CODE_FENCE_RE, HEADING_LINE_RE, LIST_MARKER_RE, WORD_RE
+from ..text.markdown import CODE_FENCE_RE, HEADING_LINE_RE, LIST_MARKER_RE
+from ..text.tokens import WORD_RE
 
 # (register, weight, compiled pattern, human-readable reason[, min_hits])
 # `min_hits` defaults to 1. Set it to 2 on cues whose vocabulary appears

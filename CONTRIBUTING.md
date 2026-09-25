@@ -67,14 +67,25 @@ thresholds, category weights, and verdict bands from it.
 
 ## Adding a new linter check
 
-1. Write a `check_*` function in `scripts/human_voice_linter/checks.py` that
-   appends `Hit`s (and populates report metrics if useful). For source-accurate
-   columns on text whose geometry matches the file, build hits with `_span_hit`.
-2. Add its category to `DEFAULTS["category_weights"]` in `defaults.py` **and** to
-   `category_weights` in the patterns file (a stress-test drift guard fails if
-   they disagree). Add any threshold to `DEFAULTS["thresholds"]` too.
-3. Wire it into `analyze()` in `analyze.py`, reading thresholds via the local
-   `thr("key")` helper where relevant.
+Checks live in `scripts/human_voice_linter/checks/`, one class per tell, grouped
+by what they measure (`syntax.py`, `rhythm.py`, `punctuation.py` and so on). The
+module docstring of `checks/__init__.py` says which file owns what.
+
+1. Subclass a base from `core/check.py`. `Check` is the general case: set
+   `category` and implement `run(doc, ctx)`. Read the text from `doc` (the
+   `Document` holds the code-stripped source, the metric prose, the sentences and
+   a line map for each), write metrics to `ctx.report`, and emit findings with
+   `ctx.emit(self.hit(line, text, suggestion))`. Use `self.span_hit` for exact
+   columns when you matched against `doc.code_stripped`. If the tell is a rate,
+   `DensityCheck` (one document-level finding) or `RateCheck` (a finding per
+   instance, once the construction is a habit) already does the gating.
+2. Add its category to `DEFAULTS["category_weights"]` in `config/defaults.py`
+   **and** to `category_weights` in the patterns file (a stress-test drift guard
+   fails if they disagree). Add any threshold to `DEFAULTS["thresholds"]` too and
+   read it with `ctx.threshold("key")`, which applies register multipliers.
+3. Add an instance to `DEFAULT_CHECKS` in `checks/__init__.py`. The tuple is the
+   run order, and the order is part of the output: new checks go where they will
+   not reorder existing hits, which is usually the end of their group.
 4. Mute it by register in `register_mutes`/`muted_checks` if it doesn't apply
    everywhere (e.g. passive voice in academic prose).
 5. Add positive and negative tests. Confirm `examples/after.md` still scores
