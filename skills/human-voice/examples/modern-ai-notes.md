@@ -8,43 +8,52 @@ and fixing it is mostly a diction exercise.
 
 This pair starts from the harder case. `modern-ai-before.md` is what a current
 instruction-tuned model writes when nobody is caricaturing it. It is fluent, it
-takes a position, and it never reaches for a word from anyone's banned list. No
-em-dashes either. Every lexical check in the linter passes it, and it still reads
-machine-written. The four tells that do fire are all about shape.
+is about something real, and it never reaches for a word from anyone's banned
+list. No em-dashes either. Every lexical check in the linter passes it, and it
+still reads machine-written. The four tells that do fire are all about shape.
 
-Floor score 15.0 → 0.0. Words 251 → 207, down 18%. No fact changed.
+Floor score 15.0 → 0.0. Words 287 → 251, down 13%. No fact changed.
 
 ## What gave it away
 
 | Metric | Before | After | Target |
 |---|--:|--:|--:|
-| sentences ≤ 8 words | 0% | 31% | ≥ 12% |
-| sentences in the 12–26 word band | 85% | 25% | ≤ 72% |
-| sentence-length CoV | 0.29 | 0.67 | ≥ 0.40 |
-| paragraph-length CoV | 0.21 | 0.55 | ≥ 0.30 |
+| sentences ≤ 8 words | 0% | 15% | ≥ 12% |
+| sentences in the 12–26 word band | 73% | 31% | ≤ 72% |
+| sentence-length CoV | 0.31 | 0.56 | ≥ 0.40 |
+| paragraph-length CoV | 0.10 | 0.35 | ≥ 0.30 |
+| **mean sentence length** | **19.1** | **19.3** | **not a target** |
 
-Thirteen sentences in the original. The shortest runs twelve words and the
-longest twenty-eight, so eleven of the thirteen land in the same narrow band.
-Nothing in it is short. Every sentence sets up, qualifies and resolves at the
-tempo of the one before it, which is a rhythm no word list can see and no writer
-sustains for five paragraphs.
+Read the last row first, because it is the one that gets misunderstood. The
+rewrite does not write shorter sentences. Its average sentence is a word longer
+than the original's. Fifteen sentences in the before file run from nine words to
+twenty-nine, and eleven of them sit in the middle of that range, so the prose
+arrives at one tempo and stays there for five paragraphs. The after file runs
+from six words to forty-one. The long sentences got longer and carry more, two
+short ones land where the argument turns, and the mean did not move.
+
+Chasing the short-sentence count instead produces the opposite failure, which
+this directory also ships: see
+[`over-corrected-after.md`](over-corrected-after.md), where every sentence is a
+fragment and the result reads as machine-made as the thing it replaced.
 
 Three other things went.
 
-**The survey opening.** "The decision comes down to how well you understand the
-work you are asking for" frames the question instead of answering it. The rewrite
-opens with the answer: *Start with a contractor.*
+**The survey opening.** "The most common complaint about one-on-ones is that they
+turn into status meetings" reports on the discourse instead of telling you what to
+do. The rewrite opens with the rule: *Never let it become a status meeting, and
+never cancel it.*
 
-**The symmetrical concession.** "A contractor is faster to bring on and easier to
-stop, but their knowledge leaves when the invoice does" is the both-sides move,
-and the original runs it in every paragraph. Real judgment is lopsided. The
-rewrite keeps the objection, then says why three months is when it costs least.
+**The hedged recommendation.** "Asking for their items first and holding yours
+until the end is a reasonable compromise" is advice wearing a disclaimer. It
+became "Ask for their items first and keep yours until the end."
 
-**The fence.** A whole paragraph of the original says there is no universally
-correct answer and that both paths work. It contradicts the recommendation two
-paragraphs above it, which is what fence-sitting usually does. It is the only
-paragraph the rewrite deletes outright, and that deletion is the one edit here
-that needed the author's sign-off.
+**The fence.** A whole paragraph of the original says no single format works for
+everyone and that the right cadence depends on team size, seniority and shared
+context. It commits to nothing and it contradicts the four rules around it, which
+is what fence-sitting usually does. It is the only paragraph the rewrite deletes
+outright, and that deletion is the one edit here that needed the author's
+sign-off.
 
 ## The same procedure across twelve more
 
@@ -66,11 +75,11 @@ promised.
 
 ## What did not change
 
-A contractor starts fast and stops easily. Their knowledge of the product leaves
-with the invoice. A salary buys accumulated context and a role somebody has to
-manage. Three months. Brand, product surface and research as three different
-jobs. Re-briefing eats a growing share of a long engagement. Portfolios are
-selected work, so ask about the project that went badly. Every claim in the
-source survives, and nothing joined it. An earlier pass wrote that the contractor
-"was up to speed in March", a month the source never mentions and the writer
-never knew, and it was reverted.
+A status meeting wastes a slot both people agreed to protect. Spoken updates are
+slower than written ones. The conversations worth having are the ones that never
+reach a written update. Thirty minutes, recurring, never moved. Cancelling in a
+busy week cancels the week worth talking about. Your list crowds out theirs.
+Silence beats a question nobody cares about, and a year of the meeting is paid
+for by the few times it was already there. Every claim in the source survives,
+and nothing joined it. An earlier pass had the reader feeling the status meeting
+go wrong "by minute four", a number the source never gives, and it was reverted.

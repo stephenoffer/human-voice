@@ -3,51 +3,50 @@
 <text x="32" y="50" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="24" font-weight="700" fill="#1F2328" text-anchor="start">Same facts. Different rhythm.</text>
 <text x="32" y="76" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="14" font-weight="400" fill="#59636E" text-anchor="start">Words per sentence in a paragraph a current model wrote, before and after the rewrite. No filler in either.</text>
 <text x="64" y="110" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#1F2328" text-anchor="start">Before</text>
-<rect x="64" y="184.9" width="380" height="76.0" fill="#EDF0F3"/>
+<rect x="64" y="205.5" width="380" height="64.9" fill="#EDF0F3"/>
 <line x1="64" x2="444" y1="326.0" y2="326.0" stroke="#D1D9E0" stroke-width="1"/>
 <text x="56" y="330.0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">0</text>
-<line x1="64" x2="444" y1="260.9" y2="260.9" stroke="#D1D9E0" stroke-width="1" stroke-dasharray="3 4"/>
-<text x="56" y="264.8571428571429" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">12</text>
-<line x1="64" x2="444" y1="184.9" y2="184.9" stroke="#D1D9E0" stroke-width="1" stroke-dasharray="3 4"/>
-<text x="56" y="188.85714285714286" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">26</text>
-<rect x="68.5" y="244.6" width="14.7" height="81.4" rx="3" fill="#A5AEB8"/>
-<rect x="92.3" y="206.6" width="14.7" height="119.4" rx="3" fill="#A5AEB8"/>
-<rect x="116.0" y="179.4" width="14.7" height="146.6" rx="3" fill="#A5AEB8"/>
-<rect x="139.8" y="255.4" width="14.7" height="70.6" rx="3" fill="#A5AEB8"/>
-<rect x="163.5" y="195.7" width="14.7" height="130.3" rx="3" fill="#A5AEB8"/>
-<rect x="187.3" y="260.9" width="14.7" height="65.1" rx="3" fill="#A5AEB8"/>
-<rect x="211.0" y="260.9" width="14.7" height="65.1" rx="3" fill="#A5AEB8"/>
-<rect x="234.8" y="174.0" width="14.7" height="152.0" rx="3" fill="#A5AEB8"/>
-<rect x="258.5" y="217.4" width="14.7" height="108.6" rx="3" fill="#A5AEB8"/>
-<rect x="282.3" y="201.1" width="14.7" height="124.9" rx="3" fill="#A5AEB8"/>
-<rect x="306.0" y="239.1" width="14.7" height="86.9" rx="3" fill="#A5AEB8"/>
-<rect x="329.8" y="250.0" width="14.7" height="76.0" rx="3" fill="#A5AEB8"/>
-<rect x="353.5" y="190.3" width="14.7" height="135.7" rx="3" fill="#A5AEB8"/>
-<text x="64" y="356.0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="400" fill="#59636E" text-anchor="start">score 15.0 strong-tell  ·  under 9 words 0%  ·  12 to 26 band 85%</text>
+<line x1="64" x2="444" y1="270.4" y2="270.4" stroke="#D1D9E0" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="56" y="274.390243902439" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">12</text>
+<line x1="64" x2="444" y1="205.5" y2="205.5" stroke="#D1D9E0" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="56" y="209.5121951219512" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">26</text>
+<rect x="68.8" y="214.8" width="15.7" height="111.2" rx="3" fill="#A5AEB8"/>
+<rect x="94.1" y="224.0" width="15.7" height="102.0" rx="3" fill="#A5AEB8"/>
+<rect x="119.5" y="238.0" width="15.7" height="88.0" rx="3" fill="#A5AEB8"/>
+<rect x="144.8" y="200.9" width="15.7" height="125.1" rx="3" fill="#A5AEB8"/>
+<rect x="170.1" y="284.3" width="15.7" height="41.7" rx="3" fill="#A5AEB8"/>
+<rect x="195.5" y="219.4" width="15.7" height="106.6" rx="3" fill="#A5AEB8"/>
+<rect x="220.8" y="191.6" width="15.7" height="134.4" rx="3" fill="#A5AEB8"/>
+<rect x="246.1" y="270.4" width="15.7" height="55.6" rx="3" fill="#A5AEB8"/>
+<rect x="271.5" y="256.5" width="15.7" height="69.5" rx="3" fill="#A5AEB8"/>
+<rect x="296.8" y="279.7" width="15.7" height="46.3" rx="3" fill="#A5AEB8"/>
+<rect x="322.1" y="210.1" width="15.7" height="115.9" rx="3" fill="#A5AEB8"/>
+<rect x="347.5" y="265.8" width="15.7" height="60.2" rx="3" fill="#A5AEB8"/>
+<rect x="372.8" y="242.6" width="15.7" height="83.4" rx="3" fill="#A5AEB8"/>
+<rect x="398.1" y="238.0" width="15.7" height="88.0" rx="3" fill="#A5AEB8"/>
+<rect x="423.5" y="224.0" width="15.7" height="102.0" rx="3" fill="#A5AEB8"/>
+<text x="64" y="356.0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="400" fill="#59636E" text-anchor="start">score 15.0 strong-tell  ·  under 9 words 0%  ·  12 to 26 band 73%</text>
 <text x="476" y="110" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#1F2328" text-anchor="start">After</text>
-<rect x="476" y="184.9" width="380" height="76.0" fill="#EDF0F3"/>
+<rect x="476" y="205.5" width="380" height="64.9" fill="#EDF0F3"/>
 <line x1="476" x2="856" y1="326.0" y2="326.0" stroke="#D1D9E0" stroke-width="1"/>
 <text x="468" y="330.0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">0</text>
-<line x1="476" x2="856" y1="260.9" y2="260.9" stroke="#D1D9E0" stroke-width="1" stroke-dasharray="3 4"/>
-<text x="468" y="264.8571428571429" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">12</text>
-<line x1="476" x2="856" y1="184.9" y2="184.9" stroke="#D1D9E0" stroke-width="1" stroke-dasharray="3 4"/>
-<text x="468" y="188.85714285714286" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">26</text>
-<rect x="480.5" y="304.3" width="14.7" height="21.7" rx="3" fill="#4F46E5"/>
-<rect x="504.3" y="288.0" width="14.7" height="38.0" rx="3" fill="#4F46E5"/>
-<rect x="528.0" y="271.7" width="14.7" height="54.3" rx="3" fill="#4F46E5"/>
-<rect x="551.8" y="201.1" width="14.7" height="124.9" rx="3" fill="#4F46E5"/>
-<rect x="575.5" y="271.7" width="14.7" height="54.3" rx="3" fill="#4F46E5"/>
-<rect x="599.3" y="163.1" width="14.7" height="162.9" rx="3" fill="#4F46E5"/>
-<rect x="623.0" y="277.1" width="14.7" height="48.9" rx="3" fill="#4F46E5"/>
-<rect x="646.8" y="304.3" width="14.7" height="21.7" rx="3" fill="#4F46E5"/>
-<rect x="670.5" y="163.1" width="14.7" height="162.9" rx="3" fill="#4F46E5"/>
-<rect x="694.3" y="315.1" width="14.7" height="10.9" rx="3" fill="#4F46E5"/>
-<rect x="718.0" y="250.0" width="14.7" height="76.0" rx="3" fill="#4F46E5"/>
-<rect x="741.8" y="266.3" width="14.7" height="59.7" rx="3" fill="#4F46E5"/>
-<rect x="765.5" y="266.3" width="14.7" height="59.7" rx="3" fill="#4F46E5"/>
-<rect x="789.3" y="298.9" width="14.7" height="27.1" rx="3" fill="#4F46E5"/>
-<rect x="813.0" y="260.9" width="14.7" height="65.1" rx="3" fill="#4F46E5"/>
-<rect x="836.8" y="201.1" width="14.7" height="124.9" rx="3" fill="#4F46E5"/>
-<text x="476" y="356.0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="400" fill="#59636E" text-anchor="start">score 0.0 clean  ·  under 9 words 31%  ·  12 to 26 band 25%</text>
+<line x1="476" x2="856" y1="270.4" y2="270.4" stroke="#D1D9E0" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="468" y="274.390243902439" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">12</text>
+<line x1="476" x2="856" y1="205.5" y2="205.5" stroke="#D1D9E0" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="468" y="209.5121951219512" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11" font-weight="400" fill="#59636E" text-anchor="end">26</text>
+<rect x="480.8" y="288.9" width="15.7" height="37.1" rx="3" fill="#4F46E5"/>
+<rect x="506.1" y="275.0" width="15.7" height="51.0" rx="3" fill="#4F46E5"/>
+<rect x="531.5" y="242.6" width="15.7" height="83.4" rx="3" fill="#4F46E5"/>
+<rect x="556.8" y="177.7" width="15.7" height="148.3" rx="3" fill="#4F46E5"/>
+<rect x="582.1" y="228.7" width="15.7" height="97.3" rx="3" fill="#4F46E5"/>
+<rect x="607.5" y="265.8" width="15.7" height="60.2" rx="3" fill="#4F46E5"/>
+<rect x="632.8" y="238.0" width="15.7" height="88.0" rx="3" fill="#4F46E5"/>
+<rect x="658.1" y="182.3" width="15.7" height="143.7" rx="3" fill="#4F46E5"/>
+<rect x="683.5" y="298.2" width="15.7" height="27.8" rx="3" fill="#4F46E5"/>
+<rect x="708.8" y="182.3" width="15.7" height="143.7" rx="3" fill="#4F46E5"/>
+<rect x="734.1" y="275.0" width="15.7" height="51.0" rx="3" fill="#4F46E5"/>
+<rect x="759.5" y="284.3" width="15.7" height="41.7" rx="3" fill="#4F46E5"/>
+<rect x="784.8" y="136.0" width="15.7" height="190.0" rx="3" fill="#4F46E5"/>
+<text x="476" y="356.0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="400" fill="#59636E" text-anchor="start">score 0.0 clean  ·  under 9 words 15%  ·  12 to 26 band 31%</text>
 <text x="848" y="378" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400" fill="#59636E" text-anchor="end">Shaded: the 12 to 26 word band model prose collapses into. Source: skills/human-voice/examples/modern-ai-*.md</text>
 </svg>

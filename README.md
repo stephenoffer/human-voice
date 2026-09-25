@@ -38,10 +38,11 @@ and four more agents, or any major model through a plain API key.
 
 ## See it work
 
-Five paragraphs of hiring advice, written by a current model. No filler in it and
-not one em-dash, so every word check in the linter passes. Read the sentence
-lengths instead. Thirteen sentences, the shortest twelve words and the longest
-twenty-eight, which puts eleven of them in the same narrow band. Nothing lands.
+Five paragraphs on running one-on-ones, written by a current model. No filler in
+it and not one em-dash, so every word check in the linter passes. Read the
+sentence lengths instead. Fifteen sentences running from nine words to
+twenty-nine, eleven of them in the middle of that range, one tempo held for five
+paragraphs. Nothing lands.
 
 <table>
 <tr>
@@ -50,18 +51,20 @@ twenty-eight, which puts eleven of them in the same narrow band. Nothing lands.
 </tr>
 <tr>
 <td valign="top">
-<p>The decision comes down to how well you understand the work you are asking for. A contractor is faster to bring on and easier to stop, but their knowledge of your product leaves when the invoice does. A full-time designer builds that knowledge over months, at the cost of a salary you have to keep paying and a role that somebody has to manage.</p>
-<p>For a first design hire, a contractor is usually the safer starting point. You do not yet know whether the work is brand, product surface, or research, and hiring against the wrong description is expensive to undo.</p>
+<p>The most common complaint about one-on-ones is that they turn into status meetings, which wastes a slot that both people already agreed to protect. A written update can be read at any time, so asking for it out loud converts a document into a slower document. The conversations that justify the meeting are the ones that would never appear in a written update at all.</p>
+<p>Consistency matters more than any particular agenda, because a recurring thirty minutes that never moves builds the expectation that there will be a place to raise something.</p>
 </td>
 <td valign="top">
-<p>Start with a contractor. Three months, one project, no job description.</p>
-<p>You do not yet know what you are hiring for. Brand work, product surface and research are three different people, and a job description written before you find out is expensive to undo. A contractor is quick to start and easy to stop. Their knowledge of your product leaves when the invoice does, which is the real objection to hiring one, but three months in there is not much of it to lose.</p>
+<p>Two rules cover most of what goes wrong. Never let it become a status meeting, and never cancel it.</p>
+<p>The status version is the easier failure to notice, because you can feel it while it is happening. You are asking somebody to say out loud what they already wrote down, which converts a document into a slower document, and neither of you agreed to protect the slot for that. The conversations that justify the half hour are the ones that would never have appeared in a written update at all.</p>
 </td>
 </tr>
 </table>
 
-The verdict moved to the front and a paragraph of fence-sitting went. The rewrite
-runs 207 words against 251, and no fact changed. Scores are for the whole
+The rule moved to the front and a paragraph of fence-sitting went. Note what did
+not happen: the rewrite is not written in shorter sentences. Its mean sentence
+runs 19.3 words against the original's 19.1. The long ones got longer and the
+spread opened up, which is the part a reader hears. Scores are for the whole
 document each excerpt comes from
 ([before](skills/human-voice/examples/modern-ai-before.md),
 [after](skills/human-voice/examples/modern-ai-after.md)), and the edit that
@@ -70,7 +73,7 @@ earned them is one no word list can see:
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/rhythm-dark.svg">
-    <img alt="Sentence lengths of the full example before and after. Before, every sentence falls between 12 and 28 words and 85% sit in the 12 to 26 word band. After, lengths run from 2 to 30 words and 31% are under 9 words." src="docs/assets/rhythm-light.svg" width="100%">
+    <img alt="Sentence lengths of the full example before and after. Before, every sentence falls between 9 and 29 words and 73% sit in the 12 to 26 word band. After, lengths run from 6 to 41 words and only 31% stay in that band." src="docs/assets/rhythm-light.svg" width="100%">
   </picture>
 </p>
 

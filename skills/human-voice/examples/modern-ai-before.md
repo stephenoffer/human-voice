@@ -1,11 +1,11 @@
-# Contractor or full-time hire for the design work
+# Making one-on-ones worth the half hour
 
-The decision comes down to how well you understand the work you are asking for. A contractor is faster to bring on and easier to stop, but their knowledge of your product leaves when the invoice does. A full-time designer builds that knowledge over months, at the cost of a salary you have to keep paying and a role that somebody has to manage.
+The most common complaint about one-on-ones is that they turn into status meetings, which wastes a slot that both people already agreed to protect. A written update can be read at any time, so asking for it out loud converts a document into a slower document. The conversations that justify the meeting are the ones that would never appear in a written update at all.
 
-For a first design hire, a contractor is usually the safer starting point. You do not yet know whether the work is brand, product surface, or research, and hiring against the wrong description is expensive to undo. A three-month engagement tells you which of those the team actually needed.
+Consistency matters more than any particular agenda, because a recurring thirty minutes that never moves builds the expectation that there will be a place to raise something. That expectation is what eventually makes people raise it. Cancelling when the week gets busy sends the opposite signal, since the weeks that get cancelled are usually the weeks worth talking about.
 
-The case for a full-time hire strengthens as the work becomes continuous. When design questions arrive weekly rather than in projects, a contractor spends a growing share of the engagement being re-briefed, and the quality of the work drops accordingly. At that point a salary buys something an hourly rate cannot, because accumulated context compounds and re-explaining it does not.
+The agenda itself should belong to the person you are meeting, because arriving with your own list every week turns the conversation into another channel for handing out work. The other person gradually stops bringing anything of their own to it. Asking for their items first and holding yours until the end is a reasonable compromise.
 
-There is no universally correct answer here, and the tradeoff shifts with your runway, your hiring capacity, and the maturity of the product. Both paths can produce good design work, and plenty of teams have succeeded with either one.
+No single format works for every manager and every report. The right cadence depends on the size of the team, the seniority of the person, and how much context the two of you already share. Both people need to come away feeling that the time was well spent.
 
-One caveat worth naming: portfolios are selected work, shown in the best possible light. Ask about the project that went badly and what the designer would do differently now, and weigh that answer more heavily than the case study.
+Silence is not a failure either, and some weeks there is genuinely nothing that needs to be discussed. Letting a quiet minute sit is better than filling it with a question that neither person actually cares about. What keeps the meeting valuable over a year is the handful of times it was already there when something did come up.
