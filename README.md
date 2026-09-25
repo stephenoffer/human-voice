@@ -15,19 +15,20 @@
 
 <p align="center">
   <a href="#see-it-work">See it work</a> ·
-  <a href="#why-its-different">Why it's different</a> ·
+  <a href="#how-it-works">How it works</a> ·
   <a href="#proof">Proof</a> ·
   <a href="#get-started">Get started</a> ·
+  <a href="#why-its-different">Why it's different</a> ·
   <a href="docs/README.md">Docs</a>
 </p>
 
 Readers can tell when a machine wrote something. The giveaway stopped being
-"delve" a while ago. A current model writes fluent prose with no filler at all,
-and it still reads machine-made, because its sentences all land in the same
-length band and its documents come out shaped like chat answers.
+"delve" a while ago. A current model writes fluent prose with no filler in it at
+all, and the writing still reads machine-made, because its sentences all land in
+the same length band and its documents come out shaped like chat answers.
 
-**human-voice** rewrites for what actually gives AI away. It fixes shape and
-rhythm first, substance next, word choice last. Every number, link, code span and
+**human-voice** goes after the tells that survive a good model. Shape and rhythm
+first, substance next, word choice last. Every number, link, code span and
 citation gets checked against your source, so a rewrite can't quietly change a
 fact. When a draft needs a specific it doesn't have, you get `[SOURCE NEEDED]`,
 never an invented one.
@@ -37,8 +38,10 @@ and four more agents, or any major model through a plain API key.
 
 ## See it work
 
-A paragraph from a real model. No filler, no hedging, not one em-dash, and it
-still reads machine-made:
+Five paragraphs of hiring advice, written by a current model. No filler in it and
+not one em-dash, so every word check in the linter passes. Read the sentence
+lengths instead. Thirteen sentences, the shortest twelve words and the longest
+twenty-eight, which puts eleven of them in the same narrow band. Nothing lands.
 
 <table>
 <tr>
@@ -46,106 +49,68 @@ still reads machine-made:
 <th width="50%" align="left">After &nbsp;·&nbsp; <code>0.0 clean</code></th>
 </tr>
 <tr>
-<td valign="top">For most teams under ten million vectors, pgvector is the right starting point. You already have backups, monitoring, and access control for Postgres. Adding a second stateful system is a real cost that tends to get underestimated during the prototype phase, when the dataset is small and everything is fast.</td>
-<td valign="top">Start with pgvector. Under about ten million vectors it wins, and the reason has nothing to do with recall benchmarks: it is the database you already back up, already monitor, already have access control for. A second stateful system is a cost that arrives months after the prototype, when the dataset is small and every query is fast and nobody is thinking about it.</td>
+<td valign="top">
+<p>The decision comes down to how well you understand the work you are asking for. A contractor is faster to bring on and easier to stop, but their knowledge of your product leaves when the invoice does. A full-time designer builds that knowledge over months, at the cost of a salary you have to keep paying and a role that somebody has to manage.</p>
+<p>For a first design hire, a contractor is usually the safer starting point. You do not yet know whether the work is brand, product surface, or research, and hiring against the wrong description is expensive to undo.</p>
+</td>
+<td valign="top">
+<p>Start with a contractor. Three months, one project, no job description.</p>
+<p>You do not yet know what you are hiring for. Brand work, product surface and research are three different people, and a job description written before you find out is expensive to undo. A contractor is quick to start and easy to stop. Their knowledge of your product leaves when the invoice does, which is the real objection to hiring one, but three months in there is not much of it to lose.</p>
+</td>
 </tr>
 </table>
 
-The verdict moved to the front. Nothing was invented. The scores are for the
-whole document each excerpt comes from
+The verdict moved to the front and a paragraph of fence-sitting went. The rewrite
+runs 207 words against 251, and no fact changed. Scores are for the whole
+document each excerpt comes from
 ([before](skills/human-voice/examples/modern-ai-before.md),
-[after](skills/human-voice/examples/modern-ai-after.md)), and the change that
+[after](skills/human-voice/examples/modern-ai-after.md)), and the edit that
 earned them is one no word list can see:
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/rhythm-dark.svg">
-    <img alt="Sentence lengths of the full example before and after. Before, every sentence falls between 10 and 29 words and 73% sit in the 12 to 26 word band. After, lengths run from 3 to 32 words and 42% are under 9 words." src="docs/assets/rhythm-light.svg" width="100%">
+    <img alt="Sentence lengths of the full example before and after. Before, every sentence falls between 12 and 28 words and 85% sit in the 12 to 26 word band. After, lengths run from 2 to 30 words and 31% are under 9 words." src="docs/assets/rhythm-light.svg" width="100%">
   </picture>
 </p>
 
 <details>
-<summary><b>Another example: an email with the ask buried in paragraph three</b></summary>
+<summary><b>A second case: a design doc where the sentences were never the problem</b></summary>
 <br>
 
-<!-- human-voice: ignore-start -->
+Ask a model for a design document and it fills an outline. Every heading gets
+prose whether or not anything is known about it. You could rewrite every sentence
+of this rate-limiter draft and still ship the same broken document, because the
+damage is in the shape: nine headings covering two ideas, three of them parked
+over six words apiece.
 
-<table>
-<tr>
-<th width="50%" align="left">Before &nbsp;·&nbsp; <code>66.0 strong-tell</code></th>
-<th width="50%" align="left">After &nbsp;·&nbsp; <code>0.0 clean</code></th>
-</tr>
-<tr>
-<td valign="top">
-<p>Subject: Touching Base re: Synergizing Our Q3 Deliverables</p>
-<p>Hi team,</p>
-<p>I hope this email finds you well! I wanted to circle back and touch base regarding our ongoing efforts to operationalize the Q3 roadmap. As we navigate this ever-evolving landscape, it's important to note that cross-functional alignment will be crucial to moving the needle on our key deliverables.</p>
-<p>Furthermore, I believe we have a real opportunity to leverage our synergies and unlock some low-hanging fruit here. Moreover, it's worth noting that taking a holistic, best-in-class approach to our workflows could really empower the team to deliver actionable, high-impact results that drive value for all stakeholders.</p>
-<p>Additionally, I think it would be mission-critical for us to align on next steps. Could we possibly find some time to sync and ideate on a path forward? I'm thinking maybe sometime next week if that works for everyone's schedule, but I'm flexible and happy to work around whatever is most convenient.</p>
-<p>Looking forward to connecting and driving this forward together!</p>
-<p>Best regards,<br>Jordan</p>
-</td>
-<td valign="top">
-<p>Subject: 30 min next week to lock Q3 priorities?</p>
-<p>Hi team,</p>
-<p>We still haven't agreed on the top three Q3 deliverables. Engineering needs that list before they can plan sprints. Can we meet for 30 minutes next week to settle it?</p>
-<p>I'm free Tuesday or Wednesday afternoon. If neither works, send me a couple of slots and I'll make one fit.</p>
-<p>Before the call, it would help if each of you brought your one must-ship item for the quarter. We can sort priority from there.</p>
-<p>Thanks,<br>Jordan</p>
-</td>
-</tr>
-</table>
+| Section in the draft | Words | What the structure pass did with it |
+|---|--:|---|
+| Overview | 51 | Folded into the opening. It said what the Summary said. |
+| Background | 67 | Promoted to the first paragraph. A reviewer has to believe the problem first. |
+| What is Rate Limiting? | 63 | Cut. Anyone reading a Lua sliding-window design knows. |
+| Design | 166 | Split by what a reviewer asks next: how a request is counted, then what it costs. |
+| Scalability | 124 | Two claims were only here, so they moved. The other 100-odd words say the design scales. |
+| Security · Testing · Rollout | 6 each | Kept and flagged. Nobody may invent the plan behind them. |
+| Summary | 58 | Cut. It restated the Overview, which restated the title. |
 
-<!-- human-voice: ignore-end -->
+547 words became 304. Every commitment survived, including the three that have
+nothing behind them:
 
-The ask moved to the subject line. The rewrite runs 87 words against 169, and it
-adds one thing the draft never had: what to bring to the meeting.
+> Three commitments have no detail behind them yet. Access to Redis will be
+> restricted. The limiter will be tested. Rollout will be gradual. This document
+> doesn't yet say how for any of them. `[OWNER NEEDED]`
+
+Deleting those three stubs would have scored exactly as well and thrown away
+three things the author promised. A structure pass never makes that call on its
+own. The section map and the claim diff are in the
+[notes](skills/human-voice/examples/architecture-notes.md), along with the
+earlier draft of this rewrite that got it wrong.
 
 </details>
 
-Ten pairs across genres, from landing pages to design docs, each with live scores:
-**[docs/examples.md](docs/examples.md)**.
-
-## Why it's different
-
-Three kinds of tool get lumped together here. None of them does this job.
-
-<!-- human-voice: ignore-start formatting -->
-
-| | human-voice | Humanizer apps | Prose linters | AI detectors |
-|---|:-:|:-:|:-:|:-:|
-| Rewrites the text | ✓ | ✓ | ✗ | ✗ |
-| Fixes structure and rhythm, not just words | ✓ | ◐ | ✗ | ✗ |
-| Proves numbers, links and citations survived | ✓ | ✗ | ✗ | ✗ |
-| Marks a missing fact instead of inventing one | ✓ | ✗ | ✗ | ✗ |
-| Never uses homoglyphs, typos or synonym mangling | ✓ | ◐ | ✓ | ✓ |
-| Writes to the genre: docs, marketing, email, fiction | ✓ | ◐ | ◐ | ✗ |
-| Works with your model and your agent | ✓ | ✗ | ✓ | ✗ |
-| Open source, free, runs offline | ✓ | ✗ | ✓ | ✗ |
-| Published eval on prose a current model writes | ✓ | ✗ | ✗ | ◐ |
-
-<!-- human-voice: ignore-end -->
-
-✓ yes · ◐ partly or sometimes · ✗ no
-
-**Humanizer apps sell a bypass rate.** When one detector vendor tested 19 of
-them, five were caught every time. The ones that slip through do it by damaging
-the text: odd synonyms, invisible characters, planted typos. That damage is its
-own fingerprint, and the reader pays for it. human-voice has no bypass rate to
-sell. It makes the prose better, which is the only version of the goal that lasts.
-
-**Prose linters nitpick sentences.** proselint, write-good, Vale and Hemingway
-catch weak words and long sentences. None has a theory of what gives a model
-away, and none rewrites. human-voice ships a linter too (68 checks, zero
-dependencies, ready for CI), but the linter is the floor, not the product.
-
-**Detectors only judge.** They can't fix anything, and they misfire on careful
-non-native writers. human-voice treats a detector as a gate, never as ground
-truth. Point it at GPTZero, Originality, Sapling or Winston and the rewrite loops
-until the text clears or stops improving.
-
-The full survey covers about a hundred tools and papers, including what got
-tested and thrown out: [docs/comparison.md](docs/comparison.md).
+Ten pairs across genres, from landing pages to academic papers, each scored
+live: **[docs/examples.md](docs/examples.md)**.
 
 ## How it works
 
@@ -161,16 +126,16 @@ leaves behind, which is formatting habits and reply-shaped structure. Base model
 that never went through it pass as human more than 96% of the time. So the
 rewrite strips the assistant shape first: the heading every eighty words, the
 bulleted answer, the "Key takeaways" close. Then it fixes the sentence-length
-distribution. Diction comes last, because swapping "delve" for "explore" barely
+distribution. Diction comes last, because swapping "leverage" for "use" barely
 moves anything. More in [docs/evidence.md](docs/evidence.md).
 
-Longer documents get a structure pass before any sentence is touched. An agent
-fills an outline to quota, so its overview comes back as the summary, the easy
-section runs four hundred words while rollback gets one line, and one section
-quotes config keys while the next could describe any system. The pass maps what
-each section says, merges repeats, weighs sections by what a reviewer will ask,
-and holds one depth throughout. It never deletes a claim that appears only once
-without asking you first.
+Longer documents get a structure pass before a single sentence is touched. An
+agent fills an outline to quota, so its overview comes back as the summary, the
+easy section runs four hundred words while rollback gets one line, and one
+section quotes config keys where the next could describe any system at all. The
+pass maps what each section says, merges the repeats, weighs sections by what a
+reviewer will ask, and holds one depth throughout. A claim that appears in only
+one place is never deleted without asking you first.
 
 Genre comes first too. A technical report stays professional and a landing page
 talks to "you". Ten register profiles share one core of tells that get fixed
@@ -187,9 +152,9 @@ everywhere.
 
 The chart is generated from the committed eval output, and CI fails if those
 metrics drift. The classifiers run locally on open models, with nothing sent
-anywhere. The honest limits: n is small, the corpus has one author,
-and no tool can promise a text is undetectable. This one checks instead of
-promising. Details and caveats: [docs/evidence.md](docs/evidence.md).
+anywhere. The honest limits: n is small, the corpus has one author, and no tool
+can promise a text is undetectable. This one checks instead of promising. Details
+and caveats: [docs/evidence.md](docs/evidence.md).
 
 ## Get started
 
@@ -239,6 +204,47 @@ python3 skills/human-voice/scripts/detect_ai_prose.py --register auto --recursiv
 **[The getting-started guide](docs/getting-started.md)** walks through all three,
 including a GitHub Actions workflow that annotates pull requests. MCP clients,
 chat apps and all seventeen providers are in [docs/install.md](docs/install.md).
+
+## Why it's different
+
+Three kinds of tool get lumped together here. None of them does this job.
+
+<!-- human-voice: ignore-start formatting -->
+
+| | human-voice | Humanizer apps | Prose linters | AI detectors |
+|---|:-:|:-:|:-:|:-:|
+| Rewrites the text | ✓ | ✓ | ✗ | ✗ |
+| Fixes structure and rhythm, not just words | ✓ | ◐ | ✗ | ✗ |
+| Proves numbers, links and citations survived | ✓ | ✗ | ✗ | ✗ |
+| Marks a missing fact instead of inventing one | ✓ | ✗ | ✗ | ✗ |
+| Never uses homoglyphs, typos or synonym mangling | ✓ | ◐ | ✓ | ✓ |
+| Writes to the genre: docs, marketing, email, fiction | ✓ | ◐ | ◐ | ✗ |
+| Works with your model and your agent | ✓ | ✗ | ✓ | ✗ |
+| Open source, free, runs offline | ✓ | ✗ | ✓ | ✗ |
+| Published eval on prose a current model writes | ✓ | ✗ | ✗ | ◐ |
+
+<!-- human-voice: ignore-end -->
+
+✓ yes · ◐ partly or sometimes · ✗ no
+
+**Humanizer apps sell a bypass rate.** When one detector vendor tested 19 of
+them, five were caught every time. The ones that slip through do it by damaging
+the text: odd synonyms, invisible characters, planted typos. That damage is its
+own fingerprint, and the reader pays for it. human-voice has no bypass rate to
+sell. It makes the prose better, which is the only version of the goal that lasts.
+
+**Prose linters nitpick sentences.** proselint, write-good, Vale and Hemingway
+catch weak words and long sentences. None has a theory of what gives a model
+away, and none rewrites. human-voice ships a linter too (68 checks, zero
+dependencies, ready for CI), but the linter is the floor, not the product.
+
+**Detectors only judge.** They can't fix anything, and they misfire on careful
+non-native writers. human-voice treats a detector as a gate, never as ground
+truth. Point it at GPTZero, Originality, Sapling or Winston and the rewrite loops
+until the text clears or stops improving.
+
+The full survey covers about a hundred tools and papers, including what got
+tested and thrown out: [docs/comparison.md](docs/comparison.md).
 
 ## What it won't do
 

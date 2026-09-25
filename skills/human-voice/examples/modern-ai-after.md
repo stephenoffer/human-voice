@@ -1,20 +1,11 @@
-# Choosing a vector store for retrieval
+# Contractor or full-time hire for the design work
 
-Start with pgvector. Under about ten million vectors it wins, and the reason has
-nothing to do with recall benchmarks: it is the database you already back up,
-already monitor, already have access control for. A second stateful system is a cost that arrives
-months after the prototype, when the dataset is small and every query is fast and
-nobody is thinking about it.
+Start with a contractor. Three months, one project, no job description.
 
-What you give up is real. You tune HNSW parameters yourself. Recall falls off
-once the index outgrows working memory, and it falls off quietly.
+You do not yet know what you are hiring for. Brand work, product surface and research are three different people, and a job description written before you find out is expensive to undo. A contractor is quick to start and easy to stop. Their knowledge of your product leaves when the invoice does, which is the real objection to hiring one, but three months in there is not much of it to lose.
 
-The argument flips on filtering. Combine vector similarity with several
-metadata predicates and the planner starts choosing a sequential scan over the
-index. Latency stops being a number you can quote. Dedicated engines design
-pre-filtering into the index instead of bolting it on afterward, and that is
-where they earn the operational cost.
+Hire full-time when the questions stop arriving as projects. That is the tell. Once design work shows up weekly, more and more of the engagement goes into re-briefing somebody who was already up to speed once, and the work gets worse in proportion. Context compounds. Re-explaining it does not, and a salary is what you pay to stop re-explaining.
 
-Vendor benchmarks measure recall on datasets chosen to flatter the vendor's
-index. Run your own embeddings through your own queries, watch the tail rather
-than the mean, and decide from that.
+A salary also buys a role that somebody has to manage. That cost sits outside the comparison and it never goes away.
+
+One more thing about portfolios. They are selected work, shown in the best light anyone could arrange. Ask about the project that went badly and what the designer would do differently now, and weigh that answer over the case study.

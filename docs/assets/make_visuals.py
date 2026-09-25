@@ -131,7 +131,8 @@ def rhythm(t):
             text(32, 50, "Same facts. Different rhythm.", size=24, weight=700, t=t),
             text(32, 76, "Words per sentence in a paragraph a current model wrote, before and after "
                  "the rewrite. No filler in either.", size=14, fill="muted", t=t)]
-    top, plot_h, ymax = 116, 190, 35
+    top, plot_h = 116, 190
+    ymax = max(35, max(before + after))
 
     def panel(x0, lengths, res, color, label):
         pw = 380
